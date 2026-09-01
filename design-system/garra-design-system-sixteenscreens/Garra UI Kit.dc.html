@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+body{margin:0;background:#101012;font-family:-apple-system,'SF Pro Display','SF Pro Text','Helvetica Neue',Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#F5F5F7;text-decoration:none}a:hover{color:#fff}
+@keyframes garraHello{0%{opacity:1;transform:none}26%{opacity:1;transform:none}36%{opacity:0;transform:translateY(-10px)}100%{opacity:0;transform:translateY(-10px)}}
+@keyframes garraReveal{0%,34%{opacity:0;transform:translateY(12px)}48%{opacity:1;transform:none}100%{opacity:1;transform:none}}
+@keyframes garraPulse{0%{transform:scale(1);opacity:.55}70%{transform:scale(2.1);opacity:0}100%{transform:scale(2.1);opacity:0}}
+</style>
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+</helmet>
+<section id="1a" style="padding:96px 80px 120px;display:flex;flex-direction:column;gap:80px">
+  <div style="display:flex;flex-direction:column;gap:18px;max-width:760px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.45);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:5px 9px">1a</div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.35)">Garra · iPhone UI kit · 390 × 844</div>
+    </div>
+    <div style="font-size:46px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7;line-height:1.05">Chrome is neutral.<br>Data is loud.</div>
+    <div style="font-size:17px;line-height:1.5;color:rgba(255,255,255,.45);max-width:560px;text-wrap:pretty">Eighteen screens for a finite, time-boxed goal tracker. Every commitment lives inside an Arc with a real end date. Chrome stays greyscale — all the color belongs to the charts: indigo for the arc itself, one accent per goal.</div>
+    <div style="display:flex;gap:10px;margin-top:10px">
+      <div style="width:34px;height:34px;border-radius:8px;background:#FF6B5A"></div>
+      <div style="width:34px;height:34px;border-radius:8px;background:#FFB020"></div>
+      <div style="width:34px;height:34px;border-radius:8px;background:#9BD64A"></div>
+      <div style="width:34px;height:34px;border-radius:8px;background:#22C7B4"></div>
+      <div style="width:34px;height:34px;border-radius:8px;background:#4FA8FF"></div>
+      <div style="width:34px;height:34px;border-radius:8px;background:#5B6CFF"></div>
+      <div style="width:34px;height:34px;border-radius:8px;background:#9B6BFF"></div>
+      <div style="width:34px;height:34px;border-radius:8px;background:#FF5C8A"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3)">Onboarding — five steps to a live arc</div>
+    <div style="display:flex;flex-wrap:wrap;gap:56px">
+
+      <div data-screen-label="01 Welcome" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:center;padding:0 28px">
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;animation:garraHello 9s ease-in-out infinite">
+              <div style="font-size:56px;font-weight:600;letter-spacing:-.045em;color:#F5F5F7;line-height:1">hello.</div>
+              <div style="font-size:17px;color:rgba(255,255,255,.45)">let's make this one count</div>
+            </div>
+            <div style="animation:garraReveal 9s ease-in-out infinite">
+              <div style="position:relative;height:190px">
+                <svg width="334" height="190" viewBox="0 0 334 190" fill="none">
+                  <path d="{{ onbArc.path }}" stroke="rgba(255,255,255,0.09)" stroke-width="14" stroke-linecap="round"></path>
+                  <path d="{{ onbArc.path }}" stroke="#5B6CFF" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ onbArc.dash }}"></path>
+                  <circle cx="{{ onbArc.dx }}" cy="{{ onbArc.dy }}" r="11" fill="#0A0A0B"></circle>
+                  <circle cx="{{ onbArc.dx }}" cy="{{ onbArc.dy }}" r="7" fill="#5B6CFF"></circle>
+                </svg>
+                <div style="position:absolute;left:0;right:0;top:96px;display:flex;flex-direction:column;align-items:center;gap:8px">
+                  <div style="font-size:44px;font-weight:600;letter-spacing:-.04em;color:#F5F5F7;line-height:1">122</div>
+                  <div style="font-size:11px;font-weight:600;letter-spacing:.14em;white-space:nowrap;color:rgba(255,255,255,.4)">DAYS IN AN ARC</div>
+                </div>
+              </div>
+              <div style="margin-top:52px;display:flex;flex-direction:column;gap:16px">
+                <div style="font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.2;color:#F5F5F7;text-wrap:pretty">Every good run has a finish line.</div>
+                <div style="font-size:16px;line-height:1.5;color:rgba(255,255,255,.45);text-wrap:pretty">Garra puts each goal inside an Arc — a window with a real end date — then tells you whether you'll make it. No streaks to protect forever.</div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 28px 12px;display:flex;flex-direction:column;align-items:center;gap:22px;animation:garraReveal 9s ease-in-out infinite">
+            <div style="display:flex;gap:7px"><div style="width:7px;height:7px;border-radius:4px;background:#F5F5F7"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div></div>
+            <div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center">Build my arc</div>
+            <div style="font-size:15px;white-space:nowrap;color:rgba(255,255,255,.4);margin-top:-8px">I already have an account</div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">01 · Welcome — "hello." fades into the arc hook (looping)</div>
+      </div>
+
+      <div data-screen-label="02 Your name" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:0 28px;gap:40px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">STEP 1 OF 4</div>
+              <div style="font-size:30px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">What should we call you?</div>
+              <div style="font-size:16px;line-height:1.5;color:rgba(255,255,255,.45)">Only shows up in your Sunday Reset and your Finale.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:center;gap:3px">
+                <div style="font-size:36px;font-weight:600;letter-spacing:-.035em;color:#F5F5F7">Austin</div>
+                <div style="width:2px;height:38px;border-radius:2px;background:#5B6CFF"></div>
+              </div>
+              <div style="height:1px;background:rgba(255,255,255,.14)"></div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 28px 14px;display:flex;flex-direction:column;align-items:center;gap:20px">
+            <div style="display:flex;gap:7px"><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:#F5F5F7"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div></div>
+            <div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center">Continue</div>
+          </div>
+          <div style="flex:none;background:#141416;border-top:1px solid rgba(255,255,255,.06);padding:10px 4px 8px;display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ keyRows }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:center;gap:6px;padding:0 {{ r.pad }}">
+                <sc-for list="{{ r.keys }}" as="k" hint-placeholder-count="10">
+                  <div style="flex:1;height:42px;border-radius:6px;background:rgba(255,255,255,.11);display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:400;color:#F5F5F7">{{ k }}</div>
+                </sc-for>
+              </div>
+            </sc-for>
+            <div style="display:flex;gap:6px;align-items:center">
+              <div style="width:66px;height:42px;border-radius:6px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(255,255,255,.55)">123</div>
+              <div style="flex:1;height:42px;border-radius:6px;background:rgba(255,255,255,.11)"></div>
+              <div style="width:88px;height:42px;border-radius:6px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(255,255,255,.55)">return</div>
+            </div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">02 · Name</div>
+      </div>
+
+      <div data-screen-label="03 What you keep putting off" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:34px 28px 0;gap:36px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">STEP 2 OF 4</div>
+              <div style="font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.2;color:#F5F5F7;text-wrap:pretty">What do you keep putting off, Austin?</div>
+              <div style="font-size:16px;line-height:1.5;color:rgba(255,255,255,.45)">Pick a few. We'll shape them into goals with real numbers.</div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px">
+              <sc-for list="{{ intents }}" as="i" hint-placeholder-count="10">
+                <div style="height:42px;padding:0 16px;border-radius:21px;display:flex;align-items:center;gap:8px;font-size:15px;white-space:nowrap;font-weight:{{ i.weight }};color:{{ i.color }};background:{{ i.bg }};border:1px solid {{ i.border }}"><i data-lucide="{{ i.icon }}" style="width:16px;height:16px"></i>{{ i.label }}</div>
+              </sc-for>
+            </div>
+            <div style="font-size:15px;color:rgba(255,255,255,.35)">3 picked · add up to 5</div>
+          </div>
+          <div style="flex:none;padding:0 28px 12px;display:flex;flex-direction:column;align-items:center;gap:22px">
+            <div style="display:flex;gap:7px"><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:#F5F5F7"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div></div>
+            <div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center">Continue</div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">03 · Intent — the procrastination list</div>
+      </div>
+
+      <div data-screen-label="04 Recommended goals" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:30px 24px 0;gap:28px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">STEP 3 OF 4 · 122 DAYS</div>
+              <div style="font-size:30px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">Here's what that looks like</div>
+              <div style="font-size:16px;line-height:1.5;color:rgba(255,255,255,.45)">Targets sized to your window. Change any number later.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <sc-for list="{{ recos }}" as="r" hint-placeholder-count="3">
+                <div style="border-radius:16px;background:#141416;border:1px solid rgba(255,255,255,.08);padding:18px 20px;display:flex;align-items:center;gap:16px">
+                  <div style="width:10px;height:10px;border-radius:6px;background:{{ r.accent }}"></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+                    <div style="font-size:17px;font-weight:600;letter-spacing:-.015em;color:#F5F5F7">{{ r.name }}</div>
+                    <div style="font-size:14px;color:rgba(255,255,255,.45);white-space:nowrap">{{ r.detail }}</div>
+                  </div>
+                  <div style="width:28px;height:28px;border-radius:15px;background:{{ r.tickBg }};border:1.5px solid {{ r.tickLine }};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:{{ r.tickColor }}">{{ r.tick }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-size:15px;font-weight:500;color:rgba(255,255,255,.5)">+ Add something else</div>
+          </div>
+          <div style="flex:none;padding:0 24px 12px;display:flex;flex-direction:column;align-items:center;gap:22px">
+            <div style="display:flex;gap:7px"><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:#F5F5F7"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div></div>
+            <div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center">Start the arc</div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">04 · Recommended goals</div>
+      </div>
+
+      <div data-screen-label="05 Sign up" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:0 28px;gap:38px">
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">STEP 4 OF 4</div>
+              <div style="font-size:30px;font-weight:600;letter-spacing:-.03em;line-height:1.2;color:#F5F5F7;text-wrap:pretty">Right now, this arc lives on one phone.</div>
+              <div style="font-size:16px;line-height:1.5;color:rgba(255,255,255,.45);text-wrap:pretty">Lose it and 122 days of history goes with it. An account keeps the run — and the Finale at the end of it.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:grid;grid-template-columns:repeat(14,1fr);gap:5px">
+                <sc-for list="{{ fadeMosaic }}" as="c" hint-placeholder-count="70">
+                  <div style="aspect-ratio:1;border-radius:5px;background:{{ c.bg }};box-shadow:inset 0 0 0 1px {{ c.line }}"></div>
+                </sc-for>
+              </div>
+              <div style="font-size:13px;color:rgba(255,255,255,.3)">Saved on device only</div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 28px 12px;display:flex;flex-direction:column;align-items:center;gap:12px">
+            <div style="display:flex;gap:7px"><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.2)"></div><div style="width:7px;height:7px;border-radius:4px;background:#F5F5F7"></div></div>
+            <div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;letter-spacing:-.01em;display:flex;align-items:center;justify-content:center;gap:9px"><i data-lucide="mail" style="width:19px;height:19px"></i>Continue with email</div>
+            <div style="display:flex;gap:10px;width:100%">
+              <div style="flex:1;height:52px;border-radius:26px;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.7);font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Google</div>
+              <div style="flex:1;height:52px;border-radius:26px;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.7);font-size:16px;font-weight:500;display:flex;align-items:center;justify-content:center">Apple</div>
+            </div>
+            <div style="font-size:15px;color:rgba(255,255,255,.35);margin-top:2px">Keep it on this phone</div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">05 · Sign up — don't lose the run</div>
+      </div>
+
+      <div data-screen-label="06 Arc Builder · Window" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:16px 24px 0;gap:44px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">STEP 1 OF 3</div>
+              <div style="font-size:28px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">Set the window</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:24px">
+              <div style="display:flex;align-items:flex-end;gap:12px">
+                <div style="font-size:60px;font-weight:600;letter-spacing:-.045em;color:#F5F5F7;line-height:.9">122</div>
+                <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:8px">
+                  <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">DAYS</div>
+                  <div style="font-size:16px;font-weight:500;color:rgba(255,255,255,.6);letter-spacing:-.01em;white-space:nowrap">Sep 1 → Dec 31</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="height:44px;display:flex;align-items:flex-end;gap:1px">
+                  <sc-for list="{{ windowTicks }}" as="t" hint-placeholder-count="122">
+                    <div style="flex:1;height:{{ t.h }};border-radius:2px;background:{{ t.bg }}"></div>
+                  </sc-for>
+                </div>
+                <div style="position:relative;height:12px;font-size:10px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.3)">
+                  <span style="position:absolute;left:0;top:0">SEP</span>
+                  <span style="position:absolute;left:24.6%;top:0">OCT</span>
+                  <span style="position:absolute;left:50%;top:0">NOV</span>
+                  <span style="position:absolute;left:74.6%;top:0">DEC</span>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              <div style="height:38px;padding:0 16px;border-radius:19px;display:flex;align-items:center;font-size:14px;font-weight:500;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12)">30d</div>
+              <div style="height:38px;padding:0 16px;border-radius:19px;display:flex;align-items:center;font-size:14px;font-weight:500;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12)">60d</div>
+              <div style="height:38px;padding:0 16px;border-radius:19px;display:flex;align-items:center;font-size:14px;font-weight:500;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12)">90d</div>
+              <div style="height:38px;padding:0 16px;border-radius:19px;display:flex;align-items:center;font-size:14px;font-weight:600;color:#0A0A0B;background:#F5F5F7">End of year</div>
+              <div style="height:38px;padding:0 16px;border-radius:19px;display:flex;align-items:center;font-size:14px;font-weight:500;color:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.12)">Custom</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.08);border-radius:16px;overflow:hidden">
+              <div style="height:58px;background:#141416;display:flex;align-items:center;justify-content:space-between;padding:0 18px"><span style="font-size:16px;color:rgba(255,255,255,.55)">Starts</span><span style="font-size:16px;font-weight:600;color:#F5F5F7;letter-spacing:-.01em;white-space:nowrap">Tue, Sep 1</span></div>
+              <div style="height:58px;background:#141416;display:flex;align-items:center;justify-content:space-between;padding:0 18px"><span style="font-size:16px;color:rgba(255,255,255,.55)">Ends</span><span style="font-size:16px;font-weight:600;color:#F5F5F7;letter-spacing:-.01em;white-space:nowrap">Thu, Dec 31</span></div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 24px 14px"><div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">Next</div></div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">06 · Arc Builder — Set the window</div>
+      </div>
+
+      <div data-screen-label="07 Arc Builder · Goal type" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:16px 24px 0;gap:44px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">STEP 2 OF 3</div>
+              <div style="font-size:28px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">What kind of goal?</div>
+              <div style="font-size:16px;line-height:1.45;color:rgba(255,255,255,.45);max-width:280px;text-wrap:pretty">Pick the shape of the commitment. You can add four more later.</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="height:164px;border-radius:16px;background:#141416;border:1px solid rgba(255,255,255,.08);padding:20px;display:flex;flex-direction:column;justify-content:space-between">
+                <div style="font-family:'Apple Symbols','Segoe UI Symbol','Noto Sans Symbols 2','DejaVu Sans',sans-serif;font-size:26px;color:#F5F5F7;line-height:1">◉</div>
+                <div style="display:flex;flex-direction:column;gap:5px"><div style="font-size:18px;font-weight:600;letter-spacing:-.02em;color:#F5F5F7">Habit</div><div style="font-size:14px;color:rgba(255,255,255,.45)">do it regularly</div></div>
+              </div>
+              <div style="height:164px;border-radius:16px;background:#141416;border:1px solid rgba(255,255,255,.28);padding:20px;display:flex;flex-direction:column;justify-content:space-between">
+                <div style="font-family:'Apple Symbols','Segoe UI Symbol','Noto Sans Symbols 2','DejaVu Sans',sans-serif;font-size:26px;color:#F5F5F7;line-height:1">▲</div>
+                <div style="display:flex;flex-direction:column;gap:5px"><div style="font-size:18px;font-weight:600;letter-spacing:-.02em;color:#F5F5F7">Accumulate</div><div style="font-size:14px;color:rgba(255,255,255,.45)">reach a number</div></div>
+              </div>
+              <div style="height:164px;border-radius:16px;background:#141416;border:1px solid rgba(255,255,255,.08);padding:20px;display:flex;flex-direction:column;justify-content:space-between">
+                <div style="font-family:'Apple Symbols','Segoe UI Symbol','Noto Sans Symbols 2','DejaVu Sans',sans-serif;font-size:26px;color:#F5F5F7;line-height:1">✦</div>
+                <div style="display:flex;flex-direction:column;gap:5px"><div style="font-size:18px;font-weight:600;letter-spacing:-.02em;color:#F5F5F7">Ship</div><div style="font-size:14px;color:rgba(255,255,255,.45)">produce things</div></div>
+              </div>
+              <div style="height:164px;border-radius:16px;background:#141416;border:1px solid rgba(255,255,255,.08);padding:20px;display:flex;flex-direction:column;justify-content:space-between">
+                <div style="font-family:'Apple Symbols','Segoe UI Symbol','Noto Sans Symbols 2','DejaVu Sans',sans-serif;font-size:26px;color:#F5F5F7;line-height:1">⬢</div>
+                <div style="display:flex;flex-direction:column;gap:5px"><div style="font-size:18px;font-weight:600;letter-spacing:-.02em;color:#F5F5F7">Milestone</div><div style="font-size:14px;color:rgba(255,255,255,.45)">hit checkpoints</div></div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 24px 14px"><div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">Next</div></div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">07 · Arc Builder — Goal type</div>
+      </div>
+
+      <div data-screen-label="08 Goal form · Accumulate" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:14px 24px 0;gap:34px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:16px;color:rgba(255,255,255,.5)">Cancel</div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4);white-space:nowrap">ACCUMULATE</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:16px">
+              <div style="width:60px;height:60px;border-radius:30px;background:#141416;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;color:#F5F5F7"><i data-lucide="bike" style="width:26px;height:26px"></i></div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:4px">
+                <div style="font-size:28px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">Cycling</div>
+                <div style="font-size:14px;color:rgba(255,255,255,.35)">Goal name</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">ACCENT</div>
+              <div style="display:flex;gap:12px">
+                <sc-for list="{{ swatches }}" as="s" hint-placeholder-count="8">
+                  <div style="width:32px;height:32px;border-radius:16px;background:{{ s.c }};box-shadow:0 0 0 {{ s.selRing }} rgba(245,245,247,0.9)"></div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">TARGET</div>
+              <div style="display:flex;align-items:flex-end;gap:14px">
+                <div style="font-size:42px;font-weight:600;letter-spacing:-.04em;color:#F5F5F7;line-height:.95">800</div>
+                <div style="display:flex;gap:6px;padding-bottom:10px">
+                  <div style="height:32px;padding:0 14px;border-radius:16px;background:#F5F5F7;color:#0A0A0B;font-size:14px;font-weight:600;display:flex;align-items:center">km</div>
+                  <div style="height:32px;padding:0 14px;border-radius:16px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);font-size:14px;display:flex;align-items:center">hrs</div>
+                  <div style="height:32px;padding:0 14px;border-radius:16px;border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);font-size:14px;display:flex;align-items:center">reps</div>
+                </div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:1px;background:rgba(255,255,255,.08);border-radius:16px;overflow:hidden">
+              <div style="height:56px;background:#141416;display:flex;align-items:center;justify-content:space-between;padding:0 18px"><span style="font-size:16px;color:rgba(255,255,255,.55)">Cadence</span><span style="font-size:16px;font-weight:600;color:#F5F5F7;white-space:nowrap">4× / week</span></div>
+              <div style="height:56px;background:#141416;display:flex;align-items:center;justify-content:space-between;padding:0 18px"><span style="font-size:16px;color:rgba(255,255,255,.55)">Est. minutes</span><span style="font-size:16px;font-weight:600;color:#F5F5F7;white-space:nowrap">98 min</span></div>
+              <div style="height:56px;background:#141416;display:flex;align-items:center;justify-content:space-between;padding:0 18px"><span style="font-size:16px;color:rgba(255,255,255,.55)">Ends</span><span style="font-size:16px;font-weight:600;color:rgba(255,255,255,.45);white-space:nowrap">Dec 31 · arc end</span></div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 24px 14px;display:flex;flex-direction:column;gap:12px">
+            <div style="font-size:14px;color:rgba(255,255,255,.4);text-align:center">6.6 km a day to make it</div>
+            <div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">Add goal</div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">08 · Goal form — Accumulate</div>
+      </div>
+
+      <div data-screen-label="09 Load check" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:16px 24px 0;gap:32px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">STEP 3 OF 3</div>
+              <div style="font-size:28px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">Load check</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <sc-for list="{{ loadRows }}" as="g" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <div style="width:8px;height:8px;border-radius:5px;background:{{ g.accent }}"></div>
+                  <div style="flex:1;display:flex;flex-direction:column;gap:3px">
+                    <div style="font-size:17px;font-weight:500;letter-spacing:-.01em;color:#F5F5F7">{{ g.name }}</div>
+                    <div style="font-size:13px;color:rgba(255,255,255,.35)">{{ g.sub }}</div>
+                  </div>
+                  <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:rgba(255,255,255,.6);font-variant-numeric:tabular-nums;white-space:nowrap">{{ g.cost }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,.08)"></div>
+            <div style="flex:none;display:flex;align-items:flex-end;justify-content:space-between">
+              <div style="flex:none;display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4);white-space:nowrap">TOTAL</div>
+                <div style="font-size:38px;font-weight:600;letter-spacing:-.04em;color:#F5F5F7;line-height:1;white-space:nowrap">19h 15m</div>
+                <div style="font-size:15px;color:rgba(255,255,255,.45);white-space:nowrap">per week · 2h 45m a day</div>
+              </div>
+            </div>
+            <div style="flex:none;border-radius:16px;background:rgba(255,176,32,.1);padding:18px 22px">
+              <div style="font-size:16px;line-height:1.5;color:#FFB020;text-wrap:pretty">This is a second job. Most people drop two of these by week 4.</div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 24px 14px;display:flex;flex-direction:column;gap:10px">
+            <div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">Trim something</div>
+            <div style="width:100%;height:54px;border-radius:28px;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.6);font-size:17px;font-weight:500;display:flex;align-items:center;justify-content:center">I know what I'm doing</div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">09 · Load check</div>
+      </div>
+
+    </div>
+  </div>
+    <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3)">Home &amp; logging</div>
+    <div style="display:flex;flex-wrap:wrap;gap:56px">
+
+      <div data-screen-label="10 Home · dark" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:8px 24px 12px">
+            <div style="font-size:22px;font-weight:600;letter-spacing:-.025em;color:#F5F5F7">Autumn Arc</div>
+            <div style="position:relative;height:150px;margin-top:4px">
+              <svg width="342" height="178" viewBox="0 0 342 178" fill="none">
+                <path d="{{ homeArc.path }}" stroke="rgba(255,255,255,0.09)" stroke-width="14" stroke-linecap="round"></path>
+                <path d="{{ homeArc.path }}" stroke="#5B6CFF" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ homeArc.dash }}"></path>
+                <circle cx="{{ homeArc.dx }}" cy="{{ homeArc.dy }}" r="11" fill="#0A0A0B"></circle>
+                <circle cx="{{ homeArc.dx }}" cy="{{ homeArc.dy }}" r="7" fill="#5B6CFF"></circle>
+              </svg>
+              <div style="position:absolute;left:0;right:0;top:52px;display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">DAY</div>
+                <div style="font-size:46px;font-weight:600;letter-spacing:-.045em;color:#F5F5F7;line-height:1">34</div>
+                <div style="font-size:13px;color:rgba(255,255,255,.5);white-space:nowrap">of 122 · 88 days left</div>
+              </div>
+            </div>
+            <div style="margin-top:22px;font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">TODAY</div>
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ todayMains }}" as="g" hint-placeholder-count="2">
+                <div style="height:36px;display:flex;align-items:center;gap:14px">
+                  <div style="width:24px;height:24px;border-radius:13px;background:{{ g.accent }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#0A0A0B">✓</div>
+                  <div style="flex:1;font-size:17px;font-weight:500;letter-spacing:-.01em;color:rgba(255,255,255,.4);text-decoration:line-through">{{ g.name }}</div>
+                  <div style="font-size:14px;color:rgba(255,255,255,.3);white-space:nowrap">{{ g.detail }}</div>
+                </div>
+              </sc-for>
+              <div style="height:1px;background:rgba(255,255,255,.08);margin:7px 0"></div>
+              <sc-for list="{{ todayRest }}" as="g" hint-placeholder-count="3">
+                <div style="height:36px;display:flex;align-items:center;gap:14px">
+                  <div style="width:24px;height:24px;border-radius:13px;border:1.5px solid rgba(255,255,255,.22)"></div>
+                  <div style="flex:1;font-size:17px;font-weight:500;letter-spacing:-.01em;color:#F5F5F7">{{ g.name }}</div>
+                  <div style="font-size:14px;color:rgba(255,255,255,.35);white-space:nowrap">{{ g.detail }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:14px;height:48px;flex:none;border-radius:26px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#F5F5F7;letter-spacing:-.01em">Log everything</div>
+            <div style="margin-top:20px;font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">THE ARC</div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ arcRows }}" as="g" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="{{ g.ring.r }}" stroke="rgba(255,255,255,0.09)" stroke-width="6"></circle>
+                    <circle cx="16" cy="16" r="{{ g.ring.r }}" transform="rotate(-90 16 16)" stroke="{{ g.gapColor }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ g.ring.gap }}" stroke-dashoffset="{{ g.ring.gapOff }}"></circle>
+                    <circle cx="16" cy="16" r="{{ g.ring.r }}" transform="rotate(-90 16 16)" stroke="{{ g.accent }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ g.ring.fill }}"></circle>
+                    <line x1="{{ g.ring.tx1 }}" y1="{{ g.ring.ty1 }}" x2="{{ g.ring.tx2 }}" y2="{{ g.ring.ty2 }}" stroke="{{ g.ring.tick }}" stroke-width="2" stroke-linecap="round"></line>
+                  </svg>
+                  <div style="flex:1;font-size:17px;font-weight:500;letter-spacing:-.01em;color:#F5F5F7">{{ g.name }}</div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+                    <div style="font-size:16px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7;font-variant-numeric:tabular-nums;white-space:nowrap">{{ g.val }}</div>
+                    <div style="font-size:13px;font-weight:500;letter-spacing:-.005em;white-space:nowrap;color:{{ g.statusColor }}">{{ g.status }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="flex:none;height:64px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 20px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:17px;height:17px;border-radius:9px;border:2px solid #F5F5F7"></div><div style="font-size:10px;font-weight:600;color:#F5F5F7">Today</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:18px;height:9px;border:2px solid rgba(255,255,255,.32);border-bottom:none;border-radius:10px 10px 0 0"></div><div style="font-size:10px;font-weight:500;color:rgba(255,255,255,.32)">Arc</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="display:flex;flex-direction:column;gap:3px;width:17px"><div style="height:2px;border-radius:2px;background:rgba(255,255,255,.32)"></div><div style="height:2px;border-radius:2px;background:rgba(255,255,255,.32)"></div><div style="height:2px;border-radius:2px;background:rgba(255,255,255,.32)"></div></div><div style="font-size:10px;font-weight:500;color:rgba(255,255,255,.32)">Settings</div></div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">10 · Home — the hero screen</div>
+      </div>
+
+      <div data-screen-label="11 Home · light" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#FAFAF9">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#0A0A0B"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(10,10,11,.45)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:8px 24px 12px">
+            <div style="font-size:22px;font-weight:600;letter-spacing:-.025em;color:#0A0A0B">Autumn Arc</div>
+            <div style="position:relative;height:150px;margin-top:4px">
+              <svg width="342" height="178" viewBox="0 0 342 178" fill="none">
+                <path d="{{ lightArc.path }}" stroke="rgba(10,10,11,0.08)" stroke-width="14" stroke-linecap="round"></path>
+                <path d="{{ lightArc.path }}" stroke="#5B6CFF" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ lightArc.dash }}"></path>
+                <circle cx="{{ lightArc.dx }}" cy="{{ lightArc.dy }}" r="11" fill="#FAFAF9"></circle>
+                <circle cx="{{ lightArc.dx }}" cy="{{ lightArc.dy }}" r="7" fill="#5B6CFF"></circle>
+              </svg>
+              <div style="position:absolute;left:0;right:0;top:52px;display:flex;flex-direction:column;align-items:center;gap:6px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(10,10,11,.45)">DAY</div>
+                <div style="font-size:46px;font-weight:600;letter-spacing:-.045em;color:#0A0A0B;line-height:1">34</div>
+                <div style="font-size:13px;color:rgba(10,10,11,.5);white-space:nowrap">of 122 · 88 days left</div>
+              </div>
+            </div>
+            <div style="margin-top:22px;font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(10,10,11,.45)">TODAY</div>
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ todayMains }}" as="g" hint-placeholder-count="2">
+                <div style="height:36px;display:flex;align-items:center;gap:14px">
+                  <div style="width:24px;height:24px;border-radius:13px;background:{{ g.accent }};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#FFFFFF">✓</div>
+                  <div style="flex:1;font-size:17px;font-weight:500;letter-spacing:-.01em;color:rgba(10,10,11,.35);text-decoration:line-through">{{ g.name }}</div>
+                  <div style="font-size:14px;color:rgba(10,10,11,.3);white-space:nowrap">{{ g.detail }}</div>
+                </div>
+              </sc-for>
+              <div style="height:1px;background:rgba(10,10,11,.08);margin:7px 0"></div>
+              <sc-for list="{{ todayRest }}" as="g" hint-placeholder-count="3">
+                <div style="height:36px;display:flex;align-items:center;gap:14px">
+                  <div style="width:24px;height:24px;border-radius:13px;border:1.5px solid rgba(10,10,11,.2)"></div>
+                  <div style="flex:1;font-size:17px;font-weight:500;letter-spacing:-.01em;color:#0A0A0B">{{ g.name }}</div>
+                  <div style="font-size:14px;color:rgba(10,10,11,.4);white-space:nowrap">{{ g.detail }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:14px;height:48px;flex:none;border-radius:26px;background:#FFFFFF;box-shadow:0 1px 3px rgba(10,10,11,.08),0 6px 20px rgba(10,10,11,.06);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#0A0A0B;letter-spacing:-.01em">Log everything</div>
+            <div style="margin-top:20px;font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(10,10,11,.45)">THE ARC</div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ arcRows }}" as="g" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <circle cx="16" cy="16" r="{{ g.ring.r }}" stroke="rgba(10,10,11,0.08)" stroke-width="6"></circle>
+                    <circle cx="16" cy="16" r="{{ g.ring.r }}" transform="rotate(-90 16 16)" stroke="{{ g.gapColor }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ g.ring.gap }}" stroke-dashoffset="{{ g.ring.gapOff }}"></circle>
+                    <circle cx="16" cy="16" r="{{ g.ring.r }}" transform="rotate(-90 16 16)" stroke="{{ g.accent }}" stroke-width="6" stroke-linecap="round" stroke-dasharray="{{ g.ring.fill }}"></circle>
+                    <line x1="{{ g.ring.tx1 }}" y1="{{ g.ring.ty1 }}" x2="{{ g.ring.tx2 }}" y2="{{ g.ring.ty2 }}" stroke="{{ g.ring.tickLight }}" stroke-width="2" stroke-linecap="round"></line>
+                  </svg>
+                  <div style="flex:1;font-size:17px;font-weight:500;letter-spacing:-.01em;color:#0A0A0B">{{ g.name }}</div>
+                  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+                    <div style="font-size:16px;font-weight:600;letter-spacing:-.01em;color:#0A0A0B;font-variant-numeric:tabular-nums;white-space:nowrap">{{ g.val }}</div>
+                    <div style="font-size:13px;font-weight:500;letter-spacing:-.005em;white-space:nowrap;color:{{ g.statusColorLight }}">{{ g.status }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="flex:none;height:64px;border-top:1px solid rgba(10,10,11,.08);display:flex;align-items:center;padding:0 20px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:17px;height:17px;border-radius:9px;border:2px solid #0A0A0B"></div><div style="font-size:10px;font-weight:600;color:#0A0A0B">Today</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:18px;height:9px;border:2px solid rgba(10,10,11,.3);border-bottom:none;border-radius:10px 10px 0 0"></div><div style="font-size:10px;font-weight:500;color:rgba(10,10,11,.3)">Arc</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="display:flex;flex-direction:column;gap:3px;width:17px"><div style="height:2px;border-radius:2px;background:rgba(10,10,11,.3)"></div><div style="height:2px;border-radius:2px;background:rgba(10,10,11,.3)"></div><div style="height:2px;border-radius:2px;background:rgba(10,10,11,.3)"></div></div><div style="font-size:10px;font-weight:500;color:rgba(10,10,11,.3)">Settings</div></div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(10,10,11,.25)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">11 · Home — light mode</div>
+      </div>
+
+      <div data-screen-label="12 Log sheet" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;opacity:.45">
+            <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+            <div style="padding:8px 24px 0">
+              <div style="font-size:22px;font-weight:600;letter-spacing:-.025em;color:#F5F5F7">Autumn Arc</div>
+              <div style="position:relative;height:150px;margin-top:4px">
+                <svg width="342" height="178" viewBox="0 0 342 178" fill="none">
+                  <path d="{{ homeArc.path }}" stroke="rgba(255,255,255,0.09)" stroke-width="14" stroke-linecap="round"></path>
+                  <path d="{{ homeArc.path }}" stroke="rgba(91,108,255,0.85)" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ homeArc.dash }}"></path>
+                </svg>
+                <div style="position:absolute;left:0;right:0;top:52px;display:flex;flex-direction:column;align-items:center;gap:6px">
+                  <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">DAY</div>
+                  <div style="font-size:46px;font-weight:600;letter-spacing:-.045em;color:#F5F5F7;line-height:1">34</div>
+                  <div style="font-size:13px;color:rgba(255,255,255,.5);white-space:nowrap">of 122 · 88 days left</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="position:absolute;inset:0;background:rgba(0,0,0,.62)"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;background:#141416;border-radius:28px 28px 0 0;border-top:1px solid rgba(255,255,255,.08);padding:12px 24px 0;display:flex;flex-direction:column">
+            <div style="align-self:center;width:36px;height:5px;border-radius:3px;background:rgba(255,255,255,.18)"></div>
+            <div style="margin-top:22px;display:flex;align-items:center;gap:10px">
+              <div style="width:8px;height:8px;border-radius:5px;background:{{ cycAccent }}"></div>
+              <div style="font-size:17px;font-weight:500;letter-spacing:-.01em;color:#F5F5F7">Cycling</div>
+              <div style="flex:1"></div>
+              <div style="font-size:14px;color:rgba(255,255,255,.35)">188 / 800 km</div>
+            </div>
+            <div style="margin-top:26px;display:flex;align-items:flex-end;justify-content:center;gap:10px">
+              <div style="font-size:52px;font-weight:600;letter-spacing:-.04em;color:#F5F5F7;line-height:1">12.4</div>
+              <div style="font-size:20px;font-weight:500;color:rgba(255,255,255,.4);padding-bottom:12px">km</div>
+            </div>
+            <div style="margin-top:26px;display:flex;gap:10px">
+              <div style="flex:1;height:40px;border-radius:20px;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:rgba(255,255,255,.65)">+5</div>
+              <div style="flex:1;height:40px;border-radius:20px;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:rgba(255,255,255,.65)">+10</div>
+              <div style="flex:1;height:40px;border-radius:20px;border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:500;color:rgba(255,255,255,.65)">+25</div>
+            </div>
+            <div style="margin-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+              <sc-for list="{{ pad }}" as="k" hint-placeholder-count="12">
+                <div style="height:50px;border-radius:12px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:500;letter-spacing:-.01em;color:#F5F5F7">{{ k }}</div>
+              </sc-for>
+            </div>
+            <div style="margin-top:20px;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">Log 12.4 km</div>
+            <div style="height:34px"></div>
+          </div>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">12 · Log sheet</div>
+      </div>
+
+    </div>
+  </div>
+    <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3)">Detail &amp; the arc</div>
+    <div style="display:flex;flex-wrap:wrap;gap:56px">
+
+      <div data-screen-label="13 Goal detail · Accumulate" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:6px 24px 0">
+            <div style="height:36px;display:flex;align-items:center;justify-content:space-between;color:rgba(255,255,255,.5);font-size:19px">
+              <span>‹</span><span style="font-size:15px;font-weight:500;color:rgba(255,255,255,.5);white-space:nowrap">Autumn Arc</span><span>⋯</span>
+            </div>
+            <div style="margin-top:16px;display:flex;align-items:flex-start;justify-content:space-between">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.16em;white-space:nowrap;color:rgba(255,255,255,.4)">CYCLING · 800 KM</div>
+                <div style="display:flex;align-items:flex-end;gap:8px">
+                  <div style="font-size:44px;font-weight:600;letter-spacing:-.04em;color:#F5F5F7;line-height:1">188</div>
+                  <div style="font-size:18px;font-weight:500;color:rgba(255,255,255,.4);padding-bottom:8px">km</div>
+                </div>
+              </div>
+              <div style="margin-top:22px;height:30px;padding:0 14px;border-radius:15px;background:rgba(255,176,32,.12);display:flex;align-items:center;font-size:14px;font-weight:600;letter-spacing:-.01em;color:#FFB020">Slipping</div>
+            </div>
+            <div style="margin-top:20px;position:relative">
+              <svg width="342" height="112" viewBox="0 0 342 112" fill="none" style="flex:none">
+                <defs>
+                  <linearGradient id="gBurn" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{{ cycAccent }}" stop-opacity=".38"></stop><stop offset="1" stop-color="{{ cycAccent }}" stop-opacity="0"></stop></linearGradient>
+                </defs>
+                <path d="{{ burn.fill }}" fill="url(#gBurn)"></path>
+                <path d="{{ burn.area }}" fill="rgba(255,176,32,0.14)"></path>
+                <path d="{{ burn.req }}" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 7"></path>
+                <path d="{{ burn.line }}" stroke="{{ cycAccent }}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+                <circle cx="{{ burn.dotX }}" cy="{{ burn.dotY }}" r="10" fill="#0A0A0B"></circle>
+                <circle cx="{{ burn.dotX }}" cy="{{ burn.dotY }}" r="6" fill="{{ cycAccent }}"></circle>
+              </svg>
+            </div>
+            <div style="margin-top:12px;display:flex;align-items:baseline;gap:8px">
+              <div style="font-size:17px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7;white-space:nowrap">6.4 km/day</div>
+              <div style="font-size:15px;color:rgba(255,255,255,.4);white-space:nowrap">required from here</div>
+            </div>
+            <div style="margin-top:26px;font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">EVERY DAY</div>
+            <div style="margin-top:14px;display:grid;grid-template-columns:repeat(20,1fr);gap:4px">
+              <sc-for list="{{ cycMosaic }}" as="c" hint-placeholder-count="122">
+                <div style="aspect-ratio:1;border-radius:4px;background:{{ c.bg }};box-shadow:inset 0 0 0 1px {{ c.line }}"></div>
+              </sc-for>
+            </div>
+            <div style="margin-top:18px;font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">THIS WEEK</div>
+            <div style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+              <svg width="342" height="86" viewBox="0 0 342 86" fill="none" style="flex:none">
+                <sc-for list="{{ weekBars }}" as="b" hint-placeholder-count="7">
+                  <rect x="{{ b.x }}" y="{{ b.y }}" width="14" height="{{ b.h }}" rx="7" fill="{{ b.fill }}" stroke="{{ b.stroke }}" stroke-width="2"></rect>
+                </sc-for>
+              </svg>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr)">
+                <sc-for list="{{ dayLetters }}" as="d" hint-placeholder-count="7">
+                  <div style="text-align:center;font-size:11px;font-weight:600;letter-spacing:.1em;color:rgba(255,255,255,.3)">{{ d }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="margin-top:16px;font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">RECENT</div>
+            <div style="margin-top:4px;display:flex;flex-direction:column">
+              <sc-for list="{{ entries }}" as="e" hint-placeholder-count="5">
+                <div style="height:42px;flex:none;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.06)">
+                  <div style="font-size:16px;color:rgba(255,255,255,.6)">{{ e.d }}</div>
+                  <div style="font-size:16px;font-weight:600;color:#F5F5F7;font-variant-numeric:tabular-nums">{{ e.v }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">13 · Goal detail — Accumulate</div>
+      </div>
+
+      <div data-screen-label="14 Goal detail · Milestone" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:6px 24px 0">
+            <div style="height:36px;display:flex;align-items:center;justify-content:space-between;color:rgba(255,255,255,.5);font-size:19px">
+              <span>‹</span><span style="font-size:15px;font-weight:500;color:rgba(255,255,255,.5);white-space:nowrap">Autumn Arc</span><span>⋯</span>
+            </div>
+            <div style="margin-top:16px;display:flex;align-items:flex-start;justify-content:space-between">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="font-size:11px;font-weight:600;letter-spacing:.16em;white-space:nowrap;color:rgba(255,255,255,.4)">GUITAR · MILESTONE</div>
+                <div style="display:flex;align-items:flex-end;gap:8px">
+                  <div style="font-size:44px;font-weight:600;letter-spacing:-.04em;color:#F5F5F7;line-height:1">2</div>
+                  <div style="font-size:18px;font-weight:500;color:rgba(255,255,255,.4);padding-bottom:8px">of 5</div>
+                </div>
+              </div>
+              <div style="margin-top:22px;height:30px;padding:0 14px;border-radius:15px;background:rgba(255,255,255,.08);display:flex;align-items:center;font-size:14px;font-weight:600;letter-spacing:-.01em;color:rgba(255,255,255,.7)">On track</div>
+            </div>
+            <div style="margin-top:46px;display:flex;flex-direction:column">
+              <sc-for list="{{ checkpoints }}" as="n" hint-placeholder-count="5">
+                <div style="display:flex;gap:22px">
+                  <div style="width:22px;display:flex;flex-direction:column;align-items:center">
+                    <div style="position:relative;width:22px;height:22px;display:flex;align-items:center;justify-content:center">
+                      <div style="width:18px;height:18px;border-radius:10px;background:{{ n.bg }};box-shadow:inset 0 0 0 2px {{ n.line }}"></div>
+                      <div style="position:absolute;width:18px;height:18px;border-radius:10px;border:2px solid {{ n.pulseColor }};animation:garraPulse 2.4s ease-out infinite"></div>
+                    </div>
+                    <div style="width:2px;flex:1;background:{{ n.spine }};border-radius:2px"></div>
+                  </div>
+                  <div style="flex:1;padding-bottom:38px;display:flex;flex-direction:column;gap:5px;margin-top:-3px">
+                    <div style="font-size:19px;font-weight:600;letter-spacing:-.02em;color:{{ n.textColor }}">{{ n.label }}</div>
+                    <div style="font-size:14px;color:rgba(255,255,255,.35)">{{ n.meta }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:10px;height:1px;background:rgba(255,255,255,.08)"></div>
+            <div style="margin-top:28px;flex:none;display:flex;justify-content:space-between">
+              <div style="display:flex;flex-direction:column;gap:8px"><div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">PRACTICE</div><div style="font-size:26px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">14h 20m</div></div>
+              <div style="display:flex;flex-direction:column;gap:8px"><div style="font-size:11px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">NEXT NODE</div><div style="font-size:26px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">Oct 19</div></div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 24px 14px"><div style="width:100%;height:54px;border-radius:28px;background:rgba(255,255,255,.08);color:#F5F5F7;font-size:16px;font-weight:600;display:flex;align-items:center;justify-content:center">Mark checkpoint hit</div></div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">14 · Goal detail — Milestone</div>
+      </div>
+
+      <div data-screen-label="15 Arc tab" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:8px 24px 12px">
+            <div style="font-size:28px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">The Arc</div>
+            <div style="margin-top:6px;font-size:15px;color:rgba(255,255,255,.4)">Sep 1 → Dec 31 · day 34</div>
+            <div style="margin-top:26px;display:grid;grid-template-columns:repeat(14,1fr);gap:4px">
+              <sc-for list="{{ arcMosaic }}" as="c" hint-placeholder-count="122">
+                <div style="aspect-ratio:1;border-radius:5px;background:{{ c.bg }};box-shadow:inset 0 0 0 1px {{ c.line }}"></div>
+              </sc-for>
+            </div>
+            <div style="margin-top:26px;font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">MOMENTUM</div>
+            <div style="margin-top:4px;display:flex;align-items:flex-end;gap:8px">
+              <div style="font-size:34px;font-weight:600;letter-spacing:-.035em;color:#F5F5F7;line-height:1.1">78%</div>
+              <div style="font-size:14px;color:rgba(255,255,255,.4);padding-bottom:8px">7-day completion</div>
+            </div>
+            <svg width="342" height="96" viewBox="0 0 342 96" fill="none" style="margin-top:6px;flex:none">
+              <defs><linearGradient id="gMom" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5B6CFF" stop-opacity=".38"></stop><stop offset="1" stop-color="#5B6CFF" stop-opacity="0"></stop></linearGradient></defs>
+              <path d="{{ momentum.fill }}" fill="url(#gMom)"></path>
+              <path d="{{ momentum.line }}" stroke="#5B6CFF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+            <div style="margin-top:20px;font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">WEEKLY LOAD</div>
+            <div style="margin-top:10px;display:flex;align-items:center;gap:26px">
+              <div style="position:relative;width:148px;height:148px;flex:none">
+                <svg width="148" height="148" viewBox="0 0 148 148" fill="none">
+                  <circle cx="74" cy="74" r="64" stroke="rgba(255,255,255,0.07)" stroke-width="6"></circle>
+                  <circle cx="74" cy="74" r="51" stroke="rgba(255,255,255,0.05)" stroke-width="14"></circle>
+                  <sc-for list="{{ donut.segs }}" as="s" hint-placeholder-count="5">
+                    <circle cx="74" cy="74" r="51" transform="rotate(-90 74 74)" stroke="{{ s.color }}" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ s.dash }}" stroke-dashoffset="{{ s.off }}"></circle>
+                  </sc-for>
+                </svg>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px">
+                  <div style="font-size:22px;font-weight:600;letter-spacing:-.035em;color:#F5F5F7">19h 15m</div>
+                  <div style="font-size:10px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">PER WEEK</div>
+                </div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:12px">
+                <sc-for list="{{ loadRows }}" as="g" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="width:8px;height:8px;border-radius:5px;background:{{ g.accent }}"></div>
+                    <div style="flex:1;font-size:14px;color:rgba(255,255,255,.6)">{{ g.name }}</div>
+                    <div style="font-size:14px;font-weight:600;color:#F5F5F7;font-variant-numeric:tabular-nums;white-space:nowrap">{{ g.cost }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;height:64px;border-top:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 20px">
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:17px;height:17px;border-radius:9px;border:2px solid rgba(255,255,255,.32)"></div><div style="font-size:10px;font-weight:500;color:rgba(255,255,255,.32)">Today</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="width:18px;height:9px;border:2px solid #F5F5F7;border-bottom:none;border-radius:10px 10px 0 0"></div><div style="font-size:10px;font-weight:600;color:#F5F5F7">Arc</div></div>
+            <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px"><div style="display:flex;flex-direction:column;gap:3px;width:17px"><div style="height:2px;border-radius:2px;background:rgba(255,255,255,.32)"></div><div style="height:2px;border-radius:2px;background:rgba(255,255,255,.32)"></div><div style="height:2px;border-radius:2px;background:rgba(255,255,255,.32)"></div></div><div style="font-size:10px;font-weight:500;color:rgba(255,255,255,.32)">Settings</div></div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">15 · Arc tab</div>
+      </div>
+
+    </div>
+  </div>
+    <div style="display:flex;flex-direction:column;gap:28px">
+    <div style="font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.3)">Review, recap &amp; pro</div>
+    <div style="display:flex;flex-wrap:wrap;gap:56px">
+
+      <div data-screen-label="16 Sunday Reset" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:20px 24px 0;gap:36px">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;font-weight:600;letter-spacing:.16em;color:rgba(255,255,255,.4)">WEEK 5 OF 18</div>
+              <div style="font-size:28px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7">Sunday Reset</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
+                <sc-for list="{{ weekRow }}" as="c" hint-placeholder-count="7">
+                  <div style="aspect-ratio:1;border-radius:8px;background:{{ c.bg }};box-shadow:inset 0 0 0 1.5px {{ c.line }}"></div>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
+                <sc-for list="{{ dayLetters }}" as="d" hint-placeholder-count="7">
+                  <div style="text-align:center;font-size:11px;font-weight:600;letter-spacing:.1em;color:rgba(255,255,255,.3)">{{ d }}</div>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <sc-for list="{{ resetRows }}" as="g" hint-placeholder-count="5">
+                <div style="display:flex;align-items:center;gap:14px">
+                  <div style="width:8px;height:8px;border-radius:5px;background:{{ g.accent }}"></div>
+                  <div style="flex:1;font-size:17px;font-weight:500;letter-spacing:-.01em;color:#F5F5F7">{{ g.name }}</div>
+                  <div style="font-size:16px;font-weight:600;color:{{ g.hitColor }};font-variant-numeric:tabular-nums;white-space:nowrap">{{ g.hit }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="height:1px;background:rgba(255,255,255,.08)"></div>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:17px;color:rgba(255,255,255,.55);white-space:nowrap">Freezes earned</div>
+              <div style="font-size:17px;font-weight:600;color:#F5F5F7">1</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="font-size:24px;font-weight:600;letter-spacing:-.025em;color:#F5F5F7">Anything to adjust?</div>
+              <div style="height:52px;border-radius:16px;background:#141416;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 18px;font-size:16px;color:rgba(255,255,255,.28)">One line is enough</div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 24px 14px"><div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">Close the week</div></div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">16 · Sunday Reset</div>
+      </div>
+
+      <div data-screen-label="17 The Finale" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background-color:#0A0A0B;background-image:radial-gradient(120% 70% at 50% 0%,rgba(91,108,255,.22) 0%,rgba(10,10,11,0) 62%)">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:22px 30px 0">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div style="font-size:12px;font-weight:700;letter-spacing:.28em;color:#F5F5F7">GARRA</div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:.14em;white-space:nowrap;color:rgba(255,255,255,.4)">SEP 1 — DEC 31</div>
+            </div>
+            <div style="margin-top:36px;display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:32px;font-weight:600;letter-spacing:-.035em;color:#F5F5F7;line-height:1.05">Autumn Arc</div>
+              <div style="font-size:17px;font-weight:500;color:rgba(255,255,255,.5);letter-spacing:-.01em">122 days. Finished.</div>
+            </div>
+            <div style="margin-top:36px;flex:none;display:grid;grid-template-columns:repeat(14,1fr);gap:5px">
+              <sc-for list="{{ finaleMosaic }}" as="c" hint-placeholder-count="122">
+                <div style="aspect-ratio:1;border-radius:4px;background:{{ c.bg }};box-shadow:inset 0 0 0 1px {{ c.line }}"></div>
+              </sc-for>
+            </div>
+            <div style="margin-top:36px;height:1px;background:rgba(255,255,255,.1)"></div>
+            <div style="margin-top:30px;display:flex;justify-content:space-between">
+              <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:28px;font-weight:600;letter-spacing:-.035em;color:#F5F5F7;line-height:1;white-space:nowrap">842 km</div><div style="font-size:10px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">CYCLED</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:28px;font-weight:600;letter-spacing:-.035em;color:#F5F5F7;line-height:1;white-space:nowrap">61 hrs</div><div style="font-size:10px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">PRACTISED</div></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><div style="font-size:28px;font-weight:600;letter-spacing:-.035em;color:#F5F5F7;line-height:1;white-space:nowrap">14</div><div style="font-size:10px;font-weight:600;letter-spacing:.14em;color:rgba(255,255,255,.4)">SHIPPED</div></div>
+            </div>
+            <div style="margin-top:36px;display:flex;flex-direction:column;gap:18px">
+              <sc-for list="{{ finaleGoals }}" as="g" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <div style="width:7px;height:7px;border-radius:4px;background:{{ g.accent }}"></div>
+                  <div style="flex:1;font-size:15px;font-weight:500;color:rgba(255,255,255,.75);white-space:nowrap">{{ g.name }}</div>
+                  <div style="font-size:15px;font-weight:600;color:#F5F5F7;font-variant-numeric:tabular-nums;white-space:nowrap">{{ g.result }}</div>
+                </div>
+              </sc-for>
+              <div style="font-size:14px;color:rgba(255,255,255,.32)">+ 4 more goals</div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 30px 12px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;color:rgba(255,255,255,.3);text-align:center">Showing 3 of 7 goals</div>
+            <div style="display:flex;gap:10px">
+              <div style="flex:1;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px"><i data-lucide="share" style="width:18px;height:18px"></i>Share</div>
+              <div style="width:132px;height:54px;border-radius:28px;border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.7);font-size:17px;font-weight:500;display:flex;align-items:center;justify-content:center">Edit</div>
+            </div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">17 · The Finale — shareable poster (3 of 7 goals shown)</div>
+      </div>
+
+      <div data-screen-label="18 Paywall" style="display:flex;flex-direction:column;gap:16px">
+        <div style="width:390px;height:844px;border-radius:46px;overflow:hidden;position:relative;display:flex;flex-direction:column;background:#0A0A0B">
+          <div style="flex:none;height:56px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;color:#F5F5F7"><span>9:41</span><div style="width:18px;height:11px;border-radius:3px;border:1.5px solid rgba(245,245,247,.5)"></div></div>
+          <div style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:14px 24px 0;gap:22px">
+            <div style="flex:none;display:flex;align-items:center;justify-content:flex-end"><div style="font-size:16px;color:rgba(255,255,255,.4)">✕</div></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="font-size:30px;font-weight:600;letter-spacing:-.03em;color:#F5F5F7;line-height:1.08">Garra Pro</div>
+              <div style="font-size:15px;line-height:1.45;color:rgba(255,255,255,.45);max-width:300px;text-wrap:pretty">Unlimited arcs, the full chart set, and every recap you'll ever finish.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:0">
+              <div style="height:30px;flex:none;display:flex;align-items:center">
+                <div style="flex:1"></div>
+                <div style="width:52px;text-align:center;font-size:11px;font-weight:600;letter-spacing:.12em;color:rgba(255,255,255,.35)">FREE</div>
+                <div style="width:52px;text-align:center;font-size:11px;font-weight:600;letter-spacing:.12em;color:#F5F5F7">PRO</div>
+              </div>
+              <sc-for list="{{ features }}" as="f" hint-placeholder-count="5">
+                <div style="height:37px;flex:none;display:flex;align-items:center;border-top:1px solid rgba(255,255,255,.06)">
+                  <div style="flex:1;font-size:16px;color:rgba(255,255,255,.7)">{{ f.label }}</div>
+                  <div style="width:52px;text-align:center;font-size:15px;color:rgba(255,255,255,.3)">{{ f.free }}</div>
+                  <div style="width:52px;text-align:center;font-size:15px;font-weight:600;font-family:'Apple Symbols','Segoe UI Symbol','DejaVu Sans',-apple-system,sans-serif;color:#F5F5F7">{{ f.pro }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="height:58px;flex:none;border-radius:16px;background:#141416;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 20px">
+                <div style="flex:1;font-size:17px;font-weight:500;color:#F5F5F7">Monthly</div>
+                <div style="font-size:17px;font-weight:600;color:#F5F5F7">$3.99</div>
+              </div>
+              <div style="height:74px;flex:none;border-radius:16px;background:#141416;border:1.5px solid rgba(255,255,255,.32);display:flex;align-items:center;padding:0 20px">
+                <div style="flex:1;display:flex;flex-direction:column;gap:5px">
+                  <div style="display:flex;align-items:center;gap:9px">
+                    <div style="font-size:17px;font-weight:600;color:#F5F5F7">Yearly</div>
+                    <div style="flex:none;white-space:nowrap;height:20px;padding:0 8px;border-radius:10px;background:#F5F5F7;color:#0A0A0B;font-size:10px;font-weight:700;letter-spacing:.08em;display:flex;align-items:center">BEST VALUE</div>
+                  </div>
+                  <div style="font-size:14px;color:rgba(255,255,255,.45)">7-day trial · then $2.08 / mo</div>
+                </div>
+                <div style="font-size:17px;font-weight:600;color:#F5F5F7">$24.99</div>
+              </div>
+              <div style="height:58px;flex:none;border-radius:16px;background:#141416;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;padding:0 20px">
+                <div style="flex:1;font-size:17px;font-weight:500;color:#F5F5F7">Lifetime</div>
+                <div style="font-size:17px;font-weight:600;color:#F5F5F7">$59.99</div>
+              </div>
+            </div>
+          </div>
+          <div style="flex:none;padding:0 24px 14px;display:flex;flex-direction:column;gap:14px">
+            <div style="width:100%;height:54px;border-radius:28px;background:#F5F5F7;color:#0A0A0B;font-size:17px;font-weight:600;display:flex;align-items:center;justify-content:center">Start the trial</div>
+            <div style="display:flex;justify-content:center;gap:22px;font-size:13px;color:rgba(255,255,255,.3)"><span>Restore</span><span>Terms</span><span>Privacy</span></div>
+          </div>
+          <div style="flex:none;height:26px;display:flex;align-items:center;justify-content:center"><div style="width:132px;height:5px;border-radius:3px;background:rgba(255,255,255,.28)"></div></div>
+        </div>
+        <div style="font-size:12px;font-weight:500;letter-spacing:.02em;color:rgba(255,255,255,.35)">18 · Paywall</div>
+      </div>
+
+    </div>
+  </div>
+  <div data-anchor="end"></div>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;arcDay&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:34,&quot;min&quot;:1,&quot;max&quot;:122,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Arc&quot;},&quot;cyclingAccent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#22C7B4&quot;,&quot;options&quot;:[&quot;#22C7B4&quot;,&quot;#4FA8FF&quot;,&quot;#9BD64A&quot;,&quot;#FF6B5A&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Goals&quot;},&quot;showPaceTick&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Charts&quot;}}">
+class Component extends DCLogic {
+  A(){return {coral:'#FF6B5A',amber:'#FFB020',lime:'#9BD64A',teal:'#22C7B4',sky:'#4FA8FF',indigo:'#5B6CFF',violet:'#9B6BFF',rose:'#FF5C8A'};}
+  rnd(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);}
+  rgba(hex,a){const h=hex.replace('#','');const n=parseInt(h.length===3?h.split('').map(c=>c+c).join(''):h,16);return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';}
+  arc(p,cx,cy,r){const L=Math.PI*r,ph=Math.PI*(1-p);return{path:'M '+(cx-r)+' '+cy+' A '+r+' '+r+' 0 0 1 '+(cx+r)+' '+cy,dash:(L*p).toFixed(1)+' '+(L+4).toFixed(1),dx:+(cx+r*Math.cos(ph)).toFixed(1),dy:+(cy-r*Math.sin(ph)).toFixed(1)};}
+  ring(p,t,r,sw,cx,cy){
+    const C=2*Math.PI*r,cl=v=>Math.max(0,Math.min(1,v));p=cl(p);t=cl(t);
+    const a=(t*360-90)*Math.PI/180,o=sw/2+3.5;
+    const showTick=this.props.showPaceTick!==false;
+    return {r:r,sw:sw,C:C,
+      fill:(C*p).toFixed(1)+' '+(C+4).toFixed(1),
+      gap:(C*Math.max(0,t-p)).toFixed(1)+' '+(C+4).toFixed(1),
+      gapOff:-(C*p).toFixed(1),
+      tick:showTick?'#F5F5F7':'transparent',
+      tickLight:showTick?'#0A0A0B':'transparent',
+      tx1:+(cx+(r-o)*Math.cos(a)).toFixed(1),ty1:+(cy+(r-o)*Math.sin(a)).toFixed(1),
+      tx2:+(cx+(r+o)*Math.cos(a)).toFixed(1),ty2:+(cy+(r+o)*Math.sin(a)).toFixed(1),
+      behind:p<t};
+  }
+  mosaic(total,day,accent,seed,light){
+    const out=[],w=light?'rgba(10,10,11,':'rgba(255,255,255,';
+    for(let i=0;i<total;i++){
+      if(i>=day){out.push({bg:w+'0.05)',line:'transparent'});continue;}
+      const r=this.rnd(i*1.7+seed);
+      if(r<0.68)out.push({bg:accent,line:'transparent'});
+      else if(r<0.86)out.push({bg:this.rgba(accent,0.42),line:'transparent'});
+      else out.push({bg:'transparent',line:w+'0.16)'});
+    }
+    return out;
+  }
+  smooth(pts){
+    let d='M '+pts[0][0].toFixed(1)+' '+pts[0][1].toFixed(1);
+    for(let i=0;i<pts.length-1;i++){
+      const p0=pts[i-1]||pts[i],p1=pts[i],p2=pts[i+1],p3=pts[i+2]||p2;
+      const c1=[p1[0]+(p2[0]-p0[0])/6,p1[1]+(p2[1]-p0[1])/6];
+      const c2=[p2[0]-(p3[0]-p1[0])/6,p2[1]-(p3[1]-p1[1])/6];
+      d+=' C '+c1[0].toFixed(1)+' '+c1[1].toFixed(1)+' '+c2[0].toFixed(1)+' '+c2[1].toFixed(1)+' '+p2[0].toFixed(1)+' '+p2[1].toFixed(1);
+    }
+    return d;
+  }
+  burnup(day,total,target,actual,W,H,win){
+    const usable=H-H*0.08,yMax=target*win/total,pts=[];
+    let v=0;
+    const daily=actual/day;
+    for(let i=0;i<=day;i++){
+      if(i>0){const j=this.rnd(i*3.3+11);v+=daily*(0.35+j*1.3);}
+      pts.push([i/win*W,H-Math.min(v,actual*1.25)/yMax*usable]);
+    }
+    const k=actual/v;
+    const P=pts.map(p=>[p[0],H-(H-p[1])*k]);
+    const reqEndY=H-usable;
+    const reqAtDay=H-(day/win)*usable;
+    return {
+      W:W,H:H,
+      line:this.smooth(P),
+      fill:this.smooth(P)+' L '+P[P.length-1][0].toFixed(1)+' '+H+' L 0 '+H+' Z',
+      req:'M 0 '+H+' L '+W+' '+reqEndY.toFixed(1),
+      area:this.smooth(P)+' L '+P[P.length-1][0].toFixed(1)+' '+reqAtDay.toFixed(1)+' L 0 '+H+' Z',
+      dotX:P[P.length-1][0].toFixed(1),dotY:P[P.length-1][1].toFixed(1)
+    };
+  }
+  componentDidMount(){this.icons();}
+  componentDidUpdate(){this.icons();}
+  icons(){if(window.lucide&&window.lucide.createIcons){try{window.lucide.createIcons();}catch(e){}}}
+  renderVals(){
+    const A=this.A(),day=Math.round(this.props.arcDay??34),total=122,p=day/total;
+    const teal=this.props.cyclingAccent||A.teal;
+    const gr=(name,accent,pv,tv,val,status)=>({name:name,accent:accent,val:val,status:status,
+      ring:this.ring(pv,tv,13,6,16,16),behind:pv<tv,
+      gapColor:pv<tv?'#FFB020':'transparent',
+      statusColor:pv<tv?'#FFB020':'rgba(255,255,255,.45)',
+      statusColorLight:pv<tv?'#B87400':'rgba(10,10,11,.4)'});
+    const mom=[];
+    for(let i=0;i<=27;i++){const b=44+Math.sin(i/4.1)*20+this.rnd(i+7)*13+i*0.5;mom.push([i/27*342,96-Math.min(94,b)/100*88+4]);}
+    const donutData=[{n:'Cycling',c:teal,h:6.5},{n:'Writing',c:A.sky,h:5.25},{n:'Strength',c:A.coral,h:4},{n:'Guitar',c:A.violet,h:2.5},{n:'Reading',c:A.lime,h:1}];
+    const dTotal=donutData.reduce((s,d)=>s+d.h,0),dr=51,dC=2*Math.PI*dr;
+    let acc=0;
+    const donutSegs=donutData.map(d=>{const len=dC*(d.h/dTotal)-7;const seg={color:d.c,dash:len.toFixed(1)+' '+(dC+4).toFixed(1),off:(-acc).toFixed(1),name:d.n,hours:d.h};acc+=dC*(d.h/dTotal);return seg;});
+    const wb=[{h:54,s:1},{h:68,s:1},{h:42,s:0},{h:76,s:1},{h:30,s:1},{h:60,s:0},{h:0,s:2}];
+    return {
+      day:day,left:total-day,dayLabel:'Day '+day+' of '+total+' · '+(total-day)+' left',
+      onbArc:this.arc(p,171,180,150),
+      homeArc:this.arc(p,171,146,140),
+      buildArc:this.arc(p,155,150,132),
+      lightArc:this.arc(p,171,146,140),
+      onbRing:this.ring(0.62,0.5,110,14,140,140),
+      onbMosaic:this.mosaic(122,day,'#5B6CFF',3),
+      arcMosaic:this.mosaic(122,day,'#5B6CFF',3),
+      cycMosaic:this.mosaic(122,day,teal,9),
+      finaleMosaic:this.mosaic(122,122,'#5B6CFF',5),
+      weekRow:[1,1,0.5,1,0,1,-1].map(v=>v===1?{bg:'#5B6CFF',line:'transparent'}:(v===0.5?{bg:'rgba(91,108,255,0.45)',line:'transparent'}:(v===0?{bg:'transparent',line:'rgba(255,255,255,0.28)'}:{bg:'rgba(255,255,255,0.06)',line:'transparent'}))),
+      lightMosaic:this.mosaic(122,day,'#5B6CFF',3),
+      cycRing:this.ring(0.235,p,13,6,16,16),
+      heroRing:this.ring(0.235,p,58,14,70,70),
+      arcRows:[
+        gr('Cycling',teal,0.235,p,'−35 km','Slipping'),
+        gr('Writing',A.sky,0.29,p,'5 / 7 days','On track'),
+        gr('Strength',A.coral,0.41,p,'+2 sessions','Locked in')
+      ],
+      todayMains:[
+        {name:'Cycling',accent:teal,detail:'12.4 km logged',done:true},
+        {name:'Strength',accent:A.coral,detail:'Session done',done:true}
+      ],
+      todayRest:[
+        {name:'Writing',accent:A.sky,detail:'500 words',done:false},
+        {name:'Guitar',accent:A.violet,detail:'25 min',done:false},
+        {name:'Reading',accent:A.lime,detail:'20 pages',done:false}
+      ],
+      loadRows:[
+        {name:'Cycling',accent:teal,cost:'6h 30m',sub:'4× / week · 98 min'},
+        {name:'Writing',accent:A.sky,cost:'5h 15m',sub:'7× / week · 45 min'},
+        {name:'Strength',accent:A.coral,cost:'4h 00m',sub:'3× / week · 80 min'},
+        {name:'Guitar',accent:A.violet,cost:'2h 30m',sub:'6× / week · 25 min'},
+        {name:'Reading',accent:A.lime,cost:'1h 00m',sub:'daily · 9 min'}
+      ],
+      swatches:[A.coral,A.amber,A.lime,teal,A.sky,A.indigo,A.violet,A.rose].map((c,i)=>({c:c,selRing:i===3?'2.5px':'0px'})),
+      burn:this.burnup(day,total,800,188,342,112,40),
+      momentum:{line:this.smooth(mom),fill:this.smooth(mom)+' L 342 96 L 0 96 Z'},
+      donut:{segs:donutSegs,total:'19h 15m'},
+      weekBars:wb.map((b,i)=>({x:+(17.4+i*48.86).toFixed(1),y:80-b.h,h:b.h,fill:b.s===1?teal:'transparent',stroke:b.s===0?'rgba(255,255,255,0.18)':'transparent'})),
+      checkpoints:[
+        {label:'Open chords',meta:'Sep 14',s:'done'},
+        {label:'Barre chords',meta:'Sep 29',s:'done'},
+        {label:'First full song',meta:'in progress',s:'current'},
+        {label:'Song 3',meta:'planned',s:'future'},
+        {label:'Song 5',meta:'planned',s:'future'}
+      ].map((n,i,all)=>({label:n.label,meta:n.meta,
+        bg:n.s==='done'?A.violet:'transparent',
+        line:n.s==='current'?A.violet:(n.s==='future'?'rgba(255,255,255,0.18)':'transparent'),
+        pulseColor:n.s==='current'?A.violet:'transparent',
+        spine:i===all.length-1?'transparent':(n.s==='done'?A.violet:'rgba(255,255,255,0.1)'),
+        textColor:n.s==='future'?'rgba(255,255,255,.4)':'#F5F5F7'})),
+      dayLetters:['M','T','W','T','F','S','S'],
+      entries:[
+        {d:'Today',v:'12.4 km'},{d:'Yesterday',v:'0 km'},{d:'Fri 2 Oct',v:'31.8 km'}
+      ],
+      resetRows:[
+        {name:'Cycling',accent:teal,hit:'4 / 4',ok:true},
+        {name:'Writing',accent:A.sky,hit:'5 / 7',ok:false},
+        {name:'Strength',accent:A.coral,hit:'3 / 3',ok:true},
+        {name:'Guitar',accent:A.violet,hit:'4 / 6',ok:false},
+        {name:'Reading',accent:A.lime,hit:'7 / 7',ok:true}
+      ].map(r=>({name:r.name,accent:r.accent,hit:r.hit,hitColor:r.ok?'#F5F5F7':'#FFB020'})),
+      pad:['1','2','3','4','5','6','7','8','9','.','0','⌫'],
+      fadeMosaic:Array.from({length:70},(_,i)=>{
+        const col=i%14,r=this.rnd(i*2.3+41),keep=1-col/13.5;
+        if(r>keep+0.12) return {bg:'rgba(255,255,255,0.04)',line:'transparent'};
+        if(r>keep-0.22) return {bg:'transparent',line:'rgba(91,108,255,0.4)'};
+        return {bg:'rgba(91,108,255,'+(0.45+this.rnd(i*5.1+7)*0.55).toFixed(2)+')',line:'transparent'};
+      }),
+      finaleGoals:[
+        {name:'Cycling',accent:teal,result:'842 / 800 km'},
+        {name:'Guitar',accent:A.violet,result:'5 of 5'},
+        {name:'Writing',accent:A.sky,result:'14 shipped'}
+      ],
+      keyRows:[
+        {keys:['q','w','e','r','t','y','u','i','o','p'],pad:'0px'},
+        {keys:['a','s','d','f','g','h','j','k','l'],pad:'16px'},
+        {keys:['⇧','z','x','c','v','b','n','m','⌫'],pad:'0px'}
+      ],
+      windowTicks:Array.from({length:122},(_,i)=>{
+        const month=[0,30,61,91].indexOf(i)>=0;
+        return {h:month?'44px':(i%7===0?'26px':'15px'),bg:month?'#5B6CFF':(i%7===0?'rgba(91,108,255,0.55)':'rgba(91,108,255,0.28)')};
+      }),
+      intents:[
+        {label:'Cycling',on:1,icon:'bike'},{label:'Guitar',on:1,icon:'music'},{label:'Writing',on:1,icon:'pen-line'},
+        {label:'Language',on:0,icon:'languages'},{label:'Strength',on:0,icon:'dumbbell'},{label:'Reading',on:0,icon:'book-open'},
+        {label:'Side project',on:0,icon:'rocket'},{label:'Sleep',on:0,icon:'moon'},{label:'Less scrolling',on:0,icon:'smartphone'},{label:'Weight',on:0,icon:'scale'}
+      ].map(i=>({label:i.label,icon:i.icon,weight:i.on?600:500,color:i.on?'#0A0A0B':'rgba(255,255,255,.6)',
+        bg:i.on?'#F5F5F7':'transparent',border:i.on?'#F5F5F7':'rgba(255,255,255,.14)'})),
+      recos:[
+        {name:'Cycling',accent:teal,detail:'800 km · 4× / week · accumulate',on:1},
+        {name:'Guitar',accent:A.violet,detail:'5 songs · 6× / week · milestone',on:1},
+        {name:'Writing',accent:A.sky,detail:'14 pieces · daily · ship',on:0}
+      ].map(r=>({name:r.name,accent:r.accent,detail:r.detail,
+        tick:r.on?'✓':'+',tickBg:r.on?'#F5F5F7':'transparent',
+        tickLine:r.on?'#F5F5F7':'rgba(255,255,255,.22)',tickColor:r.on?'#0A0A0B':'rgba(255,255,255,.6)'})),
+      features:[
+        {label:'Active arcs',free:'1',pro:'∞'},
+        {label:'Goals per arc',free:'2',pro:'∞'},
+        {label:'Pace ring & burn-up',free:'—',pro:'✓'},
+        {label:'Mosaic history',free:'30d',pro:'full'},
+        {label:'Sunday Reset',free:'—',pro:'✓'},
+        {label:'The Finale recap',free:'—',pro:'✓'}
+      ],
+      cycAccent:teal
+    };
+  }
+}
+</script>
+</body>
+</html>

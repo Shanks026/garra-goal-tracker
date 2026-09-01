@@ -1,0 +1,70 @@
+# Secrets — never commit
+.mcp.json
+.env
+.env.*
+!.env.example
+*.pem
+*.p8
+*.p12
+*.keystore
+google-services.json
+GoogleService-Info.plist
+
+# Dependencies
+node_modules/
+.pnp/
+.yarn/
+
+# Expo / React Native
+.expo/
+.expo-shared/
+dist/
+web-build/
+ios/
+android/
+*.jsbundle
+.metro-health-check*
+
+# EAS
+.easignore
+
+# Build output
+build/
+*.ipa
+*.apk
+*.aab
+
+# Native debug
+*.hprof
+
+# Testing / coverage
+coverage/
+.nyc_output/
+
+# TypeScript
+*.tsbuildinfo
+
+# Editor
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local SQLite dumps pulled off a device for debugging
+*.db
+*.sqlite
+*.sqlite3
