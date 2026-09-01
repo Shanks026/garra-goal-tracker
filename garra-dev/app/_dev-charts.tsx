@@ -111,7 +111,7 @@ export default function DevCharts() {
         </Section>
 
         <Section title="WindowTicks">
-          <WindowTicks totalDays={122} width={342} />
+          <WindowTicks totalDays={122} width={342} startDate="2026-09-01" />
         </Section>
 
         <Section title="BurnUp — behind pace">

@@ -1,0 +1,1 @@
+ALTER TABLE `goals` ADD `title` text NOT NULL;

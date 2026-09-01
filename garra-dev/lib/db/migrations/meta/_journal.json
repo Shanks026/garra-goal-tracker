@@ -8,6 +8,20 @@
       "when": 1788262289604,
       "tag": "0000_mean_loners",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1788281205243,
+      "tag": "0001_bouncy_starhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1788281556934,
+      "tag": "0002_wide_misty_knight",
+      "breakpoints": true
     }
   ]
 }

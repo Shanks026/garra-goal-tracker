@@ -99,7 +99,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 1 | Foundation — tokens, schema, theme | `02-foundation.md` | ✅ Complete |
 | 2 | The chart set | `03-chart-set.md` | ✅ Complete |
 | 3 | The pace engine | `04-pace-engine.md` | ✅ Complete |
-| 4 | Onboarding & arc creation | — | ⬜ |
+| 4 | Onboarding & arc creation | `05-onboarding-arc-creation.md` | ✅ Built, statically verified — on-device pass pending |
 | 5 | Home & logging ⭐ | — | ⬜ |
 | 6 | Goal detail | — | ⬜ |
 | 7 | The Arc tab | — | ⬜ |
@@ -109,7 +109,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 11 | Monetization | — | ⬜ |
 | 12 | Polish & ship | — | ⬜ |
 
-Next available feature-doc number: **05**
+Next available feature-doc number: **06**
 
 ---
 
@@ -141,6 +141,7 @@ Indexes: none beyond PK.
 |---|---|---|
 | arc_id | uuid | FK → arcs, ON DELETE CASCADE |
 | type | text | CHECK in (`habit`,`accumulate`,`ship`,`milestone`) |
+| title | text | not null — added Phase 4.1; missing since Phase 1.5, see `05-onboarding-arc-creation.md` |
 | direction | text | default `'up'`, CHECK in (`up`,`down`) — the ⊖ Limit type's seam |
 | accent, icon | text | not null |
 | is_main | boolean | default `false` |
@@ -210,6 +211,7 @@ Indexes: none beyond PK.
 | Date | Phase / doc | What changed |
 |---|---|---|
 | 2026-09-01 | Phase 1.5, `02-foundation.md` | `create_arcs`, `create_goals`, `create_entries`, `create_checkpoints`, `create_rescopes`, `create_freezes` — full initial schema, RLS on all six |
+| 2026-09-01 | Phase 4.1, `05-onboarding-arc-creation.md` | `add_goals_title` — `goals.title text not null`, a Phase 1.5 omission (no table ever held a goal's display name) found while wiring the first real goal-creation mutation |
 
 ---
 
@@ -234,6 +236,21 @@ that can't take a `className`. Built Phase 1.1–1.2.
   placeholder until Phase 11 (RevenueCat, held by user decision) settles the real free/Pro
   numbers from `IMPLEMENTATION.md`'s Design Deltas §3.
 Built Phase 1.3.
+- `date.ts`'s `deviceTimezone()` — a one-line `Intl.DateTimeFormat().resolvedOptions().timeZone`
+  wrapper, the one deliberate place the device's own timezone is read (everywhere else takes
+  `tz` as a parameter). Built Phase 4.1, captured once at arc creation onto `arcs.timezone`.
+- `arcNaming.ts`'s `seasonalArcTitle(now)` — Spring/Summer/Autumn/Winter Arc by month; the fast
+  onboarding path never asks for an arc name, so this fills `arcs.title` (not null) with a
+  sensible default, editable later. Built Phase 4.1.
+- `intents.ts` — the intent → goal template catalog (`INTENTS[]`, one entry per `IntentKey`,
+  each with a `buildGoal({ totalDays })` that scales its target proportionally to the 122-day
+  canvas reference). Excludes Sleep/Less scrolling/Weight (the ⊖ Limit type, post-v1). Built
+  Phase 4.1, real work per `IMPLEMENTATION.md`'s explicit callout, not a stub.
+- `queryKeys.ts` — the `qk` object (`03-state-and-data.md` §3's convention): `activeArc`,
+  `draftArc`, `goals(arcId)`, `localProfile`. Built Phase 4.1.
+- `queryPersister.ts` — a hand-written ~20-line MMKV-backed `Persister` for
+  `@tanstack/react-query-persist-client`, not a separate persister package (`06-conventions.md`
+  §6). Built Phase 4.1 — see standing rule #18 for `react-native-mmkv` v4's Nitro API shape.
 
 ### `lib/db/` — local SQLite (Drizzle)
 `schema.ts` — all 6 tables (`arcs`, `goals`, `entries`, `checkpoints`, `rescopes`, `freezes`) +
@@ -286,6 +303,13 @@ test-design bugs found/fixed while writing them: `04-pace-engine.md`'s Implement
 back dismisses the sheet instead of falling through to expo-router and exiting the app. Every
 sheet must use this; see standing rule #13 for the provider it depends on.
 
+`useArcBuilder.ts` (Phase 4.1) — the app's first real query/mutation hooks, all facets of the
+in-progress-draft-arc concern: `useDraftArc`/`useActiveArc`/`useGoalsForArc` (query),
+`useLocalProfileName`/`useSetLocalProfileName` (query/mutation pair for the local-only name),
+`useSetArcWindow`/`useAddGoalToDraft`/`useActivateArc` (mutation), `useDraftLoadCheck` (query,
+wires real goal rows to Phase 3's `loadCheck()`). Every mutation writes SQLite directly and
+invalidates by prefix — none touch Supabase (Phase 8 territory).
+
 ### UI primitives — `components/ui/`
 All built, Phase 2.5: `Button` (primary/secondary/outline — primary never accent-colored),
 `Chip` (filter/intent variants), `ListGroup`/`ListRow` (inset grouped list), `StatusPill`
@@ -294,10 +318,31 @@ All built, Phase 2.5: `Button` (primary/secondary/outline — primary never acce
 shell every real sheet (Phase 4+) builds on — standard chrome plus `useSheetBackHandler` wired
 automatically.
 
+`Chip` gained an optional `icon?: LucideIcon` prop in Phase 4.2 (intent chips carry a leading
+glyph) — additive, existing filter-chip usages unaffected. `StepDots` (Phase 4.2) is the 5-dot
+onboarding progress row.
+
+### Goal components — `components/goal/`
+Built Phase 4.2–4.4: `GoalIcon`/`GOAL_ICON_KEYS`/`ICONS_BY_KEY` (the curated icon-key → Lucide
+map, `02-ui-components.md` §6 — built in 4.2, ahead of its planned 4.4 slot, since the Intent
+screen needed it first), `GoalTypeCard` (the 2×2 type-picker tile, screen 07), `AccentPicker`
+(the 8-swatch row with per-arc uniqueness enforced by a disabled set, screen 08). `GoalRow`/
+`TodayRow` (Home-specific) are still Phase 5.
+
+### Onboarding & Arc Builder routes
+`app/(onboarding)/` (screens 01–05: welcome, name, intent, recommended, signup) and
+`app/arc-builder/` (screens 06–09: window, goal-type, goal-form, load-check) — built Phase 4,
+full detail and the fast-path's real screen order in `05-onboarding-arc-creation.md`.
+`app/index.tsx` is now the real cold-start router (splash → onboarding / resume builder / a
+temporary Home-is-Phase-5 placeholder), replacing the Phase 0/2 dev placeholder.
+
 ### Dev routes
 `app/_dev-charts.tsx` — permanent kitchen-sink route (not deleted after Phase 2, unlike the
 throwaway smoke-test routes from Phase 0/1) exercising every chart and UI primitive against
-fixture data, with an in-route dark/light toggle. Reachable from `app/index.tsx`.
+fixture data, with an in-route dark/light toggle. **No longer linked from `app/index.tsx`**
+since Phase 4.5 repurposed that route as the real cold-start router — reach it during
+development by navigating to `/_dev-charts` directly (e.g. typing the URL in Expo's dev menu, or
+a deep link). Still exercises `WindowTicks` with its Phase 4.3 `startDate` prop addition.
 
 ---
 
@@ -404,3 +449,19 @@ Append whenever something breaks in a way a rule would have prevented, then prom
     inspecting files if shell calls start stalling. Discovered during Phase 2; closing the
     emulator for Phase 3 (pure Jest-testable logic, no on-device verification needed) avoided
     the problem entirely rather than working around it.
+18. **`react-native-mmkv` v4 is a Nitro-modules library, not the old class-based API** —
+    `MMKV` is a type-only export; create an instance with `createMMKV(config)`, not
+    `new MMKV(config)`. Caught immediately by `tsc` while building the query-cache persister
+    (Phase 4.1), not a runtime surprise, but worth recording since the old constructor pattern
+    is what most existing MMKV tutorials/examples still show. Check a library's actual shipped
+    `.d.ts` before writing code against a remembered API shape, especially for a dependency that
+    was installed in Phase 0 and not touched since.
+19. **A type-cast that silences a TypeScript error is a place to stop and investigate, not a
+    place to move past.** An `as never` cast in a mutation call (Phase 4.4's goal-creation form)
+    was hiding two real defects at once — a missing `checkpoints` field and a missing `accent`
+    field on the mutation's input type — meaning every Milestone goal silently lost its
+    checkpoints and every manual accent choice was silently discarded. Both worked "fine" in the
+    sense that nothing crashed; the bug was in data never being written. Caught only because the
+    cast itself looked suspicious enough to double-check before closing out the phase. Any
+    `as never`/`as any`/`as unknown as X` in new code is worth a second look before commit — see
+    `05-onboarding-arc-creation.md`'s Implementation Notes for the full story.

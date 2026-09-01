@@ -20,3 +20,13 @@ export function dayKey(d: Date, tz: string): string {
   const effective = belongsToPreviousDay ? subDays(zoned, 1) : zoned;
   return format(effective, 'yyyy-MM-dd');
 }
+
+/**
+ * This device's IANA timezone (e.g. 'America/Chicago'), captured once at arc creation and
+ * stored on `arcs.timezone` — everything else in this file takes `tz` as a parameter rather
+ * than reading the device directly, so this is the one deliberate seam where it's read. Kept
+ * here (not inlined at the call site) so it can be mocked the same way a passed-in `now` is.
+ */
+export function deviceTimezone(): string {
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+}

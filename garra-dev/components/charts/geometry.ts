@@ -2,6 +2,20 @@
 // (design-system/garra-design-system-sixteenscreens/Garra UI Kit.dc.html, `arc()`/`ring()`).
 // Pure functions — no React, no Skia imports — so they're testable without rendering.
 
+// Day-indices (0-based, within [0, totalDays)) that land on the 1st of a calendar month, given
+// the arc starts on startDate — replaces WindowTicks' old hardcoded [0, 30, 61, 91], which was
+// only ever correct for the canvas's own Sep 1 -> Dec 31 example (found while building Phase
+// 4.3's real Window screen, where the start date is whatever the user picked).
+export function windowTickMonthBoundaries(startDate: string, totalDays: number): number[] {
+  const start = new Date(`${startDate}T00:00:00.000Z`);
+  const boundaries: number[] = [];
+  for (let i = 0; i < totalDays; i++) {
+    const day = new Date(start.getTime() + i * 86_400_000);
+    if (day.getUTCDate() === 1) boundaries.push(i);
+  }
+  return boundaries;
+}
+
 export function arcSweepGeometry(p: number, cx: number, cy: number, r: number) {
   const L = Math.PI * r;
   const ph = Math.PI * (1 - p);

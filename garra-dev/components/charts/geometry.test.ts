@@ -3,6 +3,7 @@ import {
   catmullRomSmooth,
   loadDonutSegments,
   paceRingGeometry,
+  windowTickMonthBoundaries,
 } from './geometry';
 
 describe('arcSweepGeometry', () => {
@@ -148,5 +149,27 @@ describe('loadDonutSegments', () => {
     const totalGapRemoved = segs.length * 7;
     const totalDashLength = segs.reduce((sum, s) => sum + s.dashIntervals[0], 0);
     expect(totalDashLength + totalGapRemoved).toBeCloseTo(C, 5);
+  });
+});
+
+describe('windowTickMonthBoundaries', () => {
+  it('a window starting exactly on the 1st includes index 0', () => {
+    expect(windowTickMonthBoundaries('2026-09-01', 30)).toContain(0);
+  });
+
+  it("a window starting mid-month finds the next month's 1st, not an anchored offset", () => {
+    // Starts Sep 15 -> Oct 1 is 16 days later (index 16), not index 30/61/91.
+    const boundaries = windowTickMonthBoundaries('2026-09-15', 60);
+    expect(boundaries).toContain(16);
+    expect(boundaries).not.toContain(30);
+  });
+
+  it('a window shorter than 30 days may return zero boundaries without crashing', () => {
+    expect(() => windowTickMonthBoundaries('2026-09-05', 10)).not.toThrow();
+    expect(windowTickMonthBoundaries('2026-09-05', 10)).toEqual([]);
+  });
+
+  it('matches the exact [0, 30, 61, 91] fixture it replaces (Sep 1 -> Dec 31, 122 days)', () => {
+    expect(windowTickMonthBoundaries('2026-09-01', 122)).toEqual([0, 30, 61, 91]);
   });
 });

@@ -2,10 +2,14 @@
 
 import journal from './meta/_journal.json';
 import m0000 from './0000_mean_loners.sql';
+import m0001 from './0001_bouncy_starhawk.sql';
+import m0002 from './0002_wide_misty_knight.sql';
 
 export default {
   journal,
   migrations: {
     m0000,
+    m0001,
+    m0002,
   },
 };

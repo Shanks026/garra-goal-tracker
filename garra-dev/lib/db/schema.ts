@@ -29,6 +29,10 @@ export const goals = sqliteTable('goals', {
     .notNull()
     .references(() => arcs.id),
   type: text('type', { enum: ['habit', 'accumulate', 'ship', 'milestone'] }).notNull(),
+  // Missing since Phase 1.5 — every goal needs a display name and nothing else in the schema
+  // holds one. Found while wiring the first real goal-creation mutation in Phase 4; fixed here
+  // rather than worked around (see 05-onboarding-arc-creation.md's Implementation Notes).
+  title: text('title').notNull(),
   direction: text('direction', { enum: ['up', 'down'] })
     .notNull()
     .default('up'),
@@ -126,6 +130,20 @@ export const freezes = sqliteTable('freezes', {
     .references(() => arcs.id),
   earnedForWeek: text('earned_for_week').notNull(),
   consumedForDayKey: text('consumed_for_day_key'),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+  updatedAt: text('updated_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+// Local-only, never synced (05-onboarding-arc-creation.md §4.1.2): the display name captured
+// in onboarding, before Phase 8's real `profiles` table (and a real account) exist. Always
+// exactly one row, id fixed to 'local'.
+export const localProfile = sqliteTable('local_profile', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
   createdAt: text('created_at')
     .notNull()
     .default(sql`(current_timestamp)`),

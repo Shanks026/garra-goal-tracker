@@ -5,6 +5,8 @@ import { Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as Sentry from '@sentry/react-native';
@@ -12,6 +14,13 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 
 import { db } from '../lib/db/client';
 import migrations from '../lib/db/migrations/migrations';
+import { mmkvPersister } from '../lib/queryPersister';
+
+// SQLite is local, and the only thing that changes data is the user (03-state-and-data.md §3) —
+// a generous staleTime is correct here, not a bug. Refetch happens on invalidation, not polling.
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: Infinity } },
+});
 
 // Never let a missing/misconfigured DSN block boot — Sentry is diagnostics, not a dependency.
 try {
@@ -53,11 +62,16 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        {/* Mounted once at the app root (rules/02-ui-components.md §3) so any screen can
-            open a sheet without each one needing its own provider. */}
-        <BottomSheetModalProvider>
-          <Stack screenOptions={{ headerShown: false }} />
-        </BottomSheetModalProvider>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister: mmkvPersister }}
+        >
+          {/* Mounted once at the app root (rules/02-ui-components.md §3) so any screen can
+              open a sheet without each one needing its own provider. */}
+          <BottomSheetModalProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+          </BottomSheetModalProvider>
+        </PersistQueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
