@@ -246,16 +246,33 @@ theme.
   UI calls it yet (Settings itself is Phase 12, not designed).
 
 ### 1.2.9 Checklist
-- [ ] App boots to a screen using `theme/tokens.ts` values via NativeWind classes, not a literal
+- [x] App boots to a screen using `theme/tokens.ts` values via NativeWind classes, not a literal
   `bg-white`
-- [ ] Switching the OS appearance between dark/light while the app is open updates it (or on
-  relaunch, if NativeWind doesn't hot-swap — confirm which and note it)
-- [ ] Splash screen is held and then dismissed exactly once, no flash of unstyled content
-- [ ] `Sentry.init()` runs without crashing when `EXPO_PUBLIC_SENTRY_DSN` is empty
-- [ ] `tsc --noEmit` clean
-- [ ] Rendered correctly in both dark and light mode
+- [x] Switching the OS appearance between dark/light while the app is open updates it — verified
+  live via Expo Go on-device; dark mode confirmed dark bg (`#0A0A0B`) + light text (`#F5F5F7`)
+- [x] Splash screen is held and then dismissed exactly once — no fonts load in this phase so
+  this is effectively instant; no flash observed
+- [x] `Sentry.init()` runs without crashing when `EXPO_PUBLIC_SENTRY_DSN` is empty — app boots
+  and runs normally with no DSN configured
+- [x] `tsc --noEmit` clean
+- [x] Rendered correctly in both dark and light mode — dark confirmed on-device; light mode
+  confirmed by user before moving on
+
+✅ **Phase 1.2 complete — 2026-09-01.**
 
 **→ Stop here. Show the result and wait for approval.**
+
+### Implementation Notes
+
+`app/smoke.tsx` (written in Phase 0.2, deferred there) was **deleted during this phase**, ahead
+of its originally planned end-of-Phase-1 removal. Reason: Expo Router statically imports every
+file under `app/` to build its route table, so `smoke.tsx`'s `createMMKV()` call at module scope
+was loading on every app boot regardless of which screen was open — breaking the Expo Go dev
+loop with a "failed to get NitroModules, native module could not be found" error the moment this
+phase's changes were tested. Removed it and its link from `app/index.tsx` rather than waiting;
+nothing in it was needed once Phase 0.2's native verification was deferred anyway. Generalizes:
+**any file placed under `app/` is eagerly bundled, even if no screen navigates to it** — this
+matters again if a future throwaway/dev-only route imports Skia or MMKV.
 
 ---
 

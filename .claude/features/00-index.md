@@ -210,3 +210,9 @@ Append whenever something breaks in a way a rule would have prevented, then prom
    value) and a `-dark` suffix (dark value) — used together:
    `className="bg-bg dark:bg-bg-dark"`. There is no single auto-switching token name. See
    `02-foundation.md` Phase 1.1's Implementation Notes for the full story.
+9. **Every file under `app/` is eagerly bundled by Expo Router**, whether or not any screen
+   navigates to it — it statically imports the whole directory to build the route table. One
+   dev-only route importing Skia or MMKV breaks Expo Go for the *entire* app, not just that
+   screen (this is exactly what happened with `app/smoke.tsx` in Phase 1.2 — see
+   `02-foundation.md`). Keep anything importing those two out of `app/` entirely until the
+   native dev-client build (deferred, `01-project-initialization.md` §0.2.4) is actually done.
