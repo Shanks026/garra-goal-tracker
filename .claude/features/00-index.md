@@ -149,7 +149,20 @@ Check here before building — most of a feature is usually already available.
 ### Theme — `theme/`
 `tokens.ts` — every color/typography/spacing/radius value from `01-design-system.md` §1–3.
 `tailwind.config.js` generates its theme from this file (see standing rule #8 above for the
-dark-mode class-pairing convention). Built Phase 1.1.
+dark-mode class-pairing convention). `useAppTheme()` resolves the current NativeWind color
+scheme to the matching raw `tokens.dark`/`tokens.light` object, for Skia/inline-style consumers
+that can't take a `className`. Built Phase 1.1–1.2.
+
+### `lib/`
+- `date.ts` — `dayKey()`, the 04:00 rollover, via `@date-fns/tz`'s `TZDate` (plain `date-fns`
+  is timezone-naive — see `02-foundation.md` Phase 1.3 notes). Unit-tested: rollover boundary,
+  DST spring-forward/fall-back, non-DST half-hour-offset timezone, cross-timezone divergence.
+- `copy.ts` — the core lexicon (Arc, Mains, Sides, Checkpoints, Freeze, Sunday Reset, The
+  Finale, status ladder). Screen-specific strings get added by whichever phase needs them.
+- `entitlements.ts` — `useFlag<T>(flag): T`, every flag resolves to a permissive Pro-tier
+  placeholder until Phase 11 (RevenueCat, held by user decision) settles the real free/Pro
+  numbers from `IMPLEMENTATION.md`'s Design Deltas §3.
+Built Phase 1.3. `lib/derive/*`, `lib/db/`, and `lib/sync/` don't exist yet.
 
 ### Charts — `components/charts/`
 *None yet.* Phase 2 builds `PaceRing`, `ArcSweep`, `Mosaic`, `BurnUp`, `WeekBars`, `Momentum`,

@@ -384,14 +384,35 @@ None. Fully additive.
 - RevenueCat / real entitlement checks — Phase 11, explicitly deferred by user decision.
 
 ### 1.3.9 Checklist
-- [ ] `npx jest` runs and passes (not just exits 0 on zero tests — real assertions run)
-- [ ] Every `dayKey()` case listed above has a passing test
-- [ ] `lib/copy.ts` has no screen-specific/flavor strings beyond the core lexicon
-- [ ] `useFlag()` returns the Pro value for every defined `Flag` in dev
-- [ ] `tsc --noEmit` clean
-- [ ] No `new Date()` call inside `dayKey()` itself — `now`/`d` is always a parameter
+- [x] `npx jest` runs and passes — 7 real assertions, not a zero-test pass
+- [x] Every `dayKey()` case listed above has a passing test
+- [x] `lib/copy.ts` has no screen-specific/flavor strings beyond the core lexicon
+- [x] `useFlag()` returns the Pro value for every defined `Flag` in dev
+- [x] `tsc --noEmit` clean
+- [x] No `new Date()` call inside `dayKey()` itself — `now`/`d` is always a parameter
+
+✅ **Phase 1.3 complete — 2026-09-01.**
 
 **→ Stop here. Show the result and wait for approval.**
+
+### Implementation Notes
+
+**Added `@date-fns/tz` (pinned `1.5.0`), not anticipated in this doc's original plan.** Core
+`date-fns` v4 is timezone-naive by design — its functions (`getHours`, `subDays`, `format`) all
+read a `Date` through the *system's local* timezone via native getters. Given `dayKey()` takes
+an arbitrary IANA `tz` string that's very often not the system's own timezone, using plain
+`date-fns` functions directly would have silently used the wrong offset. `@date-fns/tz`'s
+`TZDate` class (zero dependencies, same date-fns organization, not a competing library) is the
+first-party companion package built exactly for this — it subclasses `Date` so every existing
+date-fns function operates correctly against the given timezone's wall-clock time instead. This
+satisfies `03-state-and-data.md` §5's "date-fns for all arithmetic" rather than working around
+it with hand-rolled UTC-offset math, which was the realistic alternative and considerably more
+error-prone for exactly the DST edge cases this phase is testing.
+
+Also installed: `jest@29.7.0` (matching `jest-expo@54.0.18`'s own internal `^29.x`
+dependencies — installing latest `jest@30` instead would have mismatched) and
+`@types/jest@29.5.14`, finally getting `npx jest` itself working (only the `jest-expo` preset
+existed before this phase, per Phase 0's implementation notes).
 
 ---
 
