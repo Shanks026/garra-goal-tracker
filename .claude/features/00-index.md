@@ -98,7 +98,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 0 | Project initialization & dependency checks | `01-project-initialization.md` | ✅ Complete (0.1 ✅, 0.2 ✅ on emulator — physical-device spot check still pending, 0.3 ✅ mostly — see notes) |
 | 1 | Foundation — tokens, schema, theme | `02-foundation.md` | ✅ Complete |
 | 2 | The chart set | `03-chart-set.md` | ✅ Complete |
-| 3 | The pace engine | — | ⬜ |
+| 3 | The pace engine | `04-pace-engine.md` | 📋 Planned |
 | 4 | Onboarding & arc creation | — | ⬜ |
 | 5 | Home & logging ⭐ | — | ⬜ |
 | 6 | Goal detail | — | ⬜ |
@@ -109,7 +109,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 11 | Monetization | — | ⬜ |
 | 12 | Polish & ship | — | ⬜ |
 
-Next available feature-doc number: **04**
+Next available feature-doc number: **05**
 
 ---
 
