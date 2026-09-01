@@ -52,7 +52,9 @@ export function Checkbox({ checked, onToggle, accent }: CheckboxProps) {
         }}
       >
         <Animated.View style={checkStyle}>
-          <Check size={14} strokeWidth={3} color={tokens.bg} />
+          {/* rules/01 §5: the glyph is bg-colored on dark but #FFFFFF on light — light `bg` is
+              #FAFAF9, so reusing it here left the checkmark faintly off-white. */}
+          <Check size={14} strokeWidth={3} color={tokens.checkGlyph} />
         </Animated.View>
       </View>
     </Pressable>

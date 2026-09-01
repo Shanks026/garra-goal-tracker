@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAppTheme } from '@/theme/useAppTheme';
 import { useSetLocalProfileName } from '@/hooks/useArcBuilder';
+import { copy } from '@/lib/copy';
+import { stepIndex, stepLabel, ONBOARDING_STEP_COUNT } from '@/lib/onboardingSteps';
 import { Button } from '@/components/ui/Button';
 import { StepDots } from '@/components/ui/StepDots';
 
@@ -29,16 +31,16 @@ export default function Name() {
       <View className="flex-1 justify-center gap-10">
         <View className="gap-3">
           <Text className="text-[11px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
-            STEP 1 OF 4
+            {stepLabel('name')}
           </Text>
           <Text
             className="text-text-primary dark:text-text-primary-dark"
             style={{ fontSize: 30, fontWeight: '600', letterSpacing: -0.9, lineHeight: 36 }}
           >
-            What should we call you?
+            {copy.onboarding.nameTitle}
           </Text>
           <Text className="text-[16px] leading-6 text-text-secondary dark:text-text-secondary-dark">
-            Only shows up in your Sunday Reset and your Finale.
+            {copy.onboarding.nameBody}
           </Text>
         </View>
 
@@ -60,7 +62,7 @@ export default function Name() {
       </View>
 
       <View className="items-center gap-5 pb-3">
-        <StepDots total={5} current={1} />
+        <StepDots total={ONBOARDING_STEP_COUNT} current={stepIndex('name')} />
         <Button
           title="Continue"
           onPress={onContinue}

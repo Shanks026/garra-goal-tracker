@@ -11,6 +11,8 @@ export type ArcSweepProps = {
   /** Fraction of the arc elapsed, 0-1. */
   p: number;
   size?: 'home' | 'onboarding' | 'builder';
+  /** The value in words — e.g. "Day 34 of 122, 88 days left" (rules/02 §8). */
+  accessibilityLabel?: string;
 };
 
 // rules/01-design-system.md §4.1
@@ -20,7 +22,7 @@ const SIZES = {
   builder: { cx: 155, cy: 150, r: 132, sw: 14 },
 } as const;
 
-export function ArcSweep({ p, size = 'home' }: ArcSweepProps) {
+export function ArcSweep({ p, size = 'home', accessibilityLabel }: ArcSweepProps) {
   const { tokens } = useAppTheme();
   const { cx, cy, r, sw } = SIZES[size];
   const geo = arcSweepGeometry(p, cx, cy, r);
@@ -44,7 +46,12 @@ export function ArcSweep({ p, size = 'home' }: ArcSweepProps) {
   if (!skPath) return null;
 
   return (
-    <View style={{ width: cx * 2, height }}>
+    <View
+      accessible={!!accessibilityLabel}
+      accessibilityRole={accessibilityLabel ? 'image' : undefined}
+      accessibilityLabel={accessibilityLabel}
+      style={{ width: cx * 2, height }}
+    >
       <Canvas style={{ width: cx * 2, height }}>
         <Path path={skPath} style="stroke" strokeWidth={sw} color={tokens.track} />
         <Path path={skPath} style="stroke" strokeWidth={sw} strokeCap="round" color={system.arc}>

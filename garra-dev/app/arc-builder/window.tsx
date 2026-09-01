@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
-import { addDays, endOfYear, format } from 'date-fns';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDraftArc, useSetArcWindow } from '@/hooks/useArcBuilder';
+import {
+  addDaysToKey,
+  dayKey,
+  daysBetweenKeysInclusive,
+  deviceTimezone,
+  endOfYearKey,
+} from '@/lib/date';
+import { safeBack } from '@/lib/navigation';
 import { WindowTicks } from '@/components/charts/WindowTicks';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
@@ -21,19 +28,14 @@ const PRESETS = [
 
 type ArcWindow = { startsAt: string; endsAt: string };
 
+// Every date here is a day key produced by dayKey() and moved with day-key arithmetic, so the
+// arc's window agrees with the 04:00 rollover that every entry's own day_key uses (rules/03 §5).
+// Arcs start tomorrow by design — it creates anticipation and avoids a half-day miss on day 1
+// (garra-index.md §7.2 step 2).
 function computeWindow(days: number | 'endOfYear'): ArcWindow {
-  const start = addDays(new Date(), 1);
-  const end = days === 'endOfYear' ? endOfYear(start) : addDays(start, days - 1);
-  return { startsAt: format(start, 'yyyy-MM-dd'), endsAt: format(end, 'yyyy-MM-dd') };
-}
-
-function totalDaysBetween(startsAt: string, endsAt: string): number {
-  return (
-    Math.round(
-      (Date.parse(`${endsAt}T00:00:00.000Z`) - Date.parse(`${startsAt}T00:00:00.000Z`)) /
-        86_400_000,
-    ) + 1
-  );
+  const startsAt = addDaysToKey(dayKey(new Date(), deviceTimezone()), 1);
+  const endsAt = days === 'endOfYear' ? endOfYearKey(startsAt) : addDaysToKey(startsAt, days - 1);
+  return { startsAt, endsAt };
 }
 
 export default function Window() {
@@ -53,7 +55,7 @@ export default function Window() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftArc.data]);
 
-  const totalDays = totalDaysBetween(selected.startsAt, selected.endsAt);
+  const totalDays = daysBetweenKeysInclusive(selected.startsAt, selected.endsAt);
 
   const onPickPreset = (days: number | 'endOfYear') => {
     setSelected(computeWindow(days));
@@ -62,7 +64,7 @@ export default function Window() {
 
   const onNext = () => {
     setWindow.mutate(selected);
-    router.back();
+    safeBack(router, '/recommended');
   };
 
   return (

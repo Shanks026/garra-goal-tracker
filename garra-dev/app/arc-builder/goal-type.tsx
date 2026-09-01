@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useDraftArc, useGoalsForArc } from '@/hooks/useArcBuilder';
 import { GoalTypeCard } from '@/components/goal/GoalTypeCard';
 import { Button } from '@/components/ui/Button';
 
@@ -16,7 +17,11 @@ const TYPES = [
 
 export default function GoalType() {
   const router = useRouter();
+  const draftArc = useDraftArc();
+  const goalsQuery = useGoalsForArc(draftArc.data?.id);
   const [selected, setSelected] = useState<(typeof TYPES)[number]['type'] | null>(null);
+
+  const goalCount = goalsQuery.data?.length ?? 0;
 
   const onNext = () => {
     if (!selected) return;
@@ -59,13 +64,24 @@ export default function GoalType() {
         </View>
       </View>
 
-      <View className="px-6 pb-3">
+      <View className="px-6 pb-3" style={{ gap: 10 }}>
         <Button
           title="Next"
           onPress={onNext}
           disabled={!selected}
           style={{ width: '100%', opacity: selected ? 1 : 0.4 }}
         />
+        {/* Without this, the manual path dead-ended here: goal-type -> goal-form -> back, with
+            nothing routing on to the load check, so a user resumed into this screen by the
+            cold-start router had to kill the app to progress (audit finding). */}
+        {goalCount > 0 && (
+          <Button
+            title={`Done adding · ${goalCount} ${goalCount === 1 ? 'goal' : 'goals'}`}
+            variant="outline"
+            onPress={() => router.push('/arc-builder/load-check')}
+            style={{ width: '100%' }}
+          />
+        )}
       </View>
     </SafeAreaView>
   );

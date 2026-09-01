@@ -27,7 +27,7 @@ export const goals = sqliteTable('goals', {
   id: text('id').primaryKey(),
   arcId: text('arc_id')
     .notNull()
-    .references(() => arcs.id),
+    .references(() => arcs.id, { onDelete: 'cascade' }),
   type: text('type', { enum: ['habit', 'accumulate', 'ship', 'milestone'] }).notNull(),
   // Missing since Phase 1.5 — every goal needs a display name and nothing else in the schema
   // holds one. Found while wiring the first real goal-creation mutation in Phase 4; fixed here
@@ -51,6 +51,10 @@ export const goals = sqliteTable('goals', {
   paceBasis: text('pace_basis'),
   quickAdd: text('quick_add', { mode: 'json' }).$type<number[]>(),
   itemNoun: text('item_noun'),
+  // Nullable: null means "starts with the arc". Mirrors endsAt's release-valve role — a goal
+  // added on day 40 must not be judged against the whole arc's expected pace, and it anchors
+  // its own every_n_days cadence. Added Phase 5.0; see 06-home-and-logging.md §5.0.2.
+  startsAt: text('starts_at'),
   endsAt: text('ends_at'),
   status: text('status', { enum: ['active', 'paused', 'archived'] })
     .notNull()
@@ -69,7 +73,7 @@ export const entries = sqliteTable(
     id: text('id').primaryKey(),
     goalId: text('goal_id')
       .notNull()
-      .references(() => goals.id),
+      .references(() => goals.id, { onDelete: 'cascade' }),
     dayKey: text('day_key').notNull(),
     loggedAt: text('logged_at').notNull(),
     value: real('value'),
@@ -96,7 +100,7 @@ export const checkpoints = sqliteTable('checkpoints', {
   id: text('id').primaryKey(),
   goalId: text('goal_id')
     .notNull()
-    .references(() => goals.id),
+    .references(() => goals.id, { onDelete: 'cascade' }),
   title: text('title').notNull(),
   position: integer('position').notNull(),
   targetDate: text('target_date'),
@@ -114,11 +118,17 @@ export const rescopes = sqliteTable('rescopes', {
   id: text('id').primaryKey(),
   goalId: text('goal_id')
     .notNull()
-    .references(() => goals.id),
+    .references(() => goals.id, { onDelete: 'cascade' }),
   fromTarget: real('from_target'),
   toTarget: real('to_target'),
   reason: text('reason'),
   createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+  // Remote `rescopes` has had `updated_at` since Phase 1.5; the local table didn't, and
+  // last-write-wins sync keys on it (05-database.md §3 requires structural identity). Added
+  // Phase 5.0 — the table is append-only in practice, but the column has to exist to match.
+  updatedAt: text('updated_at')
     .notNull()
     .default(sql`(current_timestamp)`),
 });
@@ -127,7 +137,7 @@ export const freezes = sqliteTable('freezes', {
   id: text('id').primaryKey(),
   arcId: text('arc_id')
     .notNull()
-    .references(() => arcs.id),
+    .references(() => arcs.id, { onDelete: 'cascade' }),
   earnedForWeek: text('earned_for_week').notNull(),
   consumedForDayKey: text('consumed_for_day_key'),
   createdAt: text('created_at')

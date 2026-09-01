@@ -168,4 +168,47 @@ describe('goalStreak — n_per_week (weekly evaluation)', () => {
     expect(result.longest).toBe(2); // weeks 1-2
     expect(result.current).toBe(1); // only week 4, since week 3 broke it with no freeze
   });
+
+  it('weeks are anchored to weekAnchorDate, so goals created on different days align', () => {
+    // Two goals in the same arc (starting Sep 1) created 3 days apart. Both hit exactly 3 times
+    // in the arc's first week (Sep 1-7). With weeks anchored per-goal they'd disagree about
+    // where that week ended; anchored to the arc, both see the same completed week.
+    const shared = {
+      entryDayKeys: ['2026-09-01', '2026-09-03', '2026-09-05'],
+      freezesAvailable: 0,
+      now: new Date('2026-09-08T12:00:00.000Z'),
+      timezone: 'UTC',
+    };
+    const goalA = goalStreak({
+      cadence: {
+        mode: 'n_per_week',
+        timesPerWeek: 3,
+        anchorDate: '2026-09-01',
+        weekAnchorDate: '2026-09-01',
+      },
+      ...shared,
+    });
+    const goalB = goalStreak({
+      cadence: {
+        mode: 'n_per_week',
+        timesPerWeek: 3,
+        anchorDate: '2026-09-04', // created mid-week
+        weekAnchorDate: '2026-09-01',
+      },
+      ...shared,
+    });
+    expect(goalA.current).toBe(1);
+    expect(goalB.current).toBe(goalA.current);
+  });
+
+  it('falls back to anchorDate when weekAnchorDate is absent (pre-5.0 callers)', () => {
+    const result = goalStreak({
+      cadence: { mode: 'n_per_week', timesPerWeek: 3, anchorDate: '2026-09-01' },
+      entryDayKeys: ['2026-09-01', '2026-09-03', '2026-09-05'],
+      freezesAvailable: 0,
+      now: new Date('2026-09-08T12:00:00.000Z'),
+      timezone: 'UTC',
+    });
+    expect(result.current).toBe(1);
+  });
 });

@@ -2,6 +2,7 @@
 // generator here is copied from the canvas's DCLogic (`rnd()`), reused *only* to make these
 // fixtures look plausible — it must never appear in a real chart component or lib/derive/. See
 // 03-chart-set.md's Context section for the full explanation of this distinction.
+import { ACCENTS } from '@/theme/tokens';
 import type { MosaicCellState } from '../Mosaic';
 import type { WeekBarState } from '../WeekBars';
 import type { CheckpointStatus } from '../CheckpointSpine';
@@ -68,11 +69,11 @@ export function fixtureMomentumPoints(): [number, number][] {
 }
 
 export const fixtureLoadShares = [
-  { color: '#22C7B4', hours: 6.5 },
-  { color: '#4FA8FF', hours: 5.25 },
-  { color: '#FF6B5A', hours: 4 },
-  { color: '#9B6BFF', hours: 2.5 },
-  { color: '#9BD64A', hours: 1 },
+  { color: ACCENTS.teal, hours: 6.5 },
+  { color: ACCENTS.sky, hours: 5.25 },
+  { color: ACCENTS.coral, hours: 4 },
+  { color: ACCENTS.violet, hours: 2.5 },
+  { color: ACCENTS.lime, hours: 1 },
 ];
 
 export const fixtureCheckpoints: { label: string; meta: string; status: CheckpointStatus }[] = [

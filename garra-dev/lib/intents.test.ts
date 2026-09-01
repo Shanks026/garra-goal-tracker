@@ -47,6 +47,24 @@ describe('INTENTS', () => {
     }
   });
 
+  it('every value-logged proposal carries quickAdd chips, and Accumulate carries a paceBasis', () => {
+    for (const intent of INTENTS) {
+      const goal = intent.buildGoal({ totalDays: 122 });
+      if (goal.type === 'accumulate') {
+        // pace() requires a basis; nothing else supplies one at creation time.
+        expect(goal.paceBasis).toBeDefined();
+      }
+      if (goal.type === 'accumulate' || goal.type === 'ship' || goal.sessionTarget != null) {
+        // The log sheet's +chips have no other data source.
+        expect(goal.quickAdd).toBeDefined();
+        expect(goal.quickAdd!.length).toBe(3);
+        expect(goal.quickAdd!.every((n) => n > 0)).toBe(true);
+        // Ascending, so the chips read left-to-right as small/medium/large.
+        expect([...goal.quickAdd!].sort((a, b) => a - b)).toEqual(goal.quickAdd);
+      }
+    }
+  });
+
   it('estMinutes is always a positive integer', () => {
     for (const intent of INTENTS) {
       const goal = intent.buildGoal({ totalDays: 122 });

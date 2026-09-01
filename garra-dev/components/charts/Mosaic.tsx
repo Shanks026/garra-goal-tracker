@@ -1,8 +1,11 @@
 import { Canvas, RoundedRect } from '@shopify/react-native-skia';
 
 import { useAppTheme } from '@/theme/useAppTheme';
+import type { MosaicCellState } from '@/lib/derive/mosaic';
 
-export type MosaicCellState = 'future' | 'hit' | 'partial' | 'miss';
+// Re-exported for convenience so existing importers of the chart keep working; the type itself
+// now lives with the derivation that produces it (rules/06-conventions.md §1).
+export type { MosaicCellState };
 
 export type MosaicProps = {
   cells: MosaicCellState[];

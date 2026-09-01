@@ -12,7 +12,14 @@ export type CadenceConfig = {
   timesPerWeek?: number; // required if mode === 'n_per_week'
   daysOfWeek?: number[]; // required if mode === 'specific_days'; 0=Sunday..6=Saturday
   intervalDays?: number; // required if mode === 'every_n_days'
-  anchorDate: string; // 'YYYY-MM-DD' — the goal's creation date; every_n_days counts from here
+  anchorDate: string; // 'YYYY-MM-DD' — the goal's own start; every_n_days counts from here
+  /**
+   * 'YYYY-MM-DD' — where n_per_week's week boundaries fall, normally the *arc's* start so that
+   * every goal in an arc shares week boundaries (and they line up with the arc-level mosaic
+   * grid). Falls back to `anchorDate` when absent, which is why adding it broke no existing
+   * caller. Produced by `cadenceForGoal()`; see 06-home-and-logging.md §5.0.3.
+   */
+  weekAnchorDate?: string;
 };
 
 const MS_PER_DAY = 86400000;

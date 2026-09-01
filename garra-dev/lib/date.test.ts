@@ -1,4 +1,4 @@
-import { dayKey } from './date';
+import { addDaysToKey, dayKey, daysBetweenKeysInclusive, endOfYearKey } from './date';
 
 describe('dayKey', () => {
   it('a timestamp at noon is unambiguous', () => {
@@ -35,5 +35,35 @@ describe('dayKey', () => {
     const instant = new Date('2026-06-15T23:30:00Z');
     expect(dayKey(instant, 'America/New_York')).toBe('2026-06-15'); // 19:30 EDT
     expect(dayKey(instant, 'Asia/Kolkata')).toBe('2026-06-16'); // 05:00 IST next day, past rollover
+  });
+});
+
+describe('day-key arithmetic', () => {
+  it('addDaysToKey moves forward and backward, crossing month and year boundaries', () => {
+    expect(addDaysToKey('2026-09-01', 1)).toBe('2026-09-02');
+    expect(addDaysToKey('2026-09-30', 1)).toBe('2026-10-01');
+    expect(addDaysToKey('2026-12-31', 1)).toBe('2027-01-01');
+    expect(addDaysToKey('2026-09-01', -1)).toBe('2026-08-31');
+    expect(addDaysToKey('2026-09-01', 0)).toBe('2026-09-01');
+  });
+
+  it('addDaysToKey is immune to DST — a spring-forward week is still 7 keys', () => {
+    // US DST begins 2026-03-08. UTC-anchored arithmetic must not lose or gain a day.
+    expect(addDaysToKey('2026-03-05', 7)).toBe('2026-03-12');
+  });
+
+  it('daysBetweenKeysInclusive counts both endpoints (rules/03 §5: Sep 1 → Dec 31 = 122)', () => {
+    expect(daysBetweenKeysInclusive('2026-09-01', '2026-12-31')).toBe(122);
+    expect(daysBetweenKeysInclusive('2026-09-01', '2026-09-01')).toBe(1);
+    expect(daysBetweenKeysInclusive('2026-09-01', '2026-09-30')).toBe(30);
+  });
+
+  it('daysBetweenKeysInclusive spans a leap day correctly', () => {
+    expect(daysBetweenKeysInclusive('2028-02-01', '2028-03-01')).toBe(30); // 29 days in Feb 2028
+  });
+
+  it('endOfYearKey returns Dec 31 of the key’s own year', () => {
+    expect(endOfYearKey('2026-09-02')).toBe('2026-12-31');
+    expect(endOfYearKey('2026-12-31')).toBe('2026-12-31');
   });
 });

@@ -1,3 +1,4 @@
+import { ACCENTS } from '@/theme/tokens';
 import {
   arcSweepGeometry,
   catmullRomSmooth,
@@ -139,9 +140,9 @@ describe('catmullRomSmooth', () => {
 describe('loadDonutSegments', () => {
   it('segment lengths plus removed gaps sum back to the circumference', () => {
     const shares = [
-      { color: '#FF6B5A', hours: 6.5 },
-      { color: '#4FA8FF', hours: 5.25 },
-      { color: '#22C7B4', hours: 4 },
+      { color: ACCENTS.coral, hours: 6.5 },
+      { color: ACCENTS.sky, hours: 5.25 },
+      { color: ACCENTS.teal, hours: 4 },
     ];
     const r = 51;
     const C = 2 * Math.PI * r;

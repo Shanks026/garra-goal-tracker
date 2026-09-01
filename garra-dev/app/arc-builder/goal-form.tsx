@@ -1,9 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAddGoalToDraft, useDraftArc, useGoalsForArc } from '@/hooks/useArcBuilder';
+import { nextUnusedAccent } from '@/lib/accents';
+import { quickAddFor } from '@/lib/intents';
+import { safeBack } from '@/lib/navigation';
 import { GOAL_ICON_KEYS, GoalIcon, type GoalIconKey } from '@/components/goal/GoalIcon';
 import { AccentPicker } from '@/components/goal/AccentPicker';
 import { Button } from '@/components/ui/Button';
@@ -11,15 +14,25 @@ import { Chip } from '@/components/ui/Chip';
 import { ListGroup } from '@/components/ui/ListGroup';
 import { ListRow } from '@/components/ui/ListRow';
 import { useAppTheme } from '@/theme/useAppTheme';
-import { ACCENT_ORDER, ACCENTS } from '@/theme/tokens';
 
-type GoalType = 'habit' | 'accumulate' | 'ship' | 'milestone';
+const GOAL_TYPES = ['habit', 'accumulate', 'ship', 'milestone'] as const;
+type GoalType = (typeof GOAL_TYPES)[number];
 
-const CADENCE_OPTIONS: { mode: 'daily' | 'n_per_week' | 'every_n_days'; label: string }[] = [
+function isGoalType(value: string | undefined): value is GoalType {
+  return !!value && (GOAL_TYPES as readonly string[]).includes(value);
+}
+
+const CADENCE_OPTIONS: {
+  mode: 'daily' | 'n_per_week' | 'specific_days' | 'every_n_days';
+  label: string;
+}[] = [
   { mode: 'daily', label: 'Daily' },
   { mode: 'n_per_week', label: 'X× / week' },
+  { mode: 'specific_days', label: 'Set days' },
   { mode: 'every_n_days', label: 'Every N days' },
 ];
+
+const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 // Screen 08's exact structure (header -> identity -> accent row -> type-specific block ->
 // inset list group -> footer hint + primary button), extended to Habit/Ship/Milestone per
@@ -36,18 +49,27 @@ export default function GoalForm() {
     () => new Set((goalsQuery.data ?? []).map((g) => g.accent)),
     [goalsQuery.data],
   );
-  const defaultAccent =
-    ACCENT_ORDER.map((k) => ACCENTS[k]).find((hex) => !usedAccents.has(hex)) ?? ACCENTS.coral;
 
   const [title, setTitle] = useState('');
   const [icon, setIcon] = useState<GoalIconKey>('bike');
-  const [accent, setAccent] = useState<string>(defaultAccent);
+  // Deliberately null until the goals query resolves. Initialising it from `usedAccents` while
+  // that query was still loading (an empty set) and freezing it into state let this form submit
+  // an accent another goal already owned, breaking "no two goals in one arc share an accent"
+  // (rules/01 §1). See the feature doc's 5.0.8 table.
+  const [accent, setAccent] = useState<string | null>(null);
   const [estMinutes, setEstMinutes] = useState('30');
 
+  useEffect(() => {
+    if (accent === null && goalsQuery.data) {
+      setAccent(nextUnusedAccent(goalsQuery.data.map((g) => g.accent)));
+    }
+  }, [accent, goalsQuery.data]);
+
   // Habit
-  const [cadenceMode, setCadenceMode] = useState<'daily' | 'n_per_week' | 'every_n_days'>(
-    'n_per_week',
-  );
+  const [cadenceMode, setCadenceMode] = useState<
+    'daily' | 'n_per_week' | 'specific_days' | 'every_n_days'
+  >('n_per_week');
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([1, 3, 5]);
   const [timesPerWeek, setTimesPerWeek] = useState('4');
   const [intervalDays, setIntervalDays] = useState('2');
   const [sessionTarget, setSessionTarget] = useState('');
@@ -63,46 +85,78 @@ export default function GoalForm() {
   const [checkpoints, setCheckpoints] = useState<string[]>(['']);
 
   const canSubmit =
+    isGoalType(type) &&
+    accent !== null &&
     title.trim().length > 0 &&
     (type === 'milestone' ? checkpoints.some((c) => c.trim().length > 0) : true) &&
     (type === 'accumulate' || type === 'ship' ? targetAmount.trim().length > 0 : true);
 
   const onSubmit = async () => {
-    if (!draftArc.data || !canSubmit) return;
+    if (!draftArc.data || !canSubmit || !isGoalType(type) || accent === null) return;
     await addGoal.mutateAsync({
       arcId: draftArc.data.id,
-      type: type as GoalType,
+      type,
       title: title.trim(),
       icon,
       estMinutes: Number(estMinutes) || undefined,
-      accent, // note: useAddGoalToDraft auto-assigns if omitted, but the user picked one here
+      accent, // the user picked one explicitly; the mutation only auto-assigns when omitted
       ...(type === 'accumulate' && {
         targetAmount: Number(targetAmount),
         unit: unit || undefined,
+        // pace() requires a basis, and 'even' is the only implemented one (04-pace-engine.md).
+        paceBasis: 'even' as const,
+        quickAdd: quickAddFor(Number(targetAmount)),
       }),
       ...(type === 'ship' && {
         targetAmount: Number(targetAmount),
         itemNoun: itemNoun || 'things',
+        paceBasis: 'even' as const,
+        quickAdd: [1, 2, 3],
       }),
       ...((type === 'habit' || type === 'milestone') && {
         cadenceMode,
         timesPerWeek: cadenceMode === 'n_per_week' ? Number(timesPerWeek) : undefined,
+        daysOfWeek: cadenceMode === 'specific_days' ? daysOfWeek : undefined,
         intervalDays: cadenceMode === 'every_n_days' ? Number(intervalDays) : undefined,
         sessionTarget: sessionTarget ? Number(sessionTarget) : undefined,
         unit: unit || undefined,
+        ...(sessionTarget ? { quickAdd: quickAddFor(Number(sessionTarget)) } : {}),
       }),
       ...(type === 'milestone' && {
         checkpoints: checkpoints.filter((c) => c.trim()).map((c) => ({ title: c.trim() })),
       }),
     });
-    router.back();
+    // The manual path enters this screen from goal-type, which may itself have been reached by
+    // a `replace` from the cold-start router — so a bare back() can have nothing to pop.
+    safeBack(router, '/arc-builder/goal-type');
   };
+
+  // An unrecognised (or missing) `type` param used to render "UNDEFINED" and insert an invalid
+  // `goals.type` — SQLite doesn't enforce Drizzle's enum, so the row would corrupt silently.
+  if (!isGoalType(type)) {
+    return (
+      <SafeAreaView className="flex-1 items-center justify-center bg-bg px-6 dark:bg-bg-dark">
+        <Text className="text-center text-[16px] text-text-secondary dark:text-text-secondary-dark">
+          That goal type isn&apos;t one Garra knows. Go back and pick a type.
+        </Text>
+        <View style={{ height: 16 }} />
+        <Button
+          title="Back"
+          variant="outline"
+          onPress={() => safeBack(router, '/arc-builder/goal-type')}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-bg dark:bg-bg-dark">
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 14, gap: 30 }}>
         <View className="flex-row items-center justify-between">
-          <Pressable onPress={() => router.back()} hitSlop={8}>
+          <Pressable
+            onPress={() => safeBack(router, '/arc-builder/goal-type')}
+            hitSlop={8}
+          >
             <Text className="text-[16px] text-text-secondary dark:text-text-secondary-dark">
               Cancel
             </Text>
@@ -163,7 +217,9 @@ export default function GoalForm() {
           <Text className="text-[11px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
             ACCENT
           </Text>
-          <AccentPicker value={accent} disabledAccents={usedAccents} onChange={setAccent} />
+          {accent !== null ? (
+            <AccentPicker value={accent} disabledAccents={usedAccents} onChange={setAccent} />
+          ) : null}
         </View>
 
         {(type === 'accumulate' || type === 'ship') && (
@@ -229,6 +285,46 @@ export default function GoalForm() {
                 className="text-text-primary dark:text-text-primary-dark"
                 style={{ fontSize: 16 }}
               />
+            )}
+            {cadenceMode === 'specific_days' && (
+              // schedule.ts has supported specific_days since Phase 3, but no creation path
+              // offered it — so `daysOfWeek` was never populated by anything (audit finding).
+              <View className="flex-row" style={{ gap: 8 }}>
+                {WEEKDAY_LABELS.map((label, weekday) => {
+                  const on = daysOfWeek.includes(weekday);
+                  return (
+                    <Pressable
+                      key={weekday}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Weekday ${weekday}`}
+                      accessibilityState={{ selected: on }}
+                      onPress={() =>
+                        setDaysOfWeek((prev) =>
+                          prev.includes(weekday)
+                            ? prev.filter((d) => d !== weekday)
+                            : [...prev, weekday].sort((a, b) => a - b),
+                        )
+                      }
+                      className={
+                        on
+                          ? 'items-center justify-center rounded-full bg-text-primary dark:bg-text-primary-dark'
+                          : 'items-center justify-center rounded-full border border-border-control dark:border-border-control-dark'
+                      }
+                      style={{ width: 36, height: 36 }}
+                    >
+                      <Text
+                        className={
+                          on
+                            ? 'text-[14px] font-semibold text-bg dark:text-bg-dark'
+                            : 'text-[14px] text-text-secondary dark:text-text-secondary-dark'
+                        }
+                      >
+                        {label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
             )}
             {cadenceMode === 'every_n_days' && (
               <TextInput

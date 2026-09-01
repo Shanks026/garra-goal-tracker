@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { db } from '@/lib/db/client';
@@ -9,8 +9,8 @@ import { deviceTimezone } from '@/lib/date';
 import { seasonalArcTitle } from '@/lib/arcNaming';
 import { qk } from '@/lib/queryKeys';
 import { loadCheck } from '@/lib/derive/load';
-import type { CadenceConfig } from '@/lib/derive/schedule';
-import { ACCENT_ORDER, ACCENTS } from '@/theme/tokens';
+import { cadenceForGoal } from '@/lib/derive/cadence';
+import { nextUnusedAccent } from '@/lib/accents';
 
 // All facets of the same in-progress-draft concern — one file because they're tightly coupled,
 // not a god hook: each export below is still single-purpose (04-hooks.md §1/§5).
@@ -20,8 +20,15 @@ export type DraftOrActiveArc = {
   title: string;
   startsAt: string;
   endsAt: string;
+  timezone: string;
   status: 'draft' | 'active' | 'archived';
 };
+
+/** ISO timestamp for `updated_at`. SQLite has no moddatetime trigger, so every update sets it
+    by hand — last-write-wins sync (Phase 8) is impossible without it (05-database.md §5). */
+function nowIso(): string {
+  return new Date().toISOString();
+}
 
 async function selectArcByStatus(status: 'draft' | 'active'): Promise<DraftOrActiveArc | null> {
   const rows = await db.select().from(arcs).where(eq(arcs.status, status)).limit(1);
@@ -58,10 +65,23 @@ export function useSetLocalProfileName() {
     mutationFn: async (name: string) => {
       const existing = await db.select().from(localProfile).where(eq(localProfile.id, 'local'));
       if (existing[0]) {
-        await db.update(localProfile).set({ name }).where(eq(localProfile.id, 'local'));
+        await db
+          .update(localProfile)
+          .set({ name, updatedAt: nowIso() })
+          .where(eq(localProfile.id, 'local'));
       } else {
         await db.insert(localProfile).values({ id: 'local', name });
       }
+    },
+    // Optimistic (04-hooks.md §3): the name is echoed back on the very next screen, so waiting
+    // on the write would make a text field feel laggy for no reason.
+    onMutate: async (name) => {
+      const previous = qc.getQueryData<string | null>(qk.localProfile);
+      qc.setQueryData(qk.localProfile, name);
+      return { previous };
+    },
+    onError: (_err, _name, context) => {
+      qc.setQueryData(qk.localProfile, context?.previous ?? null);
     },
     onSettled: () => qc.invalidateQueries({ queryKey: qk.localProfile }),
   });
@@ -75,7 +95,7 @@ export function useSetArcWindow() {
       if (draft) {
         await db
           .update(arcs)
-          .set({ startsAt: input.startsAt, endsAt: input.endsAt })
+          .set({ startsAt: input.startsAt, endsAt: input.endsAt, updatedAt: nowIso() })
           .where(eq(arcs.id, draft.id));
         return draft.id;
       }
@@ -89,6 +109,16 @@ export function useSetArcWindow() {
         timezone: deviceTimezone(),
       });
       return id;
+    },
+    onMutate: async (input) => {
+      const previous = qc.getQueryData<DraftOrActiveArc | null>(qk.draftArc);
+      if (previous) {
+        qc.setQueryData(qk.draftArc, { ...previous, ...input });
+      }
+      return { previous };
+    },
+    onError: (_err, _input, context) => {
+      if (context?.previous !== undefined) qc.setQueryData(qk.draftArc, context.previous);
     },
     onSettled: () => qc.invalidateQueries({ queryKey: qk.draftArc }),
   });
@@ -111,30 +141,39 @@ export type AddGoalInput = {
   estMinutes?: number;
   paceBasis?: 'even' | 'weekdays_only' | 'custom_weekly';
   quickAdd?: number[];
+  /** Defaults to the arc's own start. Null-in-DB means the same thing; set explicitly for a
+      goal added mid-arc so pace() judges it against its own window. */
+  startsAt?: string;
   endsAt?: string;
-  /** Omit to use the "first two accepted" auto-Mains rule (see feature doc gap #2). */
+  /** Omit to use the "first two accepted" auto-Mains rule. */
   isMain?: boolean;
   /** Milestone goals only — inserted as real `checkpoints` rows, ordered by array position. */
   checkpoints?: { title: string }[];
-  /** Omit to auto-assign the next unused accent. The manual goal form (screen 08) lets the
-      user pick one explicitly via AccentPicker — this is what makes that choice stick. */
+  /** Omit to auto-assign the next unused accent. */
   accent?: string;
 };
-
-const ACCENT_HEXES = ACCENT_ORDER.map((key) => ACCENTS[key]);
 
 export function useAddGoalToDraft() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: AddGoalInput) => {
+      // Idempotency guard: navigating back into Recommended goals and tapping "Start the arc"
+      // again used to re-insert every proposal. A goal is identified by (arc, title) here —
+      // there is no natural key on `goals`, and two goals with the same name in one arc are
+      // indistinguishable to the user anyway.
+      const duplicate = await db
+        .select({ id: goals.id })
+        .from(goals)
+        .where(and(eq(goals.arcId, input.arcId), eq(goals.title, input.title)))
+        .limit(1);
+      if (duplicate[0]) return duplicate[0].id;
+
       const existing = await db.select().from(goals).where(eq(goals.arcId, input.arcId));
-      const usedAccents = new Set(existing.map((g) => g.accent));
-      const accent =
-        input.accent ??
-        ACCENT_HEXES.find((hex) => !usedAccents.has(hex)) ??
-        ACCENT_HEXES[existing.length % ACCENT_HEXES.length] ??
-        ACCENTS.coral;
+      const accent = input.accent ?? nextUnusedAccent(existing.map((g) => g.accent));
       const isMain = input.isMain ?? existing.length < 2;
+
+      const arcRows = await db.select().from(arcs).where(eq(arcs.id, input.arcId)).limit(1);
+      const arcStartsAt = arcRows[0]?.startsAt ?? null;
 
       const id = newId();
       await db.insert(goals).values({
@@ -155,8 +194,13 @@ export function useAddGoalToDraft() {
         intervalDays: input.intervalDays ?? null,
         sessionTarget: input.sessionTarget ?? null,
         estMinutes: input.estMinutes ?? null,
-        paceBasis: input.paceBasis ?? null,
+        // pace() requires a basis for value goals, and 'even' is the only one implemented
+        // (04-pace-engine.md). Habit/Milestone goals don't use it.
+        paceBasis:
+          input.paceBasis ??
+          (input.type === 'accumulate' || input.type === 'ship' ? 'even' : null),
         quickAdd: input.quickAdd ?? null,
+        startsAt: input.startsAt ?? arcStartsAt,
         endsAt: input.endsAt ?? null,
       });
 
@@ -189,24 +233,20 @@ export function useGoalsForArc(arcId: string | undefined) {
 // from the hook rather than inlined in the load-check screen, and memoized so the chart/screen
 // consuming it doesn't re-render on every unrelated tick.
 export function useDraftLoadCheck(arcId: string | undefined) {
+  const draftArc = useDraftArc();
   const goalsQuery = useGoalsForArc(arcId);
 
   return useMemo(() => {
-    if (!goalsQuery.data) return null;
-    const inputGoals = goalsQuery.data.map((g) => {
-      const cadence: CadenceConfig | null = g.cadenceMode
-        ? {
-            mode: g.cadenceMode as CadenceConfig['mode'],
-            timesPerWeek: g.timesPerWeek ?? undefined,
-            daysOfWeek: g.daysOfWeek ?? undefined,
-            intervalDays: g.intervalDays ?? undefined,
-            anchorDate: g.createdAt.slice(0, 10),
-          }
-        : null;
-      return { id: g.id, estMinutes: g.estMinutes ?? 0, cadence };
-    });
+    if (!goalsQuery.data || !draftArc.data) return null;
+    const arc = { startsAt: draftArc.data.startsAt, timezone: draftArc.data.timezone };
+    const inputGoals = goalsQuery.data.map((g) => ({
+      id: g.id,
+      estMinutes: g.estMinutes ?? 0,
+      // One shared producer of CadenceConfig — never derived inline (06-home-and-logging.md §5.0.3).
+      cadence: cadenceForGoal(g, arc),
+    }));
     return { ...loadCheck({ goals: inputGoals }), goals: goalsQuery.data };
-  }, [goalsQuery.data]);
+  }, [goalsQuery.data, draftArc.data]);
 }
 
 export function useActivateArc() {
@@ -215,7 +255,10 @@ export function useActivateArc() {
     mutationFn: async () => {
       const draft = await selectArcByStatus('draft');
       if (!draft) return;
-      await db.update(arcs).set({ status: 'active' }).where(eq(arcs.id, draft.id));
+      await db
+        .update(arcs)
+        .set({ status: 'active', updatedAt: nowIso() })
+        .where(eq(arcs.id, draft.id));
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: qk.draftArc });

@@ -141,7 +141,11 @@ The theme *provider* (React context, `useColorScheme` wiring, dark/light switchi
   token color, e.g. confirm a class using a token name compiles without error — verified by
   compiling actual CSS output, both the light default and the `dark:` override
 - [x] `tsc --noEmit` clean
-- [x] No hex literal appears anywhere outside `theme/tokens.ts`
+- [x] No hex literal appears anywhere outside `theme/tokens.ts` — **true again as of Phase 5.0.**
+  This box was ticked in error at the time: `app.config.ts` carried an Expo-template `#E6F4FE`,
+  and Phase 2 later added hexes to `components/charts/__fixtures__/chartFixtures.ts` and
+  `geometry.test.ts` after the box was already checked. All three now read from
+  `theme/tokens.ts`; see `06-home-and-logging.md` §5.0.8.
 - [x] `tsx` added as an explicit pinned `devDependency` (not left as an implicit transitive one)
 
 ✅ **Phase 1.1 complete — 2026-09-01.**

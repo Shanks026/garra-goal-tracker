@@ -1,8 +1,9 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDraftArc, useDraftLoadCheck } from '@/hooks/useArcBuilder';
+import { safeBack } from '@/lib/navigation';
 import { Button } from '@/components/ui/Button';
 import { system } from '@/theme/tokens';
 
@@ -20,6 +21,7 @@ const SECOND_JOB_HOURS = 15;
 
 export default function LoadCheck() {
   const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
   const draftArc = useDraftArc();
   const loadCheck = useDraftLoadCheck(draftArc.data?.id);
 
@@ -42,9 +44,13 @@ export default function LoadCheck() {
     <SafeAreaView className="flex-1 bg-bg dark:bg-bg-dark">
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 16, gap: 32 }}>
         <View style={{ gap: 8 }}>
-          <Text className="text-[11px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
-            STEP 3 OF 3
-          </Text>
+          {/* The Arc Builder's own step numbering is correct for the manual path, but showing
+              it mid-onboarding contradicted that flow's numbering (audit finding). */}
+          {from !== 'onboarding' && (
+            <Text className="text-[11px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
+              STEP 3 OF 3
+            </Text>
+          )}
           <Text
             className="text-text-primary dark:text-text-primary-dark"
             style={{ fontSize: 28, fontWeight: '600', letterSpacing: -0.84 }}
@@ -110,7 +116,11 @@ export default function LoadCheck() {
       </ScrollView>
 
       <View className="px-6 pb-3" style={{ gap: 10 }}>
-        <Button title="Trim something" onPress={() => router.back()} style={{ width: '100%' }} />
+        <Button
+          title="Trim something"
+          onPress={() => safeBack(router, '/recommended')}
+          style={{ width: '100%' }}
+        />
         <Button
           title="I know what I'm doing"
           variant="outline"

@@ -35,6 +35,7 @@ export const dark = {
   spineIdle: 'rgba(255,255,255,.1)', // CheckpointSpine's non-done spine connector — rules/01 §4.8
   checkboxBorder: 'rgba(255,255,255,.22)', // unchecked checkbox border — rules/01 §7
   pillText: 'rgba(255,255,255,.7)', // StatusPill's default (non-slipping) text color — rules/01 §7
+  checkGlyph: '#0A0A0B', // checkmark inside a filled accent — bg-colored on dark (rules/01 §5)
 } as const;
 
 export const light = {
@@ -70,6 +71,7 @@ export const light = {
   spineIdle: 'rgba(10,10,11,.1)', // not spec'd beyond alpha; same dark/light pattern
   checkboxBorder: 'rgba(10,10,11,.22)', // not spec'd beyond alpha; same dark/light pattern
   pillText: 'rgba(10,10,11,.7)', // not spec'd beyond alpha; same dark/light pattern
+  checkGlyph: '#FFFFFF', // rules/01 §5: white on light, NOT light.bg (#FAFAF9)
 
   // Light mode uses shadow where dark mode uses fill — see rules/01 §5.
   cardShadow: '0 1px 3px rgba(10,10,11,.08), 0 6px 20px rgba(10,10,11,.06)',

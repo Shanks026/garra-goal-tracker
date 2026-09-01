@@ -8,6 +8,7 @@ import { ICONS_BY_KEY, type GoalIconKey } from '@/components/goal/GoalIcon';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { StepDots } from '@/components/ui/StepDots';
+import { stepIndex, stepLabel, ONBOARDING_STEP_COUNT } from '@/lib/onboardingSteps';
 
 const MAX_PICKS = 5;
 
@@ -39,7 +40,7 @@ export default function Intent() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 28, paddingTop: 34, gap: 36 }}>
         <View className="gap-3">
           <Text className="text-[11px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
-            STEP 2 OF 4
+            {stepLabel('intent')}
           </Text>
           <Text
             className="text-text-primary dark:text-text-primary-dark"
@@ -71,7 +72,7 @@ export default function Intent() {
       </ScrollView>
 
       <View className="items-center gap-5 px-7 pb-3">
-        <StepDots total={5} current={2} />
+        <StepDots total={ONBOARDING_STEP_COUNT} current={stepIndex('intent')} />
         <Button
           title="Continue"
           onPress={onContinue}

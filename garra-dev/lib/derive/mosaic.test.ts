@@ -159,4 +159,27 @@ describe('mosaicCells', () => {
     });
     expect(cells.slice(0, 3)).toEqual(['miss', 'miss', 'miss']);
   });
+
+  it('n_per_week week boundaries follow weekAnchorDate, aligning goals to the arc grid', () => {
+    // A goal created on Sep 4 with weeks anchored to the arc (Sep 1) puts the first short-week
+    // miss marker on Sep 7 — the arc's week boundary — not on Sep 10 (its own +6).
+    const cadence: CadenceConfig = {
+      mode: 'n_per_week',
+      timesPerWeek: 3,
+      anchorDate: '2026-09-04',
+      weekAnchorDate: '2026-09-01',
+    };
+    const cells = mosaicCells({
+      cadence,
+      entries: [{ dayKey: '2026-09-04', value: null }],
+      startDate: '2026-09-01',
+      totalDays: 14,
+      now: new Date('2026-09-14T12:00:00.000Z'),
+      timezone: 'UTC',
+    });
+    // Index 6 is Sep 7 — the arc-aligned end of a week that only got 1 of 3.
+    expect(cells[6]).toBe('miss');
+    // Index 9 is Sep 10 (the goal's own +6), which must NOT carry the marker.
+    expect(cells[9]).not.toBe('miss');
+  });
 });

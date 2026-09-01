@@ -12,7 +12,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as Sentry from '@sentry/react-native';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 
-import { db } from '../lib/db/client';
+import { db, enableForeignKeys } from '../lib/db/client';
 import migrations from '../lib/db/migrations/migrations';
 import { mmkvPersister } from '../lib/queryPersister';
 
@@ -39,6 +39,11 @@ export default function RootLayout() {
     // now, and they're normally fast enough that this fires close to immediately.
     if (success || error) {
       SplashScreen.hideAsync().catch(() => {});
+    }
+    // Foreign keys go on only *after* migrations finish — see lib/db/client.ts for why the
+    // table-recreate migrations must run with enforcement off.
+    if (success) {
+      enableForeignKeys();
     }
   }, [success, error]);
 

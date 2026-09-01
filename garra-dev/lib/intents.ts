@@ -20,7 +20,21 @@ export type GoalProposal = {
   sessionTarget?: number;
   estMinutes: number;
   checkpoints?: { title: string }[];
+  /** Accumulate only. `pace()` requires a basis, and 'even' is the one fully implemented
+      (04-pace-engine.md's custom_weekly note). */
+  paceBasis?: 'even' | 'weekdays_only' | 'custom_weekly';
+  /** The three +chips on the log sheet (rules/01 §7). Sized from the proposal's own target so
+      the common entry is one tap; the Log sheet has no other data source for these. */
+  quickAdd?: number[];
 };
+
+// A sensible +chip triple for a value goal: roughly half, one, and two typical sessions' worth,
+// rounded to something a human would recognise. Exported so the manual goal form derives its
+// chips the same way the recommended goals do.
+export function quickAddFor(perSession: number): number[] {
+  const round = (n: number) => (n >= 10 ? Math.round(n / 5) * 5 : Math.max(1, Math.round(n)));
+  return [round(perSession / 2), round(perSession), round(perSession * 2)];
+}
 
 export type IntentTemplate = {
   key: IntentKey;
@@ -51,6 +65,9 @@ export const INTENTS: IntentTemplate[] = [
       cadenceMode: 'n_per_week',
       timesPerWeek: 4,
       estMinutes: 90,
+      paceBasis: 'even',
+      // The canvas's own example chips for this goal (screen 12): +5 / +10 / +25.
+      quickAdd: [5, 10, 25],
     }),
   },
   {
@@ -85,6 +102,8 @@ export const INTENTS: IntentTemplate[] = [
       targetAmount: scaleToWindow(14, totalDays),
       cadenceMode: 'daily',
       estMinutes: 45,
+      // A ship logs +1 at a time, so the chips are counts, not amounts.
+      quickAdd: [1, 2, 3],
     }),
   },
   {
@@ -98,6 +117,7 @@ export const INTENTS: IntentTemplate[] = [
       sessionTarget: 20,
       unit: 'min',
       estMinutes: 20,
+      quickAdd: quickAddFor(20),
     }),
   },
   {
@@ -123,6 +143,7 @@ export const INTENTS: IntentTemplate[] = [
       sessionTarget: 20,
       unit: 'pages',
       estMinutes: 25,
+      quickAdd: quickAddFor(20),
     }),
   },
   {
@@ -137,6 +158,7 @@ export const INTENTS: IntentTemplate[] = [
       cadenceMode: 'n_per_week',
       timesPerWeek: 2,
       estMinutes: 90,
+      quickAdd: [1, 2, 3],
     }),
   },
 ];

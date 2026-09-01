@@ -1,24 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { addDays, format } from 'date-fns';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { INTENTS, type GoalProposal, type IntentKey } from '@/lib/intents';
 import { useAddGoalToDraft, useDraftArc, useSetArcWindow } from '@/hooks/useArcBuilder';
+import { addDaysToKey, dayKey, daysBetweenKeysInclusive, deviceTimezone } from '@/lib/date';
+import { assignAccents } from '@/lib/accents';
+import { useAppTheme } from '@/theme/useAppTheme';
 import { Button } from '@/components/ui/Button';
 import { StepDots } from '@/components/ui/StepDots';
-import { ACCENT_ORDER, ACCENTS } from '@/theme/tokens';
+import { stepIndex, stepLabel, ONBOARDING_STEP_COUNT } from '@/lib/onboardingSteps';
 
 // The canvas's fast onboarding path never shows a window-setting screen — it defaults to a
 // round, season-independent 90 days starting tomorrow (feature doc gap #1). Screen 06 (Arc
-// Builder's Window step, Phase 4.3) is reachable from here to change it.
+// Builder's Window step) is reachable from here to change it.
 const DEFAULT_WINDOW_DAYS = 90;
-
-function daysBetweenInclusive(startsAt: string, endsAt: string): number {
-  const ms = Date.parse(`${endsAt}T00:00:00.000Z`) - Date.parse(`${startsAt}T00:00:00.000Z`);
-  return Math.round(ms / 86_400_000) + 1;
-}
 
 function describeProposal(p: GoalProposal): string {
   const cadenceLabel =
@@ -37,15 +34,21 @@ function describeProposal(p: GoalProposal): string {
 export default function Recommended() {
   const router = useRouter();
   const { intents } = useLocalSearchParams<{ intents: string }>();
+  const { tokens } = useAppTheme();
   const draftArc = useDraftArc();
   const setWindow = useSetArcWindow();
   const addGoal = useAddGoalToDraft();
 
   useEffect(() => {
     if (draftArc.data === null) {
-      const startsAt = format(addDays(new Date(), 1), 'yyyy-MM-dd');
-      const endsAt = format(addDays(new Date(), DEFAULT_WINDOW_DAYS), 'yyyy-MM-dd');
-      setWindow.mutate({ startsAt, endsAt });
+      // Day buckets go through dayKey() so the 04:00 rollover applies — `format(new Date())`
+      // would use the device's local midnight and silently disagree with every entry's day_key
+      // (rules/03 §5).
+      const today = dayKey(new Date(), deviceTimezone());
+      setWindow.mutate({
+        startsAt: addDaysToKey(today, 1),
+        endsAt: addDaysToKey(today, DEFAULT_WINDOW_DAYS),
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftArc.data]);
@@ -53,7 +56,7 @@ export default function Recommended() {
   const pickedKeys = useMemo(() => (intents ? (intents.split(',') as IntentKey[]) : []), [intents]);
 
   const totalDays = draftArc.data
-    ? daysBetweenInclusive(draftArc.data.startsAt, draftArc.data.endsAt)
+    ? daysBetweenKeysInclusive(draftArc.data.startsAt, draftArc.data.endsAt)
     : DEFAULT_WINDOW_DAYS;
 
   const proposals = useMemo(
@@ -76,12 +79,28 @@ export default function Recommended() {
     });
   };
 
+  // The accents these proposals will actually receive, from the same helper the mutation uses —
+  // so the preview dots can't disagree with what gets stored when a middle proposal is
+  // deselected (see the feature doc's 5.0.8 table).
+  const acceptedKeys = useMemo(
+    () => proposals.filter(({ intent }) => accepted.has(intent.key)).map(({ intent }) => intent.key),
+    [proposals, accepted],
+  );
+  const previewAccents = useMemo(() => {
+    const assigned = assignAccents(acceptedKeys.length);
+    const byKey = new Map<IntentKey, string>();
+    acceptedKeys.forEach((key, i) => byKey.set(key, assigned[i]!));
+    return byKey;
+  }, [acceptedKeys]);
+
   const [starting, setStarting] = useState(false);
   const canStart = accepted.size > 0 && !!draftArc.data && !starting;
 
   const onStartArc = async () => {
     if (!draftArc.data) return;
     setStarting(true);
+    // `useAddGoalToDraft` is idempotent per (arc, title), so coming back to this screen and
+    // tapping again re-uses the existing rows instead of duplicating every goal.
     for (const { intent, goal } of proposals) {
       if (!accepted.has(intent.key)) continue;
       await addGoal.mutateAsync({
@@ -96,9 +115,14 @@ export default function Recommended() {
         timesPerWeek: goal.timesPerWeek,
         sessionTarget: goal.sessionTarget,
         estMinutes: goal.estMinutes,
+        paceBasis: goal.paceBasis,
+        quickAdd: goal.quickAdd,
       });
     }
-    router.push('/arc-builder/load-check');
+    setStarting(false);
+    // `from` lets Load Check suppress its Arc-Builder step label, so a user walking the fast
+    // path never sees "STEP 3 OF 3" in the middle of onboarding's own numbering.
+    router.push('/arc-builder/load-check?from=onboarding');
   };
 
   return (
@@ -106,7 +130,7 @@ export default function Recommended() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 30, gap: 28 }}>
         <View className="gap-3">
           <Text className="text-[11px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
-            STEP 3 OF 4 · {totalDays} DAYS
+            {stepLabel('recommended')} · {totalDays} DAYS
           </Text>
           <Text
             className="text-text-primary dark:text-text-primary-dark"
@@ -127,9 +151,9 @@ export default function Recommended() {
         </View>
 
         <View className="gap-3">
-          {proposals.map(({ intent, goal }, i) => {
+          {proposals.map(({ intent, goal }) => {
             const isOn = accepted.has(intent.key);
-            const accentKey = ACCENT_ORDER[i % ACCENT_ORDER.length] ?? 'coral';
+            const accent = previewAccents.get(intent.key);
             return (
               <Pressable
                 key={intent.key}
@@ -141,7 +165,10 @@ export default function Recommended() {
                     width: 10,
                     height: 10,
                     borderRadius: 6,
-                    backgroundColor: ACCENTS[accentKey],
+                    // Declined proposals get no accent — they aren't claiming one.
+                    backgroundColor: accent ?? 'transparent',
+                    borderWidth: accent ? 0 : 1,
+                    borderColor: tokens.borderControl,
                   }}
                 />
                 <View className="flex-1 gap-1">
@@ -184,7 +211,7 @@ export default function Recommended() {
       </ScrollView>
 
       <View className="items-center gap-5 px-6 pb-3">
-        <StepDots total={5} current={3} />
+        <StepDots total={ONBOARDING_STEP_COUNT} current={stepIndex('recommended')} />
         <Button
           title="Start the arc"
           onPress={onStartArc}

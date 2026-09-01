@@ -16,6 +16,12 @@ export type PaceRingProps = {
   accent: string;
   /** Hero size (r:58, sw:14) by default, or the compact Home-row variant (r:13, sw:6, 32x32). */
   size?: 'default' | 'row';
+  /**
+   * The value in words — e.g. "Cycling, 188 of 800 kilometres, 35 behind pace". Required by
+   * rules/02 §8: "A ring with no label is unusable on VoiceOver." The caller supplies it
+   * because only the caller knows the goal's name, unit, and deficit.
+   */
+  accessibilityLabel: string;
 };
 
 const SIZES = {
@@ -23,7 +29,7 @@ const SIZES = {
   row: { r: 13, sw: 6, box: 32 },
 } as const;
 
-export function PaceRing({ p, t, accent, size = 'default' }: PaceRingProps) {
+export function PaceRing({ p, t, accent, size = 'default', accessibilityLabel }: PaceRingProps) {
   const { tokens } = useAppTheme();
   const { r, sw, box } = SIZES[size];
   const cx = box / 2;
@@ -52,7 +58,12 @@ export function PaceRing({ p, t, accent, size = 'default' }: PaceRingProps) {
   const gapColor = geo.behind ? system.slipping : 'transparent';
 
   return (
-    <View style={{ width: box, height: box }}>
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={accessibilityLabel}
+      style={{ width: box, height: box }}
+    >
       <Canvas style={{ width: box, height: box }}>
         {/* 1. Track */}
         <Circle cx={cx} cy={cy} r={r} style="stroke" strokeWidth={sw} color={tokens.track} />

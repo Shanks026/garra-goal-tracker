@@ -78,12 +78,26 @@ export function goalStreak(input: {
   const { cadence, entryDayKeys, freezesAvailable, now, timezone } = input;
   const days = new Set(entryDayKeys);
   const today = dayKey(now, timezone);
-  const anchorDayNumber = dayNumberFromDateString(cadence.anchorDate);
 
   if (cadence.mode === 'n_per_week') {
-    return goalStreakWeekly({ cadence, days, today, anchorDayNumber, freezesAvailable });
+    // Weeks are anchored to the arc, not the goal, so every goal's weeks line up with every
+    // other goal's and with the arc-level mosaic (06-home-and-logging.md §5.0.3).
+    const weekAnchor = dayNumberFromDateString(cadence.weekAnchorDate ?? cadence.anchorDate);
+    return goalStreakWeekly({
+      cadence,
+      days,
+      today,
+      anchorDayNumber: weekAnchor,
+      freezesAvailable,
+    });
   }
-  return goalStreakDaily({ cadence, days, today, anchorDayNumber, freezesAvailable });
+  return goalStreakDaily({
+    cadence,
+    days,
+    today,
+    anchorDayNumber: dayNumberFromDateString(cadence.anchorDate),
+    freezesAvailable,
+  });
 }
 
 function goalStreakDaily(args: {

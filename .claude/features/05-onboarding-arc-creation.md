@@ -303,7 +303,10 @@ using `queryPersister.ts`) around the existing `BottomSheetModalProvider`/`Stack
 - [x] `QueryClientProvider` boots without delaying the splash screen beyond the existing
   migration gate
 - [x] Every new mutation hook follows `04-hooks.md` §3 exactly (optimistic, prefix invalidation,
-  no `await` on anything network-shaped)
+  no `await` on anything network-shaped) — **corrected: this was ticked in error.** The Phase 4
+  mutations had prefix invalidation via `onSettled` but no `onMutate`, no optimistic cache patch,
+  and no `onError` rollback, so nothing here was actually optimistic. Fixed in Phase 5.0, which
+  needed a real optimistic pattern for the log path to follow (`06-home-and-logging.md` §5.0.4).
 - [x] `tsc --noEmit` clean
 
 **✅ Phase 4.1 complete — 2026-09-01.**

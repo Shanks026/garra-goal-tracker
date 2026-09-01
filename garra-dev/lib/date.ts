@@ -30,3 +30,27 @@ export function dayKey(d: Date, tz: string): string {
 export function deviceTimezone(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
+
+// Day keys are calendar dates, so arithmetic on them is UTC-anchored on purpose: parsing
+// 'YYYY-MM-DD' as UTC midnight keeps it immune to the runtime's own timezone and to DST, which
+// is exactly why `dayKey()` produces the string in the first place. Never rebuild a day key by
+// running `format()` over a fresh `Date` — that reintroduces the device's local midnight and
+// bypasses the 04:00 rollover (rules/03 §5).
+const MS_PER_DAY = 86_400_000;
+
+/** A day key `days` after (or before, if negative) the given one. */
+export function addDaysToKey(key: string, days: number): string {
+  const ms = Date.parse(`${key}T00:00:00.000Z`) + days * MS_PER_DAY;
+  return new Date(ms).toISOString().slice(0, 10);
+}
+
+/** Inclusive day count between two keys — Sep 1 → Dec 31 is 122, per rules/03 §5. */
+export function daysBetweenKeysInclusive(startKey: string, endKey: string): number {
+  const ms = Date.parse(`${endKey}T00:00:00.000Z`) - Date.parse(`${startKey}T00:00:00.000Z`);
+  return Math.round(ms / MS_PER_DAY) + 1;
+}
+
+/** December 31st of the year the given day key falls in — the "End of year" arc preset. */
+export function endOfYearKey(key: string): string {
+  return `${key.slice(0, 4)}-12-31`;
+}

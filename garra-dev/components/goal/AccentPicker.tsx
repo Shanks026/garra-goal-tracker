@@ -18,7 +18,11 @@ export function AccentPicker({ value, disabledAccents, onChange }: AccentPickerP
     <View className="flex-row" style={{ gap: 12 }}>
       {ACCENT_ORDER.map((key) => {
         const hex = ACCENTS[key];
-        const disabled = disabledAccents.has(hex) && hex !== value;
+        // No `hex !== value` exemption: exempting the current value meant a collision (from the
+        // accent being initialised before the goals query resolved) rendered as greyed-out but
+        // still selected, and submitted anyway. The form now initialises from an unused accent,
+        // so a taken swatch is simply never selectable (rules/01 §1).
+        const disabled = disabledAccents.has(hex);
         const selected = hex === value;
         return (
           <Pressable

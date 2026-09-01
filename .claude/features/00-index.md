@@ -100,7 +100,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 2 | The chart set | `03-chart-set.md` | ✅ Complete |
 | 3 | The pace engine | `04-pace-engine.md` | ✅ Complete |
 | 4 | Onboarding & arc creation | `05-onboarding-arc-creation.md` | ✅ Built, statically verified — on-device pass pending |
-| 5 | Home & logging ⭐ | — | ⬜ |
+| 5 | Home & logging ⭐ | `06-home-and-logging.md` | 📋 Planned |
 | 6 | Goal detail | — | ⬜ |
 | 7 | The Arc tab | — | ⬜ |
 | 8 | Auth & sync | — | ⬜ |
@@ -150,6 +150,7 @@ Indexes: none beyond PK.
 | times_per_week, interval_days, est_minutes | integer | nullable |
 | days_of_week | integer[] | nullable — **native Postgres array**; SQLite side stores this as JSON `text` (no array type exists there), see `02-foundation.md` §1.4.7 |
 | quick_add | numeric[] | nullable, same array-type note as above |
+| starts_at | date | nullable — null means "starts with the arc"; added Phase 5.0, mirrors ends_at |
 | ends_at | date | nullable — lets a goal end before the arc does |
 | status | text | default `'active'`, CHECK in (`active`,`paused`,`archived`) |
 Indexes: `goals_arc_id_idx` on `arc_id`.
@@ -177,13 +178,14 @@ Indexes: `entries_goal_day` **unique**, `(goal_id, day_key) WHERE skipped = fals
 Indexes: `checkpoints_goal_id_idx` on `goal_id`.
 
 ### rescopes
-Append-only audit log — no `updated_at`-driven edits expected in practice, though the trigger
-exists like every other table.
+Append-only audit log — no `updated_at`-driven edits expected in practice, though the column and
+trigger exist like every other table.
 | Column | Type | Notes |
 |---|---|---|
 | goal_id | uuid | FK → goals, ON DELETE CASCADE |
 | from_target, to_target | numeric | nullable |
 | reason | text | nullable |
+| updated_at | timestamptz | remote has had it since 1.5; **added locally in Phase 5.0** — the two had silently diverged, and LWW sync keys on it |
 Indexes: none beyond PK.
 
 ### freezes
@@ -194,9 +196,29 @@ Indexes: none beyond PK.
 | consumed_for_day_key | text | nullable |
 Indexes: none beyond PK.
 
+### Local-only tables (in SQLite, never mirrored remotely)
+- `sync_queue` — the Phase 8 outbox: `table_name`, `row_id`, `op`, `payload jsonb`, `attempts`,
+  `last_error`. Nothing writes to it yet.
+- `local_profile` — one row, `id` fixed to `'local'`, plus `name`. Holds the display name
+  captured in onboarding until Phase 8's real `profiles` table exists. Added Phase 4.1; it was
+  missing from this reference entirely until the Phase 5 audit caught it.
+
 ### Not yet created
 - `profiles` (remote-only) — shape unknown until Phase 8 (auth) actually needs it.
-- `sync_queue` — **local-only**, lives in SQLite (`lib/db/schema.ts`), never mirrored remotely.
+
+### Local ↔ remote divergences (all deliberate, all recorded)
+1. `goals.days_of_week` / `goals.quick_add` are JSON-mode `text` locally vs native Postgres
+   arrays remotely — SQLite has no array type.
+2. Locally generated ids come from `expo-crypto`'s `Crypto.randomUUID()`; remote defaults to
+   `gen_random_uuid()`.
+3. `created_at`/`updated_at` are TEXT locally (`(current_timestamp)`, UTC
+   `'YYYY-MM-DD HH:MM:SS'`) vs `timestamptz` remotely. **There is no local `moddatetime`
+   trigger**, so every local `db.update()` sets `updatedAt` by hand — Phase 5.0 fixed the
+   mutations that weren't (a frozen `updated_at` makes last-write-wins sync impossible).
+4. `ON DELETE CASCADE` now exists on every child FK on **both** sides (Phase 5.0 — local FKs
+   were `no action`), and `lib/db/client.ts`'s `enableForeignKeys()` turns on SQLite's
+   per-connection enforcement **after** migrations run, since Drizzle's table-recreate
+   migrations must not execute with enforcement on.
 
 ### Known advisor notes (non-blocking, Phase 1.5)
 - A pre-existing `public.rls_auto_enable()` function (not created by any migration here) is
@@ -212,6 +234,7 @@ Indexes: none beyond PK.
 |---|---|---|
 | 2026-09-01 | Phase 1.5, `02-foundation.md` | `create_arcs`, `create_goals`, `create_entries`, `create_checkpoints`, `create_rescopes`, `create_freezes` — full initial schema, RLS on all six |
 | 2026-09-01 | Phase 4.1, `05-onboarding-arc-creation.md` | `add_goals_title` — `goals.title text not null`, a Phase 1.5 omission (no table ever held a goal's display name) found while wiring the first real goal-creation mutation |
+| 2026-09-02 | Phase 5.0, `06-home-and-logging.md` | `add_goals_starts_at` — `goals.starts_at date` nullable. Locally the same migration (`0003`) also adds `rescopes.updated_at` and `ON DELETE CASCADE` to every child FK, both of which the remote schema already had. |
 
 ---
 
@@ -251,6 +274,18 @@ Built Phase 1.3.
 - `queryPersister.ts` — a hand-written ~20-line MMKV-backed `Persister` for
   `@tanstack/react-query-persist-client`, not a separate persister package (`06-conventions.md`
   §6). Built Phase 4.1 — see standing rule #18 for `react-native-mmkv` v4's Nitro API shape.
+- `date.ts`'s day-key arithmetic — `addDaysToKey`, `daysBetweenKeysInclusive`, `endOfYearKey`.
+  Added Phase 5.0: three screens were each rebuilding day buckets with
+  `format(new Date(), 'yyyy-MM-dd')`, which uses the device's local midnight and so bypassed the
+  04:00 rollover every `entries.day_key` uses. **Never rebuild a day key with `format()`.**
+- `accents.ts` — `ACCENT_HEXES`, `nextUnusedAccent(used)`, `assignAccents(count, alreadyUsed)`.
+  One shared assignment rule so a preview and the row it writes can't disagree (Phase 5.0 fixed
+  a case where Recommended goals colored dots by index while the mutation assigned next-unused).
+- `navigation.ts` — `safeBack(router, fallback)`: `router.back()` when `canGoBack()`, else
+  `replace`. Screens reachable by `router.replace` from the cold-start router have no history to
+  pop, so a bare `back()` silently did nothing (Phase 5.0).
+- `onboardingSteps.ts` — the fast path's ordered steps, so the "STEP n OF m" labels and the dot
+  row share one source of truth (Phase 5.0; they had drifted apart).
 
 ### `lib/db/` — local SQLite (Drizzle)
 `schema.ts` — all 6 tables (`arcs`, `goals`, `entries`, `checkpoints`, `rescopes`, `freezes`) +
@@ -295,8 +330,16 @@ All five built, Phase 3 — pure functions, no React/hooks/I/O, `now` always pas
   (12-week) reference window, not a single 7-day window, to average `every_n_days` occurrences
   correctly regardless of interval/7 alignment (see standing rule #16).
 
-51 tests across the five modules, all passing (73 total suite-wide). Full rationale and the two
-test-design bugs found/fixed while writing them: `04-pace-engine.md`'s Implementation Notes.
+- `cadence.ts` — `cadenceForGoal(goal, arc)`: the **only** producer of a `CadenceConfig` from a
+  stored goal row. Resolves the goal's own anchor (`startsAt`, else `createdAt` through
+  `dayKey()`, clamped to the arc's start) separately from `weekAnchorDate` (always the arc's
+  start, so every goal's `n_per_week` weeks align with each other and the arc mosaic). Added
+  Phase 5.0 after the audit found the previous inline `createdAt.slice(0, 10)` was UTC-sliced
+  and about to be copy-pasted three times.
+
+Full rationale and the two test-design bugs found while writing the original five modules:
+`04-pace-engine.md`'s Implementation Notes. Suite-wide test count lives in the Phase status
+table's own notes rather than here, so it can't go stale again.
 
 ### Hooks — `hooks/`
 `useSheetBackHandler` (Phase 2.5) — wires `BackHandler` to a `BottomSheetModal` ref so Android

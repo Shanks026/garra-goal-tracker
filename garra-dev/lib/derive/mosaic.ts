@@ -1,6 +1,14 @@
-import type { MosaicCellState } from '@/components/charts/Mosaic';
 import { dayKey } from '@/lib/date';
 import { type CadenceConfig } from './schedule';
+
+/**
+ * The four states a mosaic cell can be in (rules/01-design-system.md §4.3). Lives here, not in
+ * the chart component, because it's a domain type produced by this module and consumed by the
+ * renderer (rules/06-conventions.md §1) — and because `lib/derive/` must never import from a
+ * module that pulls in Skia, which is unloadable under Jest (00-index.md standing rule #14).
+ * `components/charts/Mosaic.tsx` re-exports it so existing importers are unaffected.
+ */
+export type MosaicCellState = 'future' | 'hit' | 'partial' | 'miss';
 
 const MS_PER_DAY = 86400000;
 
@@ -77,11 +85,15 @@ function nPerWeekCellState(
   entryMap: Map<string, MosaicEntry>,
   todayDayNumber: number,
 ): MosaicCellState {
+  // Week boundaries come from the arc, not the goal, so every goal's weeks align with each
+  // other and with the arc-level mosaic grid (06-home-and-logging.md §5.0.3). The goal's own
+  // anchor still gates days before it existed.
+  const weekAnchor = dayNumberFromDateString(cadence.weekAnchorDate ?? cadence.anchorDate);
   const anchor = dayNumberFromDateString(cadence.anchorDate);
   if (dayNum < anchor) return 'future'; // the goal didn't exist yet this day
 
-  const weekIndex = Math.floor((dayNum - anchor) / 7);
-  const weekStart = anchor + weekIndex * 7;
+  const weekIndex = Math.floor((dayNum - weekAnchor) / 7);
+  const weekStart = weekAnchor + weekIndex * 7;
   const weekEnd = weekStart + 6;
   const isLastDayOfWeek = dayNum === weekEnd;
   const weekIsComplete = weekEnd < todayDayNumber;

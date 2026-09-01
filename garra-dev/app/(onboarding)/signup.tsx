@@ -7,6 +7,7 @@ import { useActivateArc, useDraftArc } from '@/hooks/useArcBuilder';
 import { Mosaic } from '@/components/charts/Mosaic';
 import { Button } from '@/components/ui/Button';
 import { StepDots } from '@/components/ui/StepDots';
+import { stepIndex, stepLabel, ONBOARDING_STEP_COUNT } from '@/lib/onboardingSteps';
 import { system } from '@/theme/tokens';
 
 // Screen 05. Supabase Auth doesn't exist until Phase 8 (IMPLEMENTATION.md's ordering is
@@ -47,7 +48,7 @@ export default function SignUp() {
       <View className="flex-1 justify-center gap-10">
         <View className="gap-3">
           <Text className="text-[11px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
-            STEP 4 OF 4
+            {stepLabel('signup')}
           </Text>
           <Text
             className="text-text-primary dark:text-text-primary-dark"
@@ -70,7 +71,7 @@ export default function SignUp() {
       </View>
 
       <View className="items-center gap-3 pb-3">
-        <StepDots total={5} current={4} />
+        <StepDots total={ONBOARDING_STEP_COUNT} current={stepIndex('signup')} />
         <Button
           title="Continue with email"
           onPress={onProceed}
