@@ -3,7 +3,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useAddGoalToDraft, useDraftArc, useGoalsForArc } from '@/hooks/useArcBuilder';
+import {
+  useActiveArc,
+  useAddGoalToDraft,
+  useDraftArc,
+  useGoalsForArc,
+} from '@/hooks/useArcBuilder';
+import { useGoalRow, useRescopeGoal, useUpdateGoal } from '@/hooks/useGoalDetail';
 import { nextUnusedAccent } from '@/lib/accents';
 import { quickAddFor } from '@/lib/intents';
 import { safeBack } from '@/lib/navigation';
@@ -39,16 +45,30 @@ const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 // 01-design-system.md §9 — only the Accumulate form is designed; the chrome stays identical.
 export default function GoalForm() {
   const router = useRouter();
-  const { type } = useLocalSearchParams<{ type: GoalType }>();
+  // `goalId` present → edit mode. Reusing this form rather than writing a second one is the
+  // point: two forms would drift apart within two phases (08-goal-detail.md §6.4.4).
+  const { type: typeParam, goalId } = useLocalSearchParams<{ type?: GoalType; goalId?: string }>();
   const { tokens } = useAppTheme();
-  const draftArc = useDraftArc();
-  const goalsQuery = useGoalsForArc(draftArc.data?.id);
-  const addGoal = useAddGoalToDraft();
+  const isEditing = !!goalId;
 
+  const draftArc = useDraftArc();
+  const activeArc = useActiveArc();
+  const existingGoal = useGoalRow(goalId);
+  // Editing happens after activation, so there is no draft arc then — the goal's own arc is the
+  // one that matters.
+  const arcId = isEditing ? existingGoal?.arcId : draftArc.data?.id;
+  const goalsQuery = useGoalsForArc(arcId ?? activeArc.data?.id);
+  const addGoal = useAddGoalToDraft();
+  const updateGoal = useUpdateGoal();
+  const rescope = useRescopeGoal();
+
+  // In edit mode the goal's *own* accent must stay selectable — it isn't a collision with itself.
   const usedAccents = useMemo(
-    () => new Set((goalsQuery.data ?? []).map((g) => g.accent)),
-    [goalsQuery.data],
+    () => new Set((goalsQuery.data ?? []).filter((g) => g.id !== goalId).map((g) => g.accent)),
+    [goalsQuery.data, goalId],
   );
+
+  const type = isEditing ? ((existingGoal?.type ?? typeParam) as GoalType | undefined) : typeParam;
 
   const [title, setTitle] = useState('');
   const [icon, setIcon] = useState<GoalIconKey>('bike');
@@ -58,12 +78,13 @@ export default function GoalForm() {
   // (rules/01 §1). See the feature doc's 5.0.8 table.
   const [accent, setAccent] = useState<string | null>(null);
   const [estMinutes, setEstMinutes] = useState('30');
+  const [prefilled, setPrefilled] = useState(false);
 
   useEffect(() => {
-    if (accent === null && goalsQuery.data) {
+    if (accent === null && goalsQuery.data && !isEditing) {
       setAccent(nextUnusedAccent(goalsQuery.data.map((g) => g.accent)));
     }
-  }, [accent, goalsQuery.data]);
+  }, [accent, goalsQuery.data, isEditing]);
 
   // Habit
   const [cadenceMode, setCadenceMode] = useState<
@@ -84,6 +105,27 @@ export default function GoalForm() {
   // Milestone
   const [checkpoints, setCheckpoints] = useState<string[]>(['']);
 
+  // Prefill once, when editing and the row has arrived. Guarded by `prefilled` rather than by a
+  // dependency list, so the user's own edits are never overwritten by a refetch.
+  useEffect(() => {
+    if (!isEditing || prefilled || !existingGoal) return;
+    setPrefilled(true);
+    setTitle(existingGoal.title);
+    setIcon(existingGoal.icon as GoalIconKey);
+    setAccent(existingGoal.accent);
+    setEstMinutes(existingGoal.estMinutes != null ? String(existingGoal.estMinutes) : '30');
+    if (existingGoal.cadenceMode) {
+      setCadenceMode(existingGoal.cadenceMode as typeof cadenceMode);
+    }
+    if (existingGoal.daysOfWeek) setDaysOfWeek(existingGoal.daysOfWeek);
+    if (existingGoal.timesPerWeek != null) setTimesPerWeek(String(existingGoal.timesPerWeek));
+    if (existingGoal.intervalDays != null) setIntervalDays(String(existingGoal.intervalDays));
+    if (existingGoal.sessionTarget != null) setSessionTarget(String(existingGoal.sessionTarget));
+    if (existingGoal.unit) setUnit(existingGoal.unit);
+    if (existingGoal.targetAmount != null) setTargetAmount(String(existingGoal.targetAmount));
+    if (existingGoal.itemNoun) setItemNoun(existingGoal.itemNoun);
+  }, [isEditing, prefilled, existingGoal]);
+
   const canSubmit =
     isGoalType(type) &&
     accent !== null &&
@@ -92,7 +134,52 @@ export default function GoalForm() {
     (type === 'accumulate' || type === 'ship' ? targetAmount.trim().length > 0 : true);
 
   const onSubmit = async () => {
-    if (!draftArc.data || !canSubmit || !isGoalType(type) || accent === null) return;
+    if (!canSubmit || !isGoalType(type) || accent === null) return;
+
+    // --- Edit mode ---
+    if (isEditing && existingGoal) {
+      const nextTarget =
+        type === 'accumulate' || type === 'ship' ? Number(targetAmount) : undefined;
+
+      await updateGoal.mutateAsync({
+        goalId: existingGoal.id,
+        arcId: existingGoal.arcId,
+        title: title.trim(),
+        icon,
+        accent,
+        estMinutes: Number(estMinutes) || null,
+        unit: unit || null,
+        itemNoun: type === 'ship' ? itemNoun || 'things' : null,
+        cadenceMode: type === 'habit' || type === 'milestone' ? cadenceMode : null,
+        timesPerWeek: cadenceMode === 'n_per_week' ? Number(timesPerWeek) : null,
+        daysOfWeek: cadenceMode === 'specific_days' ? daysOfWeek : null,
+        intervalDays: cadenceMode === 'every_n_days' ? Number(intervalDays) : null,
+        sessionTarget: sessionTarget ? Number(sessionTarget) : null,
+      });
+
+      // A target change goes through the rescope mutation, not the plain update — otherwise the
+      // target would move with no `rescopes` audit row, and the history is the feature
+      // (05-database.md §1).
+      if (
+        nextTarget != null &&
+        existingGoal.targetAmount != null &&
+        nextTarget !== existingGoal.targetAmount
+      ) {
+        rescope.mutate({
+          goalId: existingGoal.id,
+          arcId: existingGoal.arcId,
+          fromTarget: existingGoal.targetAmount,
+          toTarget: nextTarget,
+          reason: 'edited',
+        });
+      }
+
+      safeBack(router, `/goal/${existingGoal.id}`);
+      return;
+    }
+
+    // --- Create mode ---
+    if (!draftArc.data) return;
     await addGoal.mutateAsync({
       arcId: draftArc.data.id,
       type,

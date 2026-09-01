@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -41,6 +42,7 @@ export default function Home() {
   const skipDay = useSkipDay();
   const pushToast = useToastStore((s) => s.push);
   const { openLog, openLogQueue } = useLogSheet();
+  const router = useRouter();
 
   const skipSheetRef = useRef<SheetRef>(null);
   const [skipTarget, setSkipTarget] = useState<TodayItem | null>(null);
@@ -203,9 +205,12 @@ export default function Home() {
             </Text>
             <View style={{ marginTop: 12, gap: 8 }}>
               {arcRows.map((row, i) => (
-                // Goal detail is Phase 6; the row is pressable but has nowhere to go yet, so it
-                // deliberately has no handler rather than a silently swallowed one.
-                <GoalRow key={row.goalId} row={row} index={i} />
+                <GoalRow
+                  key={row.goalId}
+                  row={row}
+                  index={i}
+                  onPress={() => router.push(`/goal/${row.goalId}`)}
+                />
               ))}
             </View>
           </>

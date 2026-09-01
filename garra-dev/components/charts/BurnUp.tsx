@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { AccessibilityInfo, View } from 'react-native';
+import { View } from 'react-native';
 import {
   Canvas,
   Circle,
@@ -12,6 +12,7 @@ import { useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { useAppTheme } from '@/theme/useAppTheme';
 import { system } from '@/theme/tokens';
+import { timing } from '@/theme/motion';
 import { burnUpGeometry } from './geometry';
 
 export type BurnUpProps = {
@@ -34,9 +35,9 @@ export function BurnUp({ points, W = 342, H = 112, win, day, accent }: BurnUpPro
 
   const opacity = useSharedValue(0);
   useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      opacity.value = reduced ? 1 : withTiming(1, { duration: 600 });
-    });
+    // Reduce-motion comes from the preset (ReduceMotion.System), on the UI thread — not from an
+    // async AccessibilityInfo lookup that races the first frame (see theme/motion.ts).
+    opacity.value = withTiming(1, timing.chart);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

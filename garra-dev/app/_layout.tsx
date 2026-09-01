@@ -76,7 +76,18 @@ export default function RootLayout() {
               open a sheet without each one needing its own provider. */}
           <BottomSheetModalProvider>
             <LogSheetHost>
-              <Stack screenOptions={{ headerShown: false }} />
+              {/* Pushed screens (goal detail, the builder) slide; the tab group and the
+                  cold-start router are replaced into, so they don't animate (rules/01 §6.2). */}
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  animation: 'slide_from_right',
+                  animationDuration: 260,
+                }}
+              >
+                <Stack.Screen name="index" options={{ animation: 'none' }} />
+                <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+              </Stack>
             </LogSheetHost>
           </BottomSheetModalProvider>
         </PersistQueryClientProvider>

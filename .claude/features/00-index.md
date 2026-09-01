@@ -102,7 +102,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 4 | Onboarding & arc creation | `05-onboarding-arc-creation.md` | ✅ Built, statically verified — on-device pass pending |
 | 5 | Home & logging ⭐ | `06-home-and-logging.md` | ✅ Built, statically verified (145 tests) — on-device pass + the 10-second measurement deferred to end of Phase 7 |
 | 5.5 | Motion & feel | `07-motion-and-feel.md` | ✅ Built, statically verified — on-device pass deferred to end of Phase 7 |
-| 6 | Goal detail | — | ⬜ |
+| 6 | Goal detail | `08-goal-detail.md` | ✅ Built, statically verified (181 tests) — on-device pass deferred to end of Phase 7 |
 | 7 | The Arc tab | — | ⬜ |
 | 8 | Auth & sync | — | ⬜ |
 | 9 | Sunday Reset & notifications | — | ⬜ |
@@ -110,7 +110,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 11 | Monetization | — | ⬜ |
 | 12 | Polish & ship | — | ⬜ |
 
-Next available feature-doc number: **08**
+Next available feature-doc number: **09**
 
 ---
 
@@ -487,6 +487,17 @@ feature doc at the same time.
       leaving every state change intact
 - [ ] Both themes, and a low-end Android device if one is available
 
+
+### Phase 6 — goal detail (`08-goal-detail.md`)
+- [ ] **The full state machine, driven by hand: on-track → slipping → cooked → rescoped**, with
+      the ring, burn-up, status pill, and required rate correct at each step. This is
+      `IMPLEMENTATION.md`'s own done-condition for Phase 6.
+- [ ] All four type-swapped heroes render with no dead space
+- [ ] A checkpoint is hit in exactly one tap and the spine's `current` node advances
+- [ ] Long-press on a mosaic cell backfills within 2 days and refuses beyond it
+- [ ] The rescope prompt appears at most once per visit and never blocks the screen
+- [ ] Back from goal detail returns to the tab the user came from
+- [ ] `system.cooked` appears in exactly two places app-wide: the status pill and the rescope sheet
 ---
 
 ## 7. Standing Rules Learned The Hard Way

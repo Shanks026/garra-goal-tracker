@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { AccessibilityInfo, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Canvas, Circle } from '@shopify/react-native-skia';
 import {
   Easing,
   useDerivedValue,
   useSharedValue,
+  ReduceMotion,
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
@@ -25,17 +26,17 @@ function PulseRing({ accent }: { accent: string }) {
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    let mounted = true;
-    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      if (!mounted || reduced) return;
-      progress.value = withRepeat(
-        withTiming(1, { duration: 2400, easing: Easing.out(Easing.ease) }),
-        -1,
-      );
-    });
-    return () => {
-      mounted = false;
-    };
+    // The one deliberately ambient animation in the app (rules/01 §4.8, §6.2) — it marks *where
+    // you are* in a sequence, which is data. `ReduceMotion.System` in the config stops it on the
+    // UI thread when the OS asks, replacing the async AccessibilityInfo check this used to do.
+    progress.value = withRepeat(
+      withTiming(1, {
+        duration: 2400,
+        easing: Easing.out(Easing.ease),
+        reduceMotion: ReduceMotion.System,
+      }),
+      -1,
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

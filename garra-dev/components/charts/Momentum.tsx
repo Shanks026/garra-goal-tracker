@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { AccessibilityInfo, View } from 'react-native';
+import { View } from 'react-native';
 import { LinearGradient, Path, Skia, Canvas as SkiaCanvas } from '@shopify/react-native-skia';
 import { useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { system } from '@/theme/tokens';
+import { timing } from '@/theme/motion';
 import { catmullRomSmooth } from './geometry';
 
 export type MomentumProps = {
@@ -27,9 +28,9 @@ export function Momentum({ points, accent = system.arc }: MomentumProps) {
 
   const opacity = useSharedValue(0);
   useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      opacity.value = reduced ? 1 : withTiming(1, { duration: 600 });
-    });
+    // Reduce-motion comes from the preset (ReduceMotion.System), on the UI thread — not from an
+    // async AccessibilityInfo lookup that races the first frame (see theme/motion.ts).
+    opacity.value = withTiming(1, timing.chart);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

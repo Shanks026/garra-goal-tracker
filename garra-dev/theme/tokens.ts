@@ -109,6 +109,10 @@ export const system = {
   slippingArea: 'rgba(255,176,32,.14)',
   slippingPanel: 'rgba(255,176,32,.10)',
   cooked: '#FF453A', // NOT IN THE CANVAS — see rules/01 §9. Status pill + rescope prompt only.
+  // The pill's ground, mirroring slippingBg's alpha so cooked and slipping read as the same
+  // family of treatment rather than two different designs. Added Phase 6.1 — its only consumers
+  // are StatusPill's cooked variant and the rescope sheet.
+  cookedBg: 'rgba(255,69,58,.12)',
 } as const;
 
 // Typography scale — rules/01 §2. Weight ceiling is 600 everywhere in this table;
