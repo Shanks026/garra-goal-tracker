@@ -172,6 +172,9 @@ a themed component must use this two-class pattern for any semantic color from `
 `bg`, `surface`, `textPrimary`, `border`, etc. all need both the plain and `-dark` class. The
 three dark-only tokens (`fillStrong`, `handle`, `borderSelectedHi` — no light value exists in the
 rule file) get only their one plain name; there is no light-mode fallback to pair it with.
+*(Update, Phase 2.5: `handle` gained a light value once `sheets/Sheet.tsx` — the first real
+component needing it in both themes — was built. `fillStrong` and `borderSelectedHi` remain
+dark-only until something actually needs them in light mode.)*
 
 Static colors (`ACCENTS`, `system`) and all spacing/radius values are theme-invariant and need
 no `dark:` pairing — they're plain literals in the generated Tailwind config.

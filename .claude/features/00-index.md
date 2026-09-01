@@ -97,7 +97,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 |---|---|---|---|
 | 0 | Project initialization & dependency checks | `01-project-initialization.md` | ✅ Complete (0.1 ✅, 0.2 ✅ on emulator — physical-device spot check still pending, 0.3 ✅ mostly — see notes) |
 | 1 | Foundation — tokens, schema, theme | `02-foundation.md` | ✅ Complete |
-| 2 | The chart set | `03-chart-set.md` | 📋 Planned |
+| 2 | The chart set | `03-chart-set.md` | ✅ Complete |
 | 3 | The pace engine | — | ⬜ |
 | 4 | Onboarding & arc creation | — | ⬜ |
 | 5 | Home & logging ⭐ | — | ⬜ |
@@ -249,18 +249,35 @@ arrays remotely (no SQLite array type exists), and locally generated ids use `ex
 standing rule #10). `lib/derive/*` and `lib/sync/` don't exist yet.
 
 ### Charts — `components/charts/`
-*None yet.* Phase 2 builds `PaceRing`, `ArcSweep`, `Mosaic`, `BurnUp`, `WeekBars`, `Momentum`,
-`LoadDonut`, `CheckpointSpine`, `WindowTicks`.
+All nine built, Phase 2: `PaceRing`, `ArcSweep`, `Mosaic`, `WeekBars`, `WindowTicks`, `BurnUp`,
+`Momentum`, `LoadDonut`, `CheckpointSpine`. Shared geometry (arc/ring math, the Catmull-Rom
+smoother, load-donut segment math) lives in `components/charts/geometry.ts`, unit-tested
+separately from rendering (22 tests). Every chart takes already-computed props (points, cell
+states, `accent`) — none read `entries` or a goal object directly (rules/02-ui-components.md
+§2). Fixture generators for dev/preview use only (never production) live in
+`components/charts/__fixtures__/chartFixtures.ts`, and reuse the canvas's own seeded-random
+approach deliberately — see standing rule #12.
 
 ### Derivations — `lib/derive/`
 *None yet.* Phase 3 builds `pace`, `schedule`, `streaks`, `mosaic`, `load`.
 
 ### Hooks — `hooks/`
-*None yet.*
+`useSheetBackHandler` (Phase 2.5) — wires `BackHandler` to a `BottomSheetModal` ref so Android
+back dismisses the sheet instead of falling through to expo-router and exiting the app. Every
+sheet must use this; see standing rule #13 for the provider it depends on.
 
 ### UI primitives — `components/ui/`
-*None yet.* Phase 2 builds `Button`, `Chip`, `ListGroup`, `ListRow`, `StatusPill`, `Checkbox`,
-`SectionLabel`, `NumPad`, `Sheet`.
+All built, Phase 2.5: `Button` (primary/secondary/outline — primary never accent-colored),
+`Chip` (filter/intent variants), `ListGroup`/`ListRow` (inset grouped list), `StatusPill`
+(neutral/slipping), `Checkbox` (spring overshoot + haptic-on-tap), `SectionLabel`, `NumPad`
+(the custom 12-key value-entry pad — never the OS keyboard). `sheets/Sheet.tsx` is the shared
+shell every real sheet (Phase 4+) builds on — standard chrome plus `useSheetBackHandler` wired
+automatically.
+
+### Dev routes
+`app/_dev-charts.tsx` — permanent kitchen-sink route (not deleted after Phase 2, unlike the
+throwaway smoke-test routes from Phase 0/1) exercising every chart and UI primitive against
+fixture data, with an in-route dark/light toggle. Reachable from `app/index.tsx`.
 
 ---
 
@@ -328,3 +345,26 @@ Append whenever something breaks in a way a rule would have prevented, then prom
     doesn't reliably match these processes in git-bash — to clear any of *our own* stale
     listeners on whatever port is chosen. Full debugging story in
     `01-project-initialization.md`'s Phase 0.2 Implementation Notes.
+12. **`@gorhom/bottom-sheet`'s `BottomSheetModal` requires a `BottomSheetModalProvider`
+    mounted at the app root** — without it, rendering any `BottomSheetModal` (including via
+    `sheets/Sheet.tsx`) crashes with `'BottomSheetModalInternalContext' cannot be null!`.
+    Mounted once in `app/_layout.tsx`, wrapping the `Stack` — every sheet gets it for free from
+    here on. Found on-device in Phase 2.6; `02-ui-components.md` §3 already documented the
+    provider pattern but nothing had actually mounted it yet.
+13. **Fixture/demo data for a chart must respect that chart's own scale, not just its target**
+    — `BurnUp`'s Y-axis ceiling is scaled to the *visible window* (`target * win / totalDays`),
+    not the full-arc target. A fixture value that's a plausible fraction of the full target can
+    still be wildly out of range for the window and clip off the canvas — found via a user's
+    on-device visual check in Phase 2.6, not by any unit test (the path-generator tests check
+    string well-formedness, not visual plausibility against a specific viewBox). Worth a
+    runtime sanity check when real data starts feeding this chart (Phase 3+).
+14. **Skia cannot be imported inside a Jest test** (`Cannot find module '.../NativeSetup'`) —
+    it's a native module with no Jest mock. Any pure function whose only consumer is Skia (e.g.
+    asserting a path string is valid for `Skia.Path.MakeFromSVGString`) has to be tested via a
+    structural proxy (e.g. a regex checking the string is well-formed) rather than by actually
+    calling Skia. See `components/charts/geometry.test.ts`'s `isWellFormedSvgPath` helper.
+15. **A long session sending many screenshots can hit a hard "many-image request" limit** on
+    reading further images, independent of individual file size (a 220×489px resize still
+    failed after enough prior images). If this happens, pivot to asking the user to look at the
+    device/emulator directly and report back, combined with `adb logcat` checks — don't keep
+    retrying reads.

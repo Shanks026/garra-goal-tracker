@@ -217,16 +217,18 @@ None. Fully additive.
   `textPrimary`-class tokens that aren't accent-specific.
 
 ### 2.1.9 Checklist
-- [ ] `arcSweepGeometry` and `paceRingGeometry` match `DCLogic.arc()`/`DCLogic.ring()` exactly —
+- [x] `arcSweepGeometry` and `paceRingGeometry` match `DCLogic.arc()`/`DCLogic.ring()` exactly —
   diffed line-by-line against the canvas, not retyped from memory
-- [ ] All required test cases pass
-- [ ] `PaceRing` renders on-device (native dev client) matching the canvas visually: amber gap
-  visible when behind, invisible when locked in/on track
-- [ ] `ArcSweep` renders correctly at all three size variants
-- [ ] Both charts render correctly in dark and light mode
-- [ ] Animation: fills animate once on mount via a Reanimated shared value, not on every re-render
-- [ ] `tsc --noEmit` clean
-- [ ] No hex literal outside `theme/tokens.ts` (charts take `accent`/token colors as props)
+- [x] All required test cases pass (10 tests)
+- [x] `PaceRing` renders on-device (native dev client) matching the canvas visually — verified
+  in the Phase 2.6 kitchen sink, user-confirmed
+- [x] `ArcSweep` renders correctly at all three size variants
+- [x] Both charts render correctly in dark and light mode
+- [x] Animation: fills animate once on mount via a Reanimated shared value, not on every re-render
+- [x] `tsc --noEmit` clean
+- [x] No hex literal outside `theme/tokens.ts` (charts take `accent`/token colors as props)
+
+✅ **Phase 2.1 complete — 2026-09-01.**
 
 **→ Stop here. Show the result and wait for approval.**
 
@@ -299,15 +301,16 @@ None.
 - The Mosaic's long-press-to-backfill interaction — Phase 5.
 
 ### 2.2.9 Checklist
-- [ ] All three charts render correctly against fixture data, matching the canvas visually
-- [ ] Mosaic is confirmed as a **single** `<Canvas>` (check the component source, not just the
-  visual result — two implementations can look identical and differ hugely in frame cost)
-- [ ] Mosaic scrolls (inside a plain `ScrollView` test harness) at a visually smooth frame rate
-  on-device — full 60fps profiling is Phase 2.6's job with the real kitchen-sink layout, but a
-  basic sanity check happens here since this is the highest-risk chart
-- [ ] WeekBars' missed-day stub is visibly hollow (stroke only), not just a different fill color
-- [ ] All three render correctly in dark and light mode
-- [ ] `tsc --noEmit` clean
+- [x] All three charts render correctly against fixture data, matching the canvas visually
+- [x] Mosaic is confirmed as a **single** `<Canvas>` — one `<Canvas>` per `Mosaic` instance, all
+  cells drawn as `<RoundedRect>` primitives inside it, not one canvas per cell
+- [x] Mosaic scrolls at a visually smooth frame rate on-device — confirmed as part of the
+  Phase 2.6 kitchen sink (which also carries the full 60fps confirmation)
+- [x] WeekBars' missed-day stub is visibly hollow (stroke only), not just a different fill color
+- [x] All three render correctly in dark and light mode
+- [x] `tsc --noEmit` clean
+
+✅ **Phase 2.2 complete — 2026-09-01.**
 
 **→ Stop here. Show the result and wait for approval.**
 
@@ -407,12 +410,15 @@ None.
 - Scrub-to-reveal interaction on BurnUp — a later phase.
 
 ### 2.3.9 Checklist
-- [ ] `catmullRomSmooth` passes all required test cases
-- [ ] `BurnUp` and `Momentum` render correctly against fixture point arrays, matching the canvas
-- [ ] BurnUp's deficit area only appears where the actual line falls behind the required line
-  (verify with a fixture dataset that's deliberately behind pace, and one that's ahead)
-- [ ] Both render correctly in dark and light mode
-- [ ] `tsc --noEmit` clean
+- [x] `catmullRomSmooth` passes all required test cases (4 tests)
+- [x] `BurnUp` and `Momentum` render correctly against fixture point arrays, matching the canvas
+- [x] BurnUp's deficit area only appears where the actual line falls behind the required line —
+  verified with both a behind-pace and an ahead-of-pace fixture dataset (the latter needed a
+  fixture-data fix mid-Phase-2.6; see that phase's Implementation Notes)
+- [x] Both render correctly in dark and light mode
+- [x] `tsc --noEmit` clean
+
+✅ **Phase 2.3 complete — 2026-09-01.**
 
 **→ Stop here. Show the result and wait for approval.**
 
@@ -503,13 +509,17 @@ None.
 - Tapping a checkpoint node to mark it hit — Phase 5/6 (the logging path).
 
 ### 2.4.9 Checklist
-- [ ] `loadDonutSegments` passes its required test case
-- [ ] `LoadDonut` renders correctly against a fixture 5-goal dataset, matching the canvas
-- [ ] `CheckpointSpine` renders all three states correctly, including the pulse on `current`
-- [ ] Pulse is confirmed to respect `AccessibilityInfo.isReduceMotionEnabled()` — verify by
-  toggling the device's reduce-motion setting, not just reading the code
-- [ ] Both render correctly in dark and light mode
-- [ ] `tsc --noEmit` clean
+- [x] `loadDonutSegments` passes its required test case
+- [x] `LoadDonut` renders correctly against a fixture 5-goal dataset, matching the canvas
+- [x] `CheckpointSpine` renders all three states correctly, including the pulse on `current`
+- [~] Pulse respects `AccessibilityInfo.isReduceMotionEnabled()` — the gate is implemented
+  (`PulseRing` checks it before starting the loop), but **not verified by actually toggling the
+  emulator's reduce-motion setting** — code review only. Worth a real check before this ships on
+  a real screen.
+- [x] Both render correctly in dark and light mode
+- [x] `tsc --noEmit` clean
+
+✅ **Phase 2.4 complete — 2026-09-01** (reduce-motion toggle verification deferred, see above).
 
 **→ Stop here. Show the result and wait for approval.**
 
@@ -593,18 +603,24 @@ None.
 - `FlashList` usage — nothing in this phase has a list long enough to need it yet.
 
 ### 2.5.9 Checklist
-- [ ] Every primitive matches its exact spec from `01-design-system.md` §7 (h/r/color/weight),
+- [x] Every primitive matches its exact spec from `01-design-system.md` §7 (h/r/color/weight),
   diffed against the rule file, not approximated
-- [ ] Primary button is never accent-colored — spot-check by grep, not just visual review
-- [ ] `Sheet` shell opens/closes correctly; `useSheetBackHandler` verified with the Android
-  hardware back button specifically (not just a close button) — this is the one thing
-  `02-ui-components.md` calls out as having shipped broken in a sibling project
-- [ ] `Checkbox` animates with slight overshoot (~250ms `withSpring`) and haptic fires on tap,
-  not on animation end (`01-design-system.md` §6)
-- [ ] Every tappable target ≥ 44×44 even where the visual is smaller (the 24px checkbox needs
-  hit-slop)
-- [ ] All primitives render correctly in dark and light mode
-- [ ] `tsc --noEmit` clean
+- [x] Primary button is never accent-colored — confirmed by grep: `Button.tsx` references no
+  `ACCENT` color, only `textPrimary`/`fillMed`/`borderControl`
+- [x] `Sheet` shell opens/closes correctly; `useSheetBackHandler` verified with the Android
+  hardware back button — real bug caught and fixed here: `BottomSheetModal` needs
+  `BottomSheetModalProvider`, which wasn't mounted anywhere; fixed by mounting it once in
+  `app/_layout.tsx` (see Phase 2.6 Implementation Notes for the full story)
+- [x] `Checkbox` animates with slight overshoot (`withSpring({duration:250, dampingRatio:0.65})`)
+  and the haptic call happens synchronously in `handlePress`, before the animation starts —
+  confirmed by code structure; the *feel* of the haptic wasn't independently verified (can't be,
+  remotely)
+- [x] Every tappable target ≥ 44×44 — `Checkbox`'s `hitSlop={10}` on a 24px box gives 44×44 by
+  construction (24 + 10 + 10)
+- [x] All primitives render correctly in dark and light mode
+- [x] `tsc --noEmit` clean
+
+✅ **Phase 2.5 complete — 2026-09-01.**
 
 **→ Stop here. Show the result and wait for approval.**
 
@@ -675,21 +691,91 @@ per how `IMPLEMENTATION.md` describes it: "a dev-only kitchen-sink route," not a
 - Removing the kitchen-sink route — it's intentionally kept as a living design reference.
 
 ### 2.6.9 Checklist
-- [ ] All nine charts + every UI primitive visible on one route, on-device, via the native dev
-  client (not Expo Go — confirm this explicitly, since it would be easy to accidentally verify
-  against a stale Expo Go session showing an old cached screen)
-- [ ] Full route confirmed in both dark and light mode using the in-route toggle
-- [ ] The 122-cell Mosaic section scrolled on-device and confirmed smooth — this is the actual
-  60fps checkpoint `IMPLEMENTATION.md` names as Phase 2's done condition, more rigorous than
-  2.2's basic sanity check
-- [ ] Every chart visually matches its corresponding canvas screen side by side (open the canvas
-  screen and the dev-client screen together, compare directly — not from memory)
-- [ ] All path-generator unit tests from 2.1–2.4 pass as a full suite (`npx jest`)
-- [ ] `tsc --noEmit` clean
-- [ ] `00-index.md` §5 Shared Infrastructure updated: all nine charts + UI primitives listed as
+- [x] All nine charts + every UI primitive visible on one route, on-device, via the native dev
+  client — the Android emulator's dev client (not Expo Go), confirmed by the user directly
+  viewing the emulator
+- [x] Full route confirmed in both dark and light mode using the in-route toggle — user-confirmed
+- [x] The 122-cell Mosaic section scrolled on-device and confirmed smooth — user-confirmed
+- [~] Every chart visually matches its corresponding canvas screen — not done as a literal
+  side-by-side (canvas HTML open next to the emulator); instead the underlying geometry was
+  diffed directly against `DCLogic`'s source this session (§2.1–2.4), and the rendered result
+  was user-confirmed correct on-device, with one real fixture bug caught and fixed (see notes)
+- [x] All path-generator unit tests from 2.1–2.4 pass as a full suite (`npx jest` — 22 tests,
+  2 suites)
+- [x] `tsc --noEmit` clean
+- [x] `00-index.md` §5 Shared Infrastructure updated: all nine charts + UI primitives listed as
   built, in the same change
 
 **→ Stop here. Phase 2 complete. Report to the user, then wait for Phase 3 go-ahead.**
+
+### Implementation Notes — Phase 2, all sub-phases
+
+**Six new color tokens, not anticipated when this doc was written.** Building the charts and UI
+primitives against `01-design-system.md` §4 and §7 surfaced several literal rgba/hex values
+embedded in the spec prose that had never been promoted to named tokens in `theme/tokens.ts`:
+`requiredLine` (BurnUp's dashed required-rate line), `donutGhost` (LoadDonut's outer ghost
+ring), `spineIdle` (CheckpointSpine's non-done connector), `checkboxBorder` (unchecked
+checkbox), `pillText` (StatusPill's default text). All five were dark-only in the original spec
+prose (no light value given) — added to both `dark`/`light` token objects using the same
+alpha-preserved black/white conversion every existing pair already uses, and both `theme/
+tokens.ts` and `01-design-system.md` §1 were updated together so they don't drift. Separately,
+**`handle`** (the sheet grab handle) had been dark-only since Phase 1.1, correctly at the time
+since nothing needed it in light mode yet — `sheets/Sheet.tsx` is the first real component that
+does, so it gained a light value too, same pattern.
+
+**Real bug: one wrong token, caught by the type checker.** `CheckpointSpine`'s "future" node
+ring initially used `tokens.borderSelectedHi` (`.32` alpha, and dark-only) — TypeScript's union
+type across `dark`/`light` correctly rejected it as not existing on `light`. The real spec value
+(`01-design-system.md` §4.8: `rgba(255,255,255,.18)`) is `barMiss`, an existing token available
+in both themes — simple fix, but a reminder that the union-typed `tokens` object is doing real
+work catching wrong-token mistakes, not just missing ones.
+
+**Real bug: `BottomSheetModal` needs `BottomSheetModalProvider`, mounted at the app root — this
+one only surfaced on-device**, as a hard crash (`'BottomSheetModalInternalContext' cannot be
+null!`) the moment the kitchen-sink route tried to render `<Sheet>`. `02-ui-components.md` §3
+already says the provider pattern is "mounted once at the app root," but nothing had actually
+done that yet — Phase 0.2's `smoke.tsx` wrapped its own screen locally, which worked but wasn't
+the real pattern. Fixed by mounting `BottomSheetModalProvider` once in `app/_layout.tsx`,
+wrapping the `Stack`. Every future sheet (Phase 4+) now gets this for free.
+
+**Real bug: bad fixture data, not a component bug — caught by the user's visual check, not by
+me.** The kitchen sink's "BurnUp — ahead of pace" example used `actual=620` against a fixture
+target of 800 over 122 days scaled to a 40-day visible window (`yMax ≈ 262`) — 620 vastly
+exceeds that window ceiling, so the curve shot off the top of the canvas. This is exactly why
+`03-chart-set.md`'s own checklist calls for a real ahead-of-pace fixture check rather than
+trusting the math in the abstract: the underlying `burnUpGeometry`/`catmullRomSmooth` functions
+were correct the whole time (their unit tests never exercised this scale mismatch, since they
+test path-string well-formedness, not visual plausibility against a specific chart's viewBox).
+Fixed by picking a fixture value (245) that's genuinely ahead of the ~223 expected-by-day-34 but
+inside the window ceiling. **This is a live risk for any future fixture or real data feed**:
+BurnUp's `yMax` is scaled to the visible window, not the full arc target, and a caller passing a
+value outside that window will clip. Worth a runtime guard or at least a comment when
+`lib/derive/pace.ts` starts feeding this chart for real (Phase 3+).
+
+**`react-native-reusables` isn't an installable npm package** — `npm view` returns a 404; it's
+a shadcn-style CLI that copies component source into the repo rather than a dependency. Given
+every primitive in this phase has very specific, exact token-driven values (not generic
+defaults a copy-paste library would already match), building directly against `theme/tokens.ts`
+was more direct than evaluating a source-copying tool that would need heavy customization
+anyway. Noting this so a future phase doesn't re-raise the same evaluation from scratch.
+
+**Skia cannot be imported in a Jest test** — confirmed by attempting it directly
+(`Cannot find module '.../NativeSetup'`). This affects how chart path-generator functions get
+tested: `geometry.test.ts`'s Catmull-Rom test asserts the output string is well-formed enough
+for `Skia.Path.MakeFromSVGString` via a regex proxy, not by actually calling Skia. This is a
+structural limitation of testing native-module-dependent code under Jest generally, not
+specific to this phase — worth remembering for any future pure function whose *consumer* is a
+native module even if the function itself has no native dependency.
+
+**Screenshot-based visual verification hit a hard limit mid-phase** — after many screenshots
+across this and earlier phases in the same long conversation, image reads started failing with
+"exceed max allowed size for many-image requests," independent of actual file dimensions (even
+a 220×489px resize failed). The rest of Phase 2.6's on-device visual verification (theme toggle,
+Mosaic scroll smoothness, the BurnUp bug itself, and the final fix confirmation) was done via
+the user directly viewing the local emulator window and reporting back, combined with
+`adb logcat` checks for crashes/errors on this end. Worth knowing if a future long session hits
+the same wall: pivot to asking the user to look, rather than continuing to burn turns on reads
+that will keep failing.
 
 ---
 

@@ -1,0 +1,59 @@
+import { useEffect } from 'react';
+import { AccessibilityInfo, View } from 'react-native';
+import { Canvas, Circle, DashPathEffect, Path, Skia } from '@shopify/react-native-skia';
+import { useDerivedValue, useSharedValue, withTiming } from 'react-native-reanimated';
+
+import { useAppTheme } from '@/theme/useAppTheme';
+import { system } from '@/theme/tokens';
+import { arcSweepGeometry } from './geometry';
+
+export type ArcSweepProps = {
+  /** Fraction of the arc elapsed, 0-1. */
+  p: number;
+  size?: 'home' | 'onboarding' | 'builder';
+};
+
+// rules/01-design-system.md §4.1
+const SIZES = {
+  home: { cx: 171, cy: 146, r: 140, sw: 14 },
+  onboarding: { cx: 171, cy: 180, r: 150, sw: 14 },
+  builder: { cx: 155, cy: 150, r: 132, sw: 14 },
+} as const;
+
+export function ArcSweep({ p, size = 'home' }: ArcSweepProps) {
+  const { tokens } = useAppTheme();
+  const { cx, cy, r, sw } = SIZES[size];
+  const geo = arcSweepGeometry(p, cx, cy, r);
+  const skPath = Skia.Path.MakeFromSVGString(geo.path);
+
+  const progress = useSharedValue(0);
+  useEffect(() => {
+    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
+      progress.value = reduced ? 1 : withTiming(1, { duration: 600 });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const dashIntervals = useDerivedValue(() => [
+    geo.dashIntervals[0] * progress.value,
+    geo.dashIntervals[1],
+  ]);
+
+  const height = size === 'onboarding' ? cy + r + 20 : cy + 20;
+
+  if (!skPath) return null;
+
+  return (
+    <View style={{ width: cx * 2, height }}>
+      <Canvas style={{ width: cx * 2, height }}>
+        <Path path={skPath} style="stroke" strokeWidth={sw} color={tokens.track} />
+        <Path path={skPath} style="stroke" strokeWidth={sw} strokeCap="round" color={system.arc}>
+          <DashPathEffect intervals={dashIntervals} />
+        </Path>
+        {/* Dot: bg-colored circle punches a hole so the accent dot reads as riding on the stroke */}
+        <Circle cx={geo.dot.x} cy={geo.dot.y} r={11} color={tokens.bg} />
+        <Circle cx={geo.dot.x} cy={geo.dot.y} r={7} color={system.arc} />
+      </Canvas>
+    </View>
+  );
+}

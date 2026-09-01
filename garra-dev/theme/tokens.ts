@@ -30,6 +30,11 @@ export const dark = {
   tabInactive: 'rgba(255,255,255,.32)',
   handle: 'rgba(255,255,255,.18)',
   homeIndicator: 'rgba(255,255,255,.28)',
+  requiredLine: 'rgba(255,255,255,.3)', // BurnUp's required-rate dashed line — rules/01 §4.4
+  donutGhost: 'rgba(255,255,255,.07)', // LoadDonut's ghost ring — rules/01 §4.7
+  spineIdle: 'rgba(255,255,255,.1)', // CheckpointSpine's non-done spine connector — rules/01 §4.8
+  checkboxBorder: 'rgba(255,255,255,.22)', // unchecked checkbox border — rules/01 §7
+  pillText: 'rgba(255,255,255,.7)', // StatusPill's default (non-slipping) text color — rules/01 §7
 } as const;
 
 export const light = {
@@ -56,6 +61,15 @@ export const light = {
   barMiss: 'rgba(10,10,11,.18)',
   tabInactive: 'rgba(10,10,11,.30)',
   homeIndicator: 'rgba(10,10,11,.25)',
+  requiredLine: 'rgba(10,10,11,.3)', // dark equivalent not spec'd beyond alpha; same pattern as every other dark/light pair
+  // `handle` (sheet grab handle) is genuinely needed in light mode too — Sheet.tsx (Phase 2.5)
+  // is the first real component to use it. rules/01 §1 originally listed it dark-only; adding
+  // the light value now with the same alpha-preserved conversion every other pair uses.
+  handle: 'rgba(10,10,11,.18)',
+  donutGhost: 'rgba(10,10,11,.07)', // not spec'd beyond alpha; same dark/light pattern
+  spineIdle: 'rgba(10,10,11,.1)', // not spec'd beyond alpha; same dark/light pattern
+  checkboxBorder: 'rgba(10,10,11,.22)', // not spec'd beyond alpha; same dark/light pattern
+  pillText: 'rgba(10,10,11,.7)', // not spec'd beyond alpha; same dark/light pattern
 
   // Light mode uses shadow where dark mode uses fill — see rules/01 §5.
   cardShadow: '0 1px 3px rgba(10,10,11,.08), 0 6px 20px rgba(10,10,11,.06)',
