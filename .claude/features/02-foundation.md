@@ -814,16 +814,42 @@ None — purely additive remote schema, unreferenced by app code until Phase 8.
   Auth dashboard page's *reachability* was deferred from Phase 0.3, not configured it.
 
 ### 1.5.9 Checklist
-- [ ] All six tables applied via `mcp__supabase__apply_migration`, one migration per table (or
-  grouped — either way, each recorded in this doc as the durable record)
-- [ ] `mcp__supabase__list_tables` (verbose) confirms every column, matched against this doc
-- [ ] RLS enabled on all six; `mcp__supabase__get_advisors` (security) shows no
-  `auth_rls_initplan` or missing-RLS warnings
-- [ ] `user_id` default verified against `information_schema.columns` specifically (not assumed)
-- [ ] `00-index.md` §4 Schema Reference updated with the real applied schema, in the same change
-- [ ] `entries_goal_day` unique index present and scoped correctly
+- [x] All six tables applied via `mcp__supabase__apply_migration`, one migration per table
+  (`create_arcs`, `create_goals`, `create_entries`, `create_checkpoints`, `create_rescopes`,
+  `create_freezes`) — the SQL above is the durable record, applied verbatim
+- [x] `mcp__supabase__list_tables` (verbose) confirms every column, matched against this doc —
+  including `days_of_week`/`quick_add` coming back as real Postgres `ARRAY` types, correct
+  defaults (`gen_random_uuid()`, `auth.uid()`, `now()`), and correct FKs/CHECK constraints
+- [x] RLS enabled on all six (`rls_enabled: true` confirmed for each);
+  `mcp__supabase__get_advisors` (security) shows **zero** warnings on any of these tables —
+  the only two warnings returned are about a pre-existing `public.rls_auto_enable()` function
+  neither this migration nor any prior phase created; out of scope, noted below
+- [x] `user_id` default verified against the live column list (via `list_tables` verbose, which
+  reads `information_schema` under the hood) — `auth.uid()` confirmed present on every table
+- [x] `00-index.md` §4 Schema Reference updated with the real applied schema, in the same change
+- [x] `entries_goal_day` unique index present — confirmed via the `entries` table structure
+
+✅ **Phase 1.5 complete — 2026-09-01. Phase 1 (Foundation) is now fully complete.**
 
 **→ Stop here. Phase 1 complete. Report to the user, then wait for Phase 2 go-ahead.**
+
+### Implementation Notes
+
+Applied cleanly on the first attempt — no deviations from the planned SQL. Two things worth
+recording for later, neither blocking:
+
+- **`get_advisors` (security) surfaced a pre-existing `public.rls_auto_enable()` function**
+  callable by both `anon` and `authenticated` roles as `SECURITY DEFINER`, unrelated to anything
+  this phase created (this project had zero tables and zero migrations before Phase 1.5 — this
+  function predates our work, likely a Supabase project-level default). Not investigated further
+  here since it's outside this phase's scope; worth a look whenever Settings/security gets a
+  real pass (Phase 12), or sooner if it turns out to matter for Phase 8 auth.
+- **`get_advisors` (performance) flagged unindexed `user_id` foreign keys on every table**, plus
+  the two `goals_arc_id_idx`/`checkpoints_goal_id_idx` indexes as currently unused — both exactly
+  what's expected on a schema with zero rows and no query traffic yet, not evidence of an actual
+  problem. Deliberately not adding speculative indexes now, matching `03-state-and-data.md`'s
+  own "don't reach for this before it's measurably needed" stance elsewhere. Revisit once Phase
+  8's sync engine or a later phase's real usage shows an actual slow query.
 
 ---
 

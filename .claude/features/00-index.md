@@ -96,7 +96,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | # | Phase | Doc | Status |
 |---|---|---|---|
 | 0 | Project initialization & dependency checks | `01-project-initialization.md` | 🚧 Closed out (0.1 ✅, 0.2 ⏸️ deferred to before Phase 2, 0.3 ✅ mostly — see notes) |
-| 1 | Foundation — tokens, schema, theme | `02-foundation.md` | 📋 Planned |
+| 1 | Foundation — tokens, schema, theme | `02-foundation.md` | ✅ Complete |
 | 2 | The chart set | — | ⬜ |
 | 3 | The pace engine | — | ⬜ |
 | 4 | Onboarding & arc creation | — | ⬜ |
@@ -115,30 +115,101 @@ Next available feature-doc number: **03**
 
 ## 4. Schema Reference
 
-**Nothing applied yet.** Phase 1 creates the initial schema via the Supabase MCP server.
+**Applied 2026-09-01, Phase 1.5.** Since Supabase migrations aren't committed as files, this
+section plus `02-foundation.md`'s Phase 1.5 SQL block are the only durable record of the remote
+schema. Every table below has RLS enabled with the identical policy shape — only the name and
+target table differ, so it's stated once instead of six times:
 
-Since Supabase migrations aren't committed as files, **this section plus the feature docs are
-the only durable record of the remote schema.** Record every table here once applied, using:
+> `CREATE POLICY "Users manage own [table]" ON [table] FOR ALL`
+> `USING ((select auth.uid()) = user_id) WITH CHECK ((select auth.uid()) = user_id);`
+>
+> Plus a `moddatetime` trigger on `updated_at`, and the standard columns
+> (`id uuid PK default gen_random_uuid()`, `user_id uuid default auth.uid()`,
+> `created_at`/`updated_at timestamptz default now()`) on every table.
 
-```
 ### arcs
 | Column | Type | Notes |
 |---|---|---|
-| id | uuid | PK, default gen_random_uuid() |
-| user_id | uuid | FK auth.users, default auth.uid(), RLS |
-| ... | | |
-RLS: "Users manage own arcs" — FOR ALL, (select auth.uid()) = user_id, both USING and WITH CHECK
-Indexes: ...
-```
+| title | text | not null |
+| starts_at / ends_at | date | not null |
+| status | text | default `'draft'`, CHECK in (`draft`,`active`,`archived`) |
+| timezone | text | not null |
+Indexes: none beyond PK.
 
-Planned tables: `arcs`, `goals`, `entries`, `checkpoints`, `rescopes`, `freezes`,
-`sync_queue` (local only), `profiles` (remote only).
+### goals
+| Column | Type | Notes |
+|---|---|---|
+| arc_id | uuid | FK → arcs, ON DELETE CASCADE |
+| type | text | CHECK in (`habit`,`accumulate`,`ship`,`milestone`) |
+| direction | text | default `'up'`, CHECK in (`up`,`down`) — the ⊖ Limit type's seam |
+| accent, icon | text | not null |
+| is_main | boolean | default `false` |
+| target_amount, starting_value, session_target | numeric | nullable |
+| unit, cadence_mode, pace_basis, item_noun | text | nullable |
+| times_per_week, interval_days, est_minutes | integer | nullable |
+| days_of_week | integer[] | nullable — **native Postgres array**; SQLite side stores this as JSON `text` (no array type exists there), see `02-foundation.md` §1.4.7 |
+| quick_add | numeric[] | nullable, same array-type note as above |
+| ends_at | date | nullable — lets a goal end before the arc does |
+| status | text | default `'active'`, CHECK in (`active`,`paused`,`archived`) |
+Indexes: `goals_arc_id_idx` on `arc_id`.
+
+### entries
+| Column | Type | Notes |
+|---|---|---|
+| goal_id | uuid | FK → goals, ON DELETE CASCADE |
+| day_key | text | not null, `'YYYY-MM-DD'` post-04:00-rollover |
+| logged_at | timestamptz | not null |
+| value | numeric | nullable |
+| skipped, backfilled | boolean | default `false` |
+| skip_reason, title, link | text | nullable |
+Indexes: `entries_goal_day` **unique**, `(goal_id, day_key) WHERE skipped = false`.
+
+### checkpoints
+| Column | Type | Notes |
+|---|---|---|
+| goal_id | uuid | FK → goals, ON DELETE CASCADE |
+| title | text | not null |
+| position | integer | not null |
+| target_date | date | nullable |
+| hit_at | timestamptz | nullable |
+| notes | text | nullable |
+Indexes: `checkpoints_goal_id_idx` on `goal_id`.
+
+### rescopes
+Append-only audit log — no `updated_at`-driven edits expected in practice, though the trigger
+exists like every other table.
+| Column | Type | Notes |
+|---|---|---|
+| goal_id | uuid | FK → goals, ON DELETE CASCADE |
+| from_target, to_target | numeric | nullable |
+| reason | text | nullable |
+Indexes: none beyond PK.
+
+### freezes
+| Column | Type | Notes |
+|---|---|---|
+| arc_id | uuid | FK → arcs, ON DELETE CASCADE |
+| earned_for_week | text | not null |
+| consumed_for_day_key | text | nullable |
+Indexes: none beyond PK.
+
+### Not yet created
+- `profiles` (remote-only) — shape unknown until Phase 8 (auth) actually needs it.
+- `sync_queue` — **local-only**, lives in SQLite (`lib/db/schema.ts`), never mirrored remotely.
+
+### Known advisor notes (non-blocking, Phase 1.5)
+- A pre-existing `public.rls_auto_enable()` function (not created by any migration here) is
+  flagged as `SECURITY DEFINER`-callable by `anon`/`authenticated`. Not investigated — revisit
+  at Phase 12 (Settings/security pass) or sooner if it matters for Phase 8 auth.
+- Unindexed `user_id` FKs on every table, and the two goal/checkpoint indexes flagged "unused" —
+  both expected on an empty schema with no query traffic yet. Not adding speculative indexes;
+  revisit once real usage shows an actual slow query.
 
 ### Applied migrations
 
 | Date | Phase / doc | What changed |
 |---|---|---|
-| — | — | — |
+| 2026-09-01 | Phase 1.5, `02-foundation.md` | `create_arcs`, `create_goals`, `create_entries`, `create_checkpoints`, `create_rescopes`, `create_freezes` — full initial schema, RLS on all six |
 
 ---
 
