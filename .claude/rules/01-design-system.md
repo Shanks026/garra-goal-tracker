@@ -311,8 +311,22 @@ Four layers, in order:
 future day        → bg: fill ('rgba(255,255,255,.05)'), no stroke
 hit (full)        → bg: accent
 hit (partial)     → bg: accent @ 42% alpha
+rest day          → bg: mosaicRest ('rgba(255,255,255,.09)'), no stroke
 missed            → bg: transparent, inset 1px stroke mosaicMiss
 ```
+
+**The `rest` state is an amendment to the canvas, added in Phase 7 with sign-off.** The canvas
+ships four states, which forced "the schedule asked nothing of you" and "you missed it" into the
+same hollow cell — so a Mon/Wed/Fri goal's Tuesday looked like a failure, and an arc-wide rest day
+looked like a wasted one. `rest` and `future` are both quiet and unstroked, but `rest` sits one
+step more present: a rest day is *accounted for*, a future day merely hasn't happened.
+
+Deliberately **neutral, not a faint accent tint** — a rest day is not partial credit, and tinting
+it would make "the schedule said rest" read as "you did a little", which is what `partial` means.
+That's §0 applied to a single cell.
+
+Which state a day gets is decided in `lib/derive/mosaic.ts` (per goal) and
+`lib/derive/arcMosaic.ts` (across all goals); charts never decide.
 
 | Context | Columns | Gap | Radius |
 |---|---|---|---|

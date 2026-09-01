@@ -7,6 +7,13 @@ import { loadDonutSegments } from './geometry';
 export type LoadDonutProps = {
   segments: { color: string; hours: number }[];
   totalLabel: string;
+  /**
+   * The line under the total. Defaults to `PER WEEK` (the canvas's own label, screen 15); the Arc
+   * tab passes `OF 19h PLANNED` so the centre carries the planned-vs-actual comparison.
+   */
+  subLabel?: string;
+  /** The value in words (rules/02 §8). */
+  accessibilityLabel?: string;
 };
 
 const VIEWBOX = 148;
@@ -14,12 +21,22 @@ const CENTER = VIEWBOX / 2;
 const GHOST_R = 64;
 const TRACK_R = 51;
 
-export function LoadDonut({ segments, totalLabel }: LoadDonutProps) {
+export function LoadDonut({
+  segments,
+  totalLabel,
+  subLabel = 'PER WEEK',
+  accessibilityLabel,
+}: LoadDonutProps) {
   const { tokens } = useAppTheme();
   const segs = loadDonutSegments(segments, TRACK_R);
 
   return (
-    <View style={{ width: VIEWBOX, height: VIEWBOX }}>
+    <View
+      accessible={!!accessibilityLabel}
+      accessibilityRole={accessibilityLabel ? 'image' : undefined}
+      accessibilityLabel={accessibilityLabel}
+      style={{ width: VIEWBOX, height: VIEWBOX }}
+    >
       <Canvas style={{ width: VIEWBOX, height: VIEWBOX }}>
         <Circle
           cx={CENTER}
@@ -73,7 +90,7 @@ export function LoadDonut({ segments, totalLabel }: LoadDonutProps) {
           className="text-label dark:text-label-dark"
           style={{ fontSize: 10, fontWeight: '600', letterSpacing: 1.4, marginTop: 2 }}
         >
-          TOTAL
+          {subLabel}
         </Text>
       </View>
     </View>

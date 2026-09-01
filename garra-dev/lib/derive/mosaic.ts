@@ -1,14 +1,18 @@
 import { dayKey } from '@/lib/date';
-import { type CadenceConfig } from './schedule';
+import { isDueOn, type CadenceConfig } from './schedule';
 
 /**
- * The four states a mosaic cell can be in (rules/01-design-system.md §4.3). Lives here, not in
+ * The five states a mosaic cell can be in (rules/01-design-system.md §4.3). Lives here, not in
  * the chart component, because it's a domain type produced by this module and consumed by the
  * renderer (rules/06-conventions.md §1) — and because `lib/derive/` must never import from a
  * module that pulls in Skia, which is unloadable under Jest (00-index.md standing rule #14).
  * `components/charts/Mosaic.tsx` re-exports it so existing importers are unaffected.
+ *
+ * `'rest'` is the one amendment to the canvas's approved four-state spec, added in Phase 7.1 with
+ * the user's sign-off. It exists because "the schedule asked nothing of you" and "you missed it"
+ * were previously the same cell, which made a Mon/Wed/Fri goal's Tuesday look like a failure.
  */
-export type MosaicCellState = 'future' | 'hit' | 'partial' | 'miss';
+export type MosaicCellState = 'future' | 'hit' | 'partial' | 'rest' | 'miss';
 
 const MS_PER_DAY = 86400000;
 
@@ -54,12 +58,13 @@ export function mosaicCells(input: {
 
     if (cadence && cadence.mode === 'n_per_week') {
       cells.push(nPerWeekCellState(cadence, dayNum, entryMap, todayDayNumber));
+    } else if (cadence) {
+      // The gap Phase 3 documented and Phase 7 closed: a day this cadence never asked for is
+      // 'rest', not 'miss'. Only a day that *was* due and went unlogged is a miss.
+      cells.push(isDueOn(cadence, dayStringFromDayNumber(dayNum)) ? 'miss' : 'rest');
     } else {
-      // daily/specific_days/every_n_days, and cadence === null (no cadence at all): any past
-      // day without an entry renders 'miss'. For non-due days under specific_days/every_n_days
-      // this is a known, documented visual inaccuracy — see 04-pace-engine.md's Context section
-      // ("the n_per_week gap") for why the Mosaic's 4-state model can't represent "not due"
-      // cleanly, and why this wasn't silently special-cased differently without a design call.
+      // No cadence at all (Accumulate/Ship): the goal was always available to log, so nothing
+      // ever rested — an unlogged past day is a genuine miss.
       cells.push('miss');
     }
   }
@@ -68,16 +73,14 @@ export function mosaicCells(input: {
 }
 
 /**
- * n_per_week has no fixed due days, so an unlogged day is never individually a "miss" by
- * itself. Interpretation used here (documented in 04-pace-engine.md, flagged for
- * reconsideration once a real screen makes this visible): a day only renders 'miss' if it's
- * the LAST day of a fully completed week whose weekly target wasn't met — one miss marker per
- * short week, landing on the week's final day, rather than guessing which of the 7 days should
- * carry it. Every other unlogged n_per_week day (a genuine rest day, a day in an on-track or
- * still-open week) renders with the 'future' style — the Mosaic has no neutral "rest day" cell
- * state, and 'future' (rules/01-design-system.md §4.3: faint fill, no stroke) is the least
- * misleading of the four available states, closer to "nothing to see here" than 'miss'
- * (a visible hollow outline) would be.
+ * n_per_week has no fixed due days, so an unlogged day is never individually a "miss" by itself.
+ * A day renders 'miss' only if it's the LAST day of a fully completed week whose weekly target
+ * wasn't met — one marker per short week, landing on the week's final day, rather than guessing
+ * which of the seven days should carry the blame.
+ *
+ * Every other unlogged n_per_week day is `'rest'`. Before Phase 7 this had to return `'future'`
+ * as the least-misleading of only four available states; the fifth state now says what was
+ * actually meant, so a genuine rest day no longer borrows the "hasn't happened yet" look.
  */
 function nPerWeekCellState(
   cadence: CadenceConfig,
@@ -90,7 +93,7 @@ function nPerWeekCellState(
   // anchor still gates days before it existed.
   const weekAnchor = dayNumberFromDateString(cadence.weekAnchorDate ?? cadence.anchorDate);
   const anchor = dayNumberFromDateString(cadence.anchorDate);
-  if (dayNum < anchor) return 'future'; // the goal didn't exist yet this day
+  if (dayNum < anchor) return 'rest'; // the goal didn't exist yet, so it asked nothing
 
   const weekIndex = Math.floor((dayNum - weekAnchor) / 7);
   const weekStart = weekAnchor + weekIndex * 7;
@@ -106,5 +109,5 @@ function nPerWeekCellState(
     if (hitCount < (cadence.timesPerWeek ?? 0)) return 'miss';
   }
 
-  return 'future';
+  return 'rest';
 }

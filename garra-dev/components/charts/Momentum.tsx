@@ -11,12 +11,14 @@ export type MomentumProps = {
   /** Already-computed rolling 7-day completion %, one point per day. */
   points: [number, number][];
   accent?: string;
+  /** The value in words (rules/02 §8). */
+  accessibilityLabel?: string;
 };
 
 const W = 342;
 const H = 96;
 
-export function Momentum({ points, accent = system.arc }: MomentumProps) {
+export function Momentum({ points, accent = system.arc, accessibilityLabel }: MomentumProps) {
   const last = points[points.length - 1];
   const linePath = last ? Skia.Path.MakeFromSVGString(catmullRomSmooth(points)) : null;
   const fillPath =
@@ -37,7 +39,12 @@ export function Momentum({ points, accent = system.arc }: MomentumProps) {
   if (!linePath || !fillPath) return null;
 
   return (
-    <View style={{ width: W, height: H }}>
+    <View
+      accessible={!!accessibilityLabel}
+      accessibilityRole={accessibilityLabel ? 'image' : undefined}
+      accessibilityLabel={accessibilityLabel}
+      style={{ width: W, height: H }}
+    >
       <SkiaCanvas style={{ width: W, height: H }}>
         <Path path={fillPath} opacity={opacity}>
           <LinearGradient

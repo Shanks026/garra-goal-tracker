@@ -21,6 +21,39 @@ function weeklyOccurrences(cadence: CadenceConfig): number {
   return (total / REFERENCE_WINDOW_DAYS) * 7;
 }
 
+/**
+ * **Actual** weekly minutes, from real completions — the other half of the Arc tab's
+ * planned-vs-actual (`IMPLEMENTATION.md` Phase 7's done-condition).
+ *
+ * This is `est_minutes × completions`: an estimate of an estimate, since no stopwatch ever ran.
+ * The screen's copy says "logged" rather than implying measured time.
+ *
+ * Deliberately **not clamped** to planned. A 3×/week goal logged five times reports more than its
+ * plan, because that is what happened — and a load screen that quietly caps actual at planned
+ * would hide exactly the overcommitment it exists to reveal.
+ */
+export function actualLoad(input: {
+  goals: { id: string; estMinutes: number }[];
+  entriesByGoal: Map<string, { dayKey: string; skipped: boolean }[]>;
+  /** Inclusive day-key range, normally the trailing 7 days. */
+  fromKey: string;
+  toKey: string;
+}): { weeklyMinutesTotal: number; perGoal: { id: string; weeklyMinutes: number }[] } {
+  const { goals, entriesByGoal, fromKey, toKey } = input;
+
+  const perGoal = goals.map((goal) => {
+    const completions = (entriesByGoal.get(goal.id) ?? []).filter(
+      (e) => !e.skipped && e.dayKey >= fromKey && e.dayKey <= toKey,
+    ).length;
+    return { id: goal.id, weeklyMinutes: completions * (goal.estMinutes || 0) };
+  });
+
+  return {
+    weeklyMinutesTotal: perGoal.reduce((sum, g) => sum + g.weeklyMinutes, 0),
+    perGoal,
+  };
+}
+
 export function loadCheck(input: {
   goals: { id: string; estMinutes: number; cadence: CadenceConfig | null }[];
 }): {

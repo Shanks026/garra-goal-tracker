@@ -103,14 +103,14 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 5 | Home & logging ⭐ | `06-home-and-logging.md` | ✅ Built, statically verified (145 tests) — on-device pass + the 10-second measurement deferred to end of Phase 7 |
 | 5.5 | Motion & feel | `07-motion-and-feel.md` | ✅ Built, statically verified — on-device pass deferred to end of Phase 7 |
 | 6 | Goal detail | `08-goal-detail.md` | ✅ Built, statically verified (181 tests) — on-device pass deferred to end of Phase 7 |
-| 7 | The Arc tab | — | ⬜ |
+| 7 | The Arc tab | `09-arc-tab.md` | ✅ Built, statically verified (209 tests) — on-device pass pending |
 | 8 | Auth & sync | — | ⬜ |
 | 9 | Sunday Reset & notifications | — | ⬜ |
 | 10 | The Finale | — | ⬜ |
 | 11 | Monetization | — | ⬜ |
 | 12 | Polish & ship | — | ⬜ |
 
-Next available feature-doc number: **09**
+Next available feature-doc number: **10**
 
 ---
 
@@ -498,7 +498,16 @@ feature doc at the same time.
 - [ ] The rescope prompt appears at most once per visit and never blocks the screen
 - [ ] Back from goal detail returns to the tab the user came from
 - [ ] `system.cooked` appears in exactly two places app-wide: the status pill and the rescope sheet
----
+
+### Phase 7 — the Arc tab (`09-arc-tab.md`)
+- [ ] **Planned vs actual reads truthfully against logged entries** — `IMPLEMENTATION.md`'s own
+      done-condition for Phase 7
+- [ ] Rest days are visibly distinct from both misses and future days on a real 122-day arc, in
+      both themes — the fifth cell state's whole reason for existing
+- [ ] The 122-cell mosaic still scrolls at 60fps as one Skia canvas
+- [ ] The momentum headline matches the curve's last point
+- [ ] The pace summary matches Home's rows exactly for the same goals
+
 
 ## 7. Standing Rules Learned The Hard Way
 

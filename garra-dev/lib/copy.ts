@@ -44,6 +44,14 @@ export const copy = {
     keepOnPhone: 'Keep it on this phone',
   },
 
+  // The Arc tab (screen 15). Added Phase 7.
+  arcTab: {
+    title: 'The Arc',
+    momentumLabel: 'MOMENTUM',
+    momentumSub: '7-day completion',
+    loadLabel: 'WEEKLY LOAD',
+  },
+
   // Home & logging (screens 10-12). Added Phase 5.
   home: {
     todayLabel: 'TODAY',

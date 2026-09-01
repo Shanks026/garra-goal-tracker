@@ -25,6 +25,10 @@ export const dark = {
   fillStrong: 'rgba(255,255,255,.11)',
 
   track: 'rgba(255,255,255,.09)',
+  // A day the schedule asked nothing of you. One step more present than `fill` (the future-day
+  // color) so it reads as *accounted for* rather than *not yet* — and deliberately neutral, not a
+  // faint accent tint, because a rest day is not partial credit (rules/01 §4.3). Added Phase 7.1.
+  mosaicRest: 'rgba(255,255,255,.09)',
   mosaicMiss: 'rgba(255,255,255,.16)',
   barMiss: 'rgba(255,255,255,.18)',
   tabInactive: 'rgba(255,255,255,.32)',
@@ -58,6 +62,7 @@ export const light = {
   fill: 'rgba(10,10,11,.05)',
   fillMed: 'rgba(10,10,11,.06)',
   track: 'rgba(10,10,11,.08)',
+  mosaicRest: 'rgba(10,10,11,.09)',
   mosaicMiss: 'rgba(10,10,11,.16)',
   barMiss: 'rgba(10,10,11,.18)',
   tabInactive: 'rgba(10,10,11,.30)',

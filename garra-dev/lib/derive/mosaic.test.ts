@@ -48,11 +48,11 @@ describe('mosaicCells', () => {
     expect(cells[0]).toBe('miss');
   });
 
-  it('specific_days: a non-due day without an entry also renders "miss" (documented gap)', () => {
-    // Only Tuesday is due. Wednesday (Sep 2) is not, but the Mosaic has no "not scheduled"
-    // cell state — this is 04-pace-engine.md's documented gap, asserted here explicitly so
-    // it's provably intentional, not an accident someone "fixes" later without realizing it
-    // was a deliberate call.
+  it('specific_days: a non-due day renders "rest", not "miss"', () => {
+    // This test used to assert 'miss' — deliberately, to make 04-pace-engine.md's documented
+    // 4-state gap *provable* rather than accidental. Phase 7.1 closed that gap by adding the
+    // fifth 'rest' state (with the user's sign-off, since it amends an approved chart spec), so
+    // the assertion flips: only a day that was actually due and went unlogged is a miss.
     const cadence: CadenceConfig = {
       mode: 'specific_days',
       daysOfWeek: [2],
@@ -66,10 +66,13 @@ describe('mosaicCells', () => {
       now: new Date('2026-09-03T12:00:00.000Z'), // daysElapsed = 2 (Sep 1 Tue, Sep 2 Wed)
       timezone: 'UTC',
     });
-    expect(cells[1]).toBe('miss'); // Sep 2, Wednesday, not due, but still renders miss
+    expect(cells[0]).toBe('miss'); // Sep 1, Tuesday — due and unlogged
+    expect(cells[1]).toBe('rest'); // Sep 2, Wednesday — never asked for
   });
 
-  it('n_per_week: an unlogged rest day within a still-open week renders "future", not "miss"', () => {
+  it('n_per_week: an unlogged day that carries no blame renders "rest", not "miss"', () => {
+    // Also flipped by Phase 7.1: this used to expect 'future', which was the least-misleading of
+    // only four states for a day that had genuinely happened. 'rest' is what it always meant.
     const cadence: CadenceConfig = {
       mode: 'n_per_week',
       timesPerWeek: 3,
@@ -84,8 +87,8 @@ describe('mosaicCells', () => {
       timezone: 'UTC',
     });
     expect(cells[0]).toBe('hit'); // Sep 1, logged
-    expect(cells[1]).toBe('future'); // Sep 2, unlogged rest day, week not yet evaluated
-    expect(cells[5]).toBe('future'); // Sep 6, same
+    expect(cells[1]).toBe('rest'); // Sep 2 — the week's shortfall is marked on its last day only
+    expect(cells[5]).toBe('rest'); // Sep 6, same
   });
 
   it('n_per_week: the miss lands only on the last day of a week that closed short', () => {

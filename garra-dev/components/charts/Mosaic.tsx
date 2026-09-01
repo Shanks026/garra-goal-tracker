@@ -12,6 +12,8 @@ export type MosaicProps = {
   accent: string;
   columns: 14 | 20 | 7;
   width: number;
+  /** The history in words (rules/02 §8) — 122 cells are meaningless to a screen reader. */
+  accessibilityLabel?: string;
 };
 
 // rules/01-design-system.md §4.3 — gap/radius/inset vary by where the mosaic appears.
@@ -29,7 +31,7 @@ function hexToRgba(hex: string, alpha: number) {
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-export function Mosaic({ cells, accent, columns, width }: MosaicProps) {
+export function Mosaic({ cells, accent, columns, width, accessibilityLabel }: MosaicProps) {
   const { tokens } = useAppTheme();
   const { gap, radius, inset } = LAYOUT[columns];
   const rows = Math.ceil(cells.length / columns);
@@ -37,14 +39,21 @@ export function Mosaic({ cells, accent, columns, width }: MosaicProps) {
   const height = rows * cellSize + (rows - 1) * gap;
 
   return (
-    <Canvas style={{ width, height }}>
+    <Canvas
+      accessible={!!accessibilityLabel}
+      accessibilityRole={accessibilityLabel ? 'image' : undefined}
+      accessibilityLabel={accessibilityLabel}
+      style={{ width, height }}
+    >
       {cells.map((state, i) => {
         const col = i % columns;
         const row = Math.floor(i / columns);
         const x = col * (cellSize + gap);
         const y = row * (cellSize + gap);
 
-        if (state === 'future') {
+        if (state === 'future' || state === 'rest') {
+          // Both are quiet and unstroked, but `rest` sits one step more present: a rest day is
+          // *accounted for*, a future day merely hasn't happened (rules/01 §4.3).
           return (
             <RoundedRect
               key={i}
@@ -53,7 +62,7 @@ export function Mosaic({ cells, accent, columns, width }: MosaicProps) {
               width={cellSize}
               height={cellSize}
               r={radius}
-              color={tokens.fill}
+              color={state === 'rest' ? tokens.mosaicRest : tokens.fill}
             />
           );
         }
