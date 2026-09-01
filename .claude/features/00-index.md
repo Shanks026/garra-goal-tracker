@@ -100,7 +100,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 2 | The chart set | `03-chart-set.md` | ✅ Complete |
 | 3 | The pace engine | `04-pace-engine.md` | ✅ Complete |
 | 4 | Onboarding & arc creation | `05-onboarding-arc-creation.md` | ✅ Built, statically verified — on-device pass pending |
-| 5 | Home & logging ⭐ | `06-home-and-logging.md` | 📋 Planned |
+| 5 | Home & logging ⭐ | `06-home-and-logging.md` | ✅ Built, statically verified (145 tests) — on-device pass + the 10-second measurement deferred to end of Phase 7 |
 | 6 | Goal detail | — | ⬜ |
 | 7 | The Arc tab | — | ⬜ |
 | 8 | Auth & sync | — | ⬜ |
@@ -286,6 +286,10 @@ Built Phase 1.3.
   pop, so a bare `back()` silently did nothing (Phase 5.0).
 - `onboardingSteps.ts` — the fast path's ordered steps, so the "STEP n OF m" labels and the dot
   row share one source of truth (Phase 5.0; they had drifted apart).
+- `format.ts` — `formatAmount`, `formatSigned`, `formatMinutes`, `formatGoalValue`. Pure display
+  formatting, tested, so one value can't render two ways on two screens. Built Phase 5.1.
+- `stores/toast.ts` — Zustand's first use in the app (installed since Phase 0, unused until
+  now): the 5-second toast queue that makes undo possible. Ephemeral UI state only.
 
 ### `lib/db/` — local SQLite (Drizzle)
 `schema.ts` — all 6 tables (`arcs`, `goals`, `entries`, `checkpoints`, `rescopes`, `freezes`) +
@@ -353,6 +357,21 @@ in-progress-draft-arc concern: `useDraftArc`/`useActiveArc`/`useGoalsForArc` (qu
 wires real goal rows to Phase 3's `loadCheck()`). Every mutation writes SQLite directly and
 invalidates by prefix — none touch Supabase (Phase 8 territory).
 
+`useNow.ts` (Phase 5.1) — the app's clock, per `04-hooks.md` §4: ticks on mount, on app
+foreground, and at the next 04:00 rollover in the *arc's* timezone. One re-armed timeout, never
+an interval. `msUntilNextRollover()` is exported and tested separately.
+
+`useLogEntry.ts` (Phase 5.1) — `useLogEntry`, `useUndoEntry`, `useSkipDay`, `useLogEverything`.
+The log path: **upserts** (the partial unique index means a second ride aggregates into the day's
+single row), haptic + optimistic patch in `onMutate`, rollback + toast in `onError`, prefix
+invalidation in `onSettled`, and no spinner anywhere. The 2-day backfill rule lives in
+`lib/derive/backfill.ts` so it's testable without the native SQLite module.
+
+`useHomeData.ts` (Phase 5.1) — everything Home renders, from one pass over one dataset: the arc
+hero's day counter, the Today list split into Mains/Sides, the Arc rows' `p`/`t`/status/value,
+and yesterday's unlogged goals for the pre-10:00 backfill row. Deliberately one hook rather than
+three — see the feature doc's Implementation Notes.
+
 ### UI primitives — `components/ui/`
 All built, Phase 2.5: `Button` (primary/secondary/outline — primary never accent-colored),
 `Chip` (filter/intent variants), `ListGroup`/`ListRow` (inset grouped list), `StatusPill`
@@ -371,6 +390,16 @@ map, `02-ui-components.md` §6 — built in 4.2, ahead of its planned 4.4 slot, 
 screen needed it first), `GoalTypeCard` (the 2×2 type-picker tile, screen 07), `AccentPicker`
 (the 8-swatch row with per-arc uniqueness enforced by a disabled set, screen 08). `GoalRow`/
 `TodayRow` (Home-specific) are still Phase 5.
+
+### Home & the tab bar — `app/(tabs)/`
+Built Phase 5: `_layout.tsx` (exactly three tabs — Today · Arc · Settings — with the canvas's
+line-drawn glyphs built from Views, plus the `Toast` mounted once so undo survives a tab switch),
+`index.tsx` (Home, screens 10/11), and placeholder `arc.tsx`/`settings.tsx` for Phases 7 and 12.
+Supporting components: `components/home/ArcHero.tsx`, `components/home/YesterdayRow.tsx`,
+`components/goal/TodayRow.tsx` (with swipe-left skip), `components/goal/GoalRow.tsx`,
+`components/ui/Toast.tsx`. Sheets: `sheets/LogSheet.tsx` + `LogSheetProvider` + `LogSheetHost`
+(the imperative `useLogSheet().openLog(goal)` pattern from rules/02 §3, mounted at the app root)
+and `sheets/SkipReasonSheet.tsx`.
 
 ### Onboarding & Arc Builder routes
 `app/(onboarding)/` (screens 01–05: welcome, name, intent, recommended, signup) and
@@ -508,3 +537,17 @@ Append whenever something breaks in a way a rule would have prevented, then prom
     cast itself looked suspicious enough to double-check before closing out the phase. Any
     `as never`/`as any`/`as unknown as X` in new code is worth a second look before commit — see
     `05-onboarding-arc-creation.md`'s Implementation Notes for the full story.
+20. **A pure rule must not live in a file that imports a native module.** The 2-day backfill
+    guard was written inside `hooks/useLogEntry.ts`; its test failed instantly, because importing
+    that hook pulls in `lib/db/client.ts` → `openDatabaseSync`, which Jest cannot load. Same
+    shape as rule #14 (Skia). Moved to `lib/derive/backfill.ts` and it became testable — which is
+    also where `03-state-and-data.md` §5 says the rule belongs. When a rule is hard to test, check
+    whether it's sitting in the wrong layer before reaching for a mock.
+21. **Drizzle's generated table-recreate migrations need reading before they run.** The Phase 5.0
+    migration (`0003`) had two defects drizzle-kit produced on its own: its `INSERT ... SELECT`
+    read columns from the *old* tables that only exist on the new ones (so it would have failed
+    outright), and it re-enabled `PRAGMA foreign_keys` **mid-file**, before the destructive
+    `DROP TABLE goals` — which with enforcement on would have cascade-deleted every entry and
+    checkpoint. Always read a recreate migration end to end, and keep `PRAGMA foreign_keys` off
+    for the whole of it (`lib/db/client.ts`'s `enableForeignKeys()` is called after migrations
+    finish, deliberately not at module load).

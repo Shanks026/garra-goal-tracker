@@ -70,10 +70,31 @@ export default function DevCharts() {
 
         <Section title="PaceRing">
           <View style={{ flexDirection: 'row', gap: 24, flexWrap: 'wrap' }}>
-            <PaceRing p={0.41} t={0.28} accent={ACCENTS.coral} accessibilityLabel="Demo, ahead of pace" />
-            <PaceRing p={0.235} t={0.28} accent={ACCENTS.teal} accessibilityLabel="Demo, behind pace" />
-            <PaceRing p={0.28} t={0.28} accent={ACCENTS.sky} accessibilityLabel="Demo, exactly on pace" />
-            <PaceRing p={0.235} t={0.28} accent={ACCENTS.teal} size="row" accessibilityLabel="Demo row ring, behind pace" />
+            <PaceRing
+              p={0.41}
+              t={0.28}
+              accent={ACCENTS.coral}
+              accessibilityLabel="Demo, ahead of pace"
+            />
+            <PaceRing
+              p={0.235}
+              t={0.28}
+              accent={ACCENTS.teal}
+              accessibilityLabel="Demo, behind pace"
+            />
+            <PaceRing
+              p={0.28}
+              t={0.28}
+              accent={ACCENTS.sky}
+              accessibilityLabel="Demo, exactly on pace"
+            />
+            <PaceRing
+              p={0.235}
+              t={0.28}
+              accent={ACCENTS.teal}
+              size="row"
+              accessibilityLabel="Demo row ring, behind pace"
+            />
           </View>
         </Section>
 

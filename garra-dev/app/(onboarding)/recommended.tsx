@@ -83,7 +83,8 @@ export default function Recommended() {
   // so the preview dots can't disagree with what gets stored when a middle proposal is
   // deselected (see the feature doc's 5.0.8 table).
   const acceptedKeys = useMemo(
-    () => proposals.filter(({ intent }) => accepted.has(intent.key)).map(({ intent }) => intent.key),
+    () =>
+      proposals.filter(({ intent }) => accepted.has(intent.key)).map(({ intent }) => intent.key),
     [proposals, accepted],
   );
   const previewAccents = useMemo(() => {

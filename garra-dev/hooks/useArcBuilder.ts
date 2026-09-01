@@ -197,8 +197,7 @@ export function useAddGoalToDraft() {
         // pace() requires a basis for value goals, and 'even' is the only one implemented
         // (04-pace-engine.md). Habit/Milestone goals don't use it.
         paceBasis:
-          input.paceBasis ??
-          (input.type === 'accumulate' || input.type === 'ship' ? 'even' : null),
+          input.paceBasis ?? (input.type === 'accumulate' || input.type === 'ship' ? 'even' : null),
         quickAdd: input.quickAdd ?? null,
         startsAt: input.startsAt ?? arcStartsAt,
         endsAt: input.endsAt ?? null,

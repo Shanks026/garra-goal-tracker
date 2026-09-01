@@ -153,10 +153,7 @@ export default function GoalForm() {
     <SafeAreaView className="flex-1 bg-bg dark:bg-bg-dark">
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 14, gap: 30 }}>
         <View className="flex-row items-center justify-between">
-          <Pressable
-            onPress={() => safeBack(router, '/arc-builder/goal-type')}
-            hitSlop={8}
-          >
+          <Pressable onPress={() => safeBack(router, '/arc-builder/goal-type')} hitSlop={8}>
             <Text className="text-[16px] text-text-secondary dark:text-text-secondary-dark">
               Cancel
             </Text>

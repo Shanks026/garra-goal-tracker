@@ -15,6 +15,7 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { db, enableForeignKeys } from '../lib/db/client';
 import migrations from '../lib/db/migrations/migrations';
 import { mmkvPersister } from '../lib/queryPersister';
+import { LogSheetHost } from '../sheets/LogSheetHost';
 
 // SQLite is local, and the only thing that changes data is the user (03-state-and-data.md §3) —
 // a generous staleTime is correct here, not a bug. Refetch happens on invalidation, not polling.
@@ -74,7 +75,9 @@ export default function RootLayout() {
           {/* Mounted once at the app root (rules/02-ui-components.md §3) so any screen can
               open a sheet without each one needing its own provider. */}
           <BottomSheetModalProvider>
-            <Stack screenOptions={{ headerShown: false }} />
+            <LogSheetHost>
+              <Stack screenOptions={{ headerShown: false }} />
+            </LogSheetHost>
           </BottomSheetModalProvider>
         </PersistQueryClientProvider>
       </SafeAreaProvider>

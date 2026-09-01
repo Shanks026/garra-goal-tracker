@@ -148,12 +148,8 @@
           "name": "checkpoints_goal_id_goals_id_fk",
           "tableFrom": "checkpoints",
           "tableTo": "goals",
-          "columnsFrom": [
-            "goal_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["goal_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -257,10 +253,7 @@
       "indexes": {
         "entries_goal_day": {
           "name": "entries_goal_day",
-          "columns": [
-            "goal_id",
-            "day_key"
-          ],
+          "columns": ["goal_id", "day_key"],
           "isUnique": true,
           "where": "\"entries\".\"skipped\" = 0"
         }
@@ -270,12 +263,8 @@
           "name": "entries_goal_id_goals_id_fk",
           "tableFrom": "entries",
           "tableTo": "goals",
-          "columnsFrom": [
-            "goal_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["goal_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -338,12 +327,8 @@
           "name": "freezes_arc_id_arcs_id_fk",
           "tableFrom": "freezes",
           "tableTo": "arcs",
-          "columnsFrom": [
-            "arc_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["arc_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -542,12 +527,8 @@
           "name": "goals_arc_id_arcs_id_fk",
           "tableFrom": "goals",
           "tableTo": "arcs",
-          "columnsFrom": [
-            "arc_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["arc_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -657,12 +638,8 @@
           "name": "rescopes_goal_id_goals_id_fk",
           "tableFrom": "rescopes",
           "tableTo": "goals",
-          "columnsFrom": [
-            "goal_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["goal_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
