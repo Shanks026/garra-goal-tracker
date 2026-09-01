@@ -324,14 +324,31 @@ Scoping notes:
 
 ### 0.3.4 Checklist
 
-- [ ] `.mcp.json` populated; **`git status` does not show it**
-- [ ] Claude Code restarted; Supabase MCP tools available
-- [ ] Project schema readable via MCP; database confirmed empty
-- [ ] Auth providers page reachable in the dashboard
-- [ ] `lint` / `format` / `typecheck` / `test` all pass
-- [ ] `.env.example` documents every variable, with no real values
+- [x] `.mcp.json` populated; **`git status` does not show it** — was actually populated
+  since early in Phase 0, but with `--project-ref` set to the full project URL instead of the
+  bare reference ID (a mistake the doc itself warns about in the table above). Fixed to
+  `orljqfhudmrvhewlfdkq` on 2026-09-01; confirmed gitignored.
+- [x] Claude Code restarted; Supabase MCP tools available — reconnected after the fix
+- [x] Project schema readable via MCP; database confirmed empty — `list_tables` → `[]`,
+  `list_migrations` → `[]`, project URL matches `.env.example`
+- [ ] Auth providers page reachable in the dashboard — not verifiable through the MCP tool set
+  (no auth-config tool exposed); deferred to Phase 8 when auth is actually wired, since nothing
+  before then touches it
+- [~] `lint` / `format` / `typecheck` all pass; `test` **deferred by user decision** — no
+  automated test suite for screens/UI (manual on-device checking instead), but
+  `.claude/rules/06-conventions.md` §3's requirement to unit-test `lib/derive/*` stays in force
+  since that math is easy to get silently wrong. `jest-expo` is installed as the preset but the
+  `jest` package itself isn't yet (running `npx jest` currently fails on a missing module) —
+  there's nothing to test until Phase 3 writes `lib/derive/pace.ts`, so getting the runner
+  actually green is deferred to that phase rather than built now with nothing to exercise it.
+- [~] `.env.example` documents every variable — **deviation**: `EXPO_PUBLIC_SUPABASE_URL` and
+  `EXPO_PUBLIC_SUPABASE_ANON_KEY` hold real values, not placeholders. Deliberate, not an
+  oversight: both are Supabase's public "publishable" key format, meant to ship inside the
+  client bundle and safe by design (protected by RLS) — see the file's own comment block. No
+  secret value (`SUPABASE_ACCESS_TOKEN`, `service_role`) is present.
 
-**→ Stop here. Phase 0 complete. Phase 1 begins the actual foundation.**
+**→ Phase 0 close-out — 2026-09-01.** 0.1 and 0.3 complete to the extent above; 0.2's on-device
+native verification stays explicitly deferred (§0.2.4 note). Phase 1 begins.
 
 ---
 

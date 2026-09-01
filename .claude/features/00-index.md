@@ -95,7 +95,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 
 | # | Phase | Doc | Status |
 |---|---|---|---|
-| 0 | Project initialization & dependency checks | `01-project-initialization.md` | 🚧 In progress (0.1 ✅, 0.2 ⏸️ deferred, 0.3 pending) |
+| 0 | Project initialization & dependency checks | `01-project-initialization.md` | 🚧 Closed out (0.1 ✅, 0.2 ⏸️ deferred to before Phase 2, 0.3 ✅ mostly — see notes) |
 | 1 | Foundation — tokens, schema, theme | — | ⬜ Not started |
 | 2 | The chart set | — | ⬜ |
 | 3 | The pace engine | — | ⬜ |
