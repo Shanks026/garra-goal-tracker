@@ -96,7 +96,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | # | Phase | Doc | Status |
 |---|---|---|---|
 | 0 | Project initialization & dependency checks | `01-project-initialization.md` | 🚧 Closed out (0.1 ✅, 0.2 ⏸️ deferred to before Phase 2, 0.3 ✅ mostly — see notes) |
-| 1 | Foundation — tokens, schema, theme | — | ⬜ Not started |
+| 1 | Foundation — tokens, schema, theme | `02-foundation.md` | 📋 Planned |
 | 2 | The chart set | — | ⬜ |
 | 3 | The pace engine | — | ⬜ |
 | 4 | Onboarding & arc creation | — | ⬜ |
@@ -109,7 +109,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 11 | Monetization | — | ⬜ |
 | 12 | Polish & ship | — | ⬜ |
 
-Next available feature-doc number: **02**
+Next available feature-doc number: **03**
 
 ---
 
