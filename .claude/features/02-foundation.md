@@ -134,16 +134,50 @@ The theme *provider* (React context, `useColorScheme` wiring, dark/light switchi
 — that's 1.2. This sub-phase only makes the values exist and reach Tailwind.
 
 ### 1.1.9 Checklist
-- [ ] `theme/tokens.ts` contains every value from `01-design-system.md` §1–3, matched field
+- [x] `theme/tokens.ts` contains every value from `01-design-system.md` §1–3, matched field
   for field against the rule file (not retyped from memory)
-- [ ] `tailwind.config.js` no longer has an empty `theme` object
-- [ ] `npx tailwindcss` (via NativeWind) resolves a class like `bg-indigo-500`-equivalent for a
-  token color, e.g. confirm a class using a token name compiles without error
-- [ ] `tsc --noEmit` clean
-- [ ] No hex literal appears anywhere outside `theme/tokens.ts`
-- [ ] `tsx` added as an explicit pinned `devDependency` (not left as an implicit transitive one)
+- [x] `tailwind.config.js` no longer has an empty `theme` object
+- [x] `npx tailwindcss` (via NativeWind) resolves a class like `bg-indigo-500`-equivalent for a
+  token color, e.g. confirm a class using a token name compiles without error — verified by
+  compiling actual CSS output, both the light default and the `dark:` override
+- [x] `tsc --noEmit` clean
+- [x] No hex literal appears anywhere outside `theme/tokens.ts`
+- [x] `tsx` added as an explicit pinned `devDependency` (not left as an implicit transitive one)
+
+✅ **Phase 1.1 complete — 2026-09-01.**
 
 **→ Stop here. Show the result and wait for approval.**
+
+### Implementation Notes
+
+**Real finding, generalizes to every UI phase from here on**: the plan in §1.1.6 assumed a
+single CSS-custom-property per semantic color, switched by a `.dark`-scoped `addBase` rule (the
+standard *web* Tailwind pattern for "one token name, two values"). Verified against actual
+compiled output that this does **not** work on NativeWind's native (non-web) compiler — it
+silently drops any custom-property declaration under a non-`:root` selector, including the
+exact `:is(.dark *)` selector Tailwind's own `dark:` variant uses internally. Standard `dark:`
+*utility* variants (e.g. `dark:bg-black`) compile correctly and were confirmed working.
+
+**Resolution**: every theme-variant semantic color gets two literal Tailwind color names instead
+of one CSS variable — the plain name holds the light value, a `-dark` suffix holds the dark
+value. A themed element writes both classes together:
+
+```
+className="bg-bg dark:bg-bg-dark border-hairline dark:border-hairline-dark"
+```
+
+This is more verbose per-element than a single auto-switching token, but it's the actually-
+supported mechanism rather than a gamble on undocumented internals. **Every future phase writing
+a themed component must use this two-class pattern for any semantic color from `tokens.ts`** —
+`bg`, `surface`, `textPrimary`, `border`, etc. all need both the plain and `-dark` class. The
+three dark-only tokens (`fillStrong`, `handle`, `borderSelectedHi` — no light value exists in the
+rule file) get only their one plain name; there is no light-mode fallback to pair it with.
+
+Static colors (`ACCENTS`, `system`) and all spacing/radius values are theme-invariant and need
+no `dark:` pairing — they're plain literals in the generated Tailwind config.
+
+Promoted to `00-index.md` §6 as a standing rule, since it will bite the next UI phase silently
+otherwise.
 
 ---
 

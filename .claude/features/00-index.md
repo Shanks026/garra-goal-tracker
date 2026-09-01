@@ -146,6 +146,11 @@ Planned tables: `arcs`, `goals`, `entries`, `checkpoints`, `rescopes`, `freezes`
 
 Check here before building — most of a feature is usually already available.
 
+### Theme — `theme/`
+`tokens.ts` — every color/typography/spacing/radius value from `01-design-system.md` §1–3.
+`tailwind.config.js` generates its theme from this file (see standing rule #8 above for the
+dark-mode class-pairing convention). Built Phase 1.1.
+
 ### Charts — `components/charts/`
 *None yet.* Phase 2 builds `PaceRing`, `ArcSweep`, `Mosaic`, `BurnUp`, `WeekBars`, `Momentum`,
 `LoadDonut`, `CheckpointSpine`, `WindowTicks`.
@@ -197,3 +202,11 @@ Append whenever something breaks in a way a rule would have prevented, then prom
    bundled in Expo Go and works fine there. This buys a fast dev loop through Phase 1, but
    Phase 2 (the chart set, all Skia) and any MMKV persister wiring need a real dev-client build —
    see `01-project-initialization.md` §0.2.4 for the deferred-verification note.
+8. **NativeWind's native compiler does not support CSS custom properties scoped to a `.dark`
+   (or `:is(.dark *)`) base-layer selector** — only its own `dark:` *utility variant* is
+   reliable (confirmed by inspecting actual compiled output; a custom-property `addBase` rule
+   is silently dropped outside `:root`). Every theme-variant semantic color from
+   `theme/tokens.ts` therefore exists as **two** Tailwind color names — the plain name (light
+   value) and a `-dark` suffix (dark value) — used together:
+   `className="bg-bg dark:bg-bg-dark"`. There is no single auto-switching token name. See
+   `02-foundation.md` Phase 1.1's Implementation Notes for the full story.

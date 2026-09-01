@@ -45,6 +45,7 @@
     "eslint-config-expo": "10.0.0",
     "jest-expo": "54.0.18",
     "prettier": "3.9.6",
+    "tsx": "4.23.13",
     "typescript": "5.9.2"
   },
   "scripts": {
