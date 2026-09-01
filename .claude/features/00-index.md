@@ -95,7 +95,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 
 | # | Phase | Doc | Status |
 |---|---|---|---|
-| 0 | Project initialization & dependency checks | `01-project-initialization.md` | 🚧 In progress (0.1 ✅, 0.2/0.3 pending) |
+| 0 | Project initialization & dependency checks | `01-project-initialization.md` | 🚧 In progress (0.1 ✅, 0.2 ⏸️ deferred, 0.3 pending) |
 | 1 | Foundation — tokens, schema, theme | — | ⬜ Not started |
 | 2 | The chart set | — | ⬜ |
 | 3 | The pace engine | — | ⬜ |
@@ -191,3 +191,9 @@ Append whenever something breaks in a way a rule would have prevented, then prom
 6. **ESLint 10 breaks `eslint-plugin-react`** (pulled in by `eslint-config-expo`) — its latest
    release only declares support up to `eslint@^9.7`. `garra-dev` pins `eslint@9.39.5` (last
    stable 9.x) until the plugin catches up. Re-check before ever bumping ESLint.
+7. **Expo Go stays usable only as long as no screen imports `@shopify/react-native-skia` or
+   `react-native-mmkv`.** Both compile native code that Expo Go's fixed binary doesn't contain;
+   every other installed native dep (gesture-handler, Reanimated, bottom-sheet, SQLite, etc.) is
+   bundled in Expo Go and works fine there. This buys a fast dev loop through Phase 1, but
+   Phase 2 (the chart set, all Skia) and any MMKV persister wiring need a real dev-client build —
+   see `01-project-initialization.md` §0.2.4 for the deferred-verification note.

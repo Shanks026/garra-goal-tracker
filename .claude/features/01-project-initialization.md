@@ -262,6 +262,22 @@ Known swap candidates, in order of preference, if forced:
 - [ ] Check 5 specifically verified with the Android hardware back button
 - [ ] Checks 6 and 7 verified after a **full app kill**, not a reload
 - [ ] Both dark and light system appearance render without crashing
+
+⏸️ **Deferred by user decision — 2026-09-01.** `app/smoke.tsx` is written (all eight sections,
+typechecked, linted) and `npx expo run:android` was attempted with a physical device connected
+over USB — it got through `expo prebuild` and into the Gradle build (installed `expo-system-ui`
+along the way, since `userInterfaceStyle: automatic` needs it on Android) before the user opted
+to skip finishing the native verification for now and use Expo Go for day-to-day checks instead.
+**Real consequence, not just paperwork**: Expo Go cannot run any screen that imports
+`@shopify/react-native-skia` or `react-native-mmkv` — it's a fixed binary with a fixed native
+module set, and those two compile their own native code that Expo Go's build doesn't contain.
+Every other installed dependency (gesture-handler, Reanimated, bottom-sheet, SQLite, etc.) *is*
+bundled in Expo Go, so the current placeholder screen and Phase 1 work can stay Expo-Go-testable
+as long as no screen imports Skia or MMKV directly. **This breaks hard at Phase 2** (the chart
+set is all Skia) and whenever the MMKV query-cache persister gets wired — at that point the
+native dev-client build must actually be finished and the eight checks run for real, per the
+rationale in `IMPLEMENTATION.md`'s Ordering Logic (native-module risk belongs at Phase 0, not
+buried under finished screens). Revisit before Phase 2 starts.
 - [ ] `ios/` and `android/` are gitignored
 - [ ] Any failure documented in Implementation Notes with the resolution
 
