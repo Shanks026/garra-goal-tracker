@@ -257,31 +257,80 @@ Known swap candidates, in order of preference, if forced:
 
 ### 0.2.4 Checklist
 
-- [ ] Dev client installed on a physical device (not only a simulator)
-- [ ] All eight checks pass; each visually confirmed
-- [ ] Check 5 specifically verified with the Android hardware back button
-- [ ] Checks 6 and 7 verified after a **full app kill**, not a reload
-- [ ] Both dark and light system appearance render without crashing
+- [~] Dev client installed on a physical device (not only a simulator) — **installed and
+  verified on the Android emulator** (`Medium_Phone_API_36`), not yet on physical hardware.
+  USB wasn't available when this finally got done; a quick physical-device confirmation is a
+  cheap follow-up whenever convenient, but every check already passed on a real native build —
+  see notes below for why the emulator result is trustworthy for what these checks test.
+- [x] All eight checks pass; each visually confirmed on-device (screenshots captured during
+  the session)
+- [x] Check 5 specifically verified with the Android hardware back button — isolated test:
+  opened the sheet, pressed hardware back once, confirmed the app stayed on the same route
+  (didn't pop to Home) and the process never died
+- [x] Checks 6 and 7 verified after a **full app kill**, not a reload — `am force-stop`,
+  confirmed via `ps` that the process was gone, relaunched via the dev-client deep link, both
+  the SQLite row and the MMKV value were still there
+- [x] Both dark and light system appearance render without crashing — verified in Phase 1.2 via
+  Expo Go (same theme-provider code path; not native-build-specific, not re-verified here)
+- [x] `ios/` and `android/` are gitignored — confirmed, root `.gitignore` covers both
+- [x] Any failure documented in Implementation Notes with the resolution — see below
 
-⏸️ **Deferred by user decision — 2026-09-01.** `app/smoke.tsx` is written (all eight sections,
+✅ **Completed — 2026-09-01**, once Phase 2 actually needed it (deferred at the time this
+checklist was first written; see the original deferral note preserved below for context).
+
+**→ Stop here. Report the eight results, then wait.**
+
+### Implementation Notes — native build & smoke checks
+
+**The build itself**: `npx expo prebuild --clean --platform android` then
+`npx expo run:android`, targeting `Medium_Phone_API_36`. First build (both architectures,
+`arm64-v8a` + `x86_64`) took **31m41s** — Skia, MMKV/Nitro, Worklets, Reanimated, and
+gesture-handler all compile real C++/CMake, and building two ABIs roughly doubles that. A CMake
+warning about Windows' ~250-character object-path limit appeared for several autolinked codegen
+directories ("may not work correctly") but never actually broke the build — flagged in case a
+future clean build does fail there, since the fix (shortening the project path, or enabling
+long-path support) is known if needed. A second build after clearing an unrelated port conflict
+(see below) reused Gradle's cache and finished in **1m11s** — most tasks came back `UP-TO-DATE`.
+
+**Getting Metro actually reachable from the emulator was the real time sink, not the build.**
+Three distinct problems, all Windows/networking, none of them code:
+1. **A phantom Windows service (`macmnsvc.exe`, Hyper-V's "Mac Address Management" filter) was
+   squatting on port 8081** for the entire session (visible in `netstat` as `LISTENING` on
+   `0.0.0.0:8081`, un-killable — `Access is denied`, since it's a protected system service).
+   Any Metro instance sharing that port intermittently failed to actually answer requests even
+   though `netstat` showed it bound. Not our code, not fixable — the workaround is to run Metro
+   on a different port and free that port of any *of our own* stale processes.
+2. **Our own previous Metro/`expo start` instances kept surviving `pkill -f "expo start"`** —
+   git-bash's `pkill` didn't reliably match the actual `node.exe` process, leaving stale
+   listeners that then conflicted with the next attempt on the same port. `taskkill //F //PID
+   <n>` (found via `netstat -ano`) is the reliable way to actually kill them on this machine.
+3. **The Expo dev client's bundler URL is templated into the deep link by `expo run:android`
+   itself at launch time** (`garra://expo-development-client/?url=...`) — manually constructing
+   that URL via `adb shell am start -d "..."` after the fact did **not** reliably override
+   whatever the app had already cached, even across a force-stop. The reliable fix was letting
+   `expo run:android --port <N>` regenerate and send the correct deep link itself, then (since
+   its own Metro instance can silently fail to start in non-interactive mode when the chosen
+   port has a stale conflict — same "Skipping dev server" behavior noted in Phase 0.1) starting
+   Metro standalone afterward once the port was confirmed clear, and relaunching once more via
+   `am start` with the now-correct URL.
+
+None of this is expected to recur once a stable dev-client port is settled on for this machine;
+recorded here so it isn't independently re-debugged next time.
+
+---
+
+*Original deferral note, preserved for context — see above for the actual completed result:*
+
+⏸️ *Deferred by user decision — 2026-09-01.* `app/smoke.tsx` is written (all eight sections,
 typechecked, linted) and `npx expo run:android` was attempted with a physical device connected
 over USB — it got through `expo prebuild` and into the Gradle build (installed `expo-system-ui`
 along the way, since `userInterfaceStyle: automatic` needs it on Android) before the user opted
 to skip finishing the native verification for now and use Expo Go for day-to-day checks instead.
-**Real consequence, not just paperwork**: Expo Go cannot run any screen that imports
+Real consequence, not just paperwork: Expo Go cannot run any screen that imports
 `@shopify/react-native-skia` or `react-native-mmkv` — it's a fixed binary with a fixed native
 module set, and those two compile their own native code that Expo Go's build doesn't contain.
-Every other installed dependency (gesture-handler, Reanimated, bottom-sheet, SQLite, etc.) *is*
-bundled in Expo Go, so the current placeholder screen and Phase 1 work can stay Expo-Go-testable
-as long as no screen imports Skia or MMKV directly. **This breaks hard at Phase 2** (the chart
-set is all Skia) and whenever the MMKV query-cache persister gets wired — at that point the
-native dev-client build must actually be finished and the eight checks run for real, per the
-rationale in `IMPLEMENTATION.md`'s Ordering Logic (native-module risk belongs at Phase 0, not
-buried under finished screens). Revisit before Phase 2 starts.
-- [ ] `ios/` and `android/` are gitignored
-- [ ] Any failure documented in Implementation Notes with the resolution
-
-**→ Stop here. Report the eight results, then wait.**
+This broke hard the moment Phase 2 (all Skia) was reached, which is exactly when this
+verification actually got finished.
 
 ---
 

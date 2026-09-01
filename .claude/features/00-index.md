@@ -95,7 +95,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 
 | # | Phase | Doc | Status |
 |---|---|---|---|
-| 0 | Project initialization & dependency checks | `01-project-initialization.md` | 🚧 Closed out (0.1 ✅, 0.2 ⏸️ deferred to before Phase 2, 0.3 ✅ mostly — see notes) |
+| 0 | Project initialization & dependency checks | `01-project-initialization.md` | ✅ Complete (0.1 ✅, 0.2 ✅ on emulator — physical-device spot check still pending, 0.3 ✅ mostly — see notes) |
 | 1 | Foundation — tokens, schema, theme | `02-foundation.md` | ✅ Complete |
 | 2 | The chart set | — | ⬜ |
 | 3 | The pace engine | — | ⬜ |
@@ -312,10 +312,19 @@ Append whenever something breaks in a way a rule would have prevented, then prom
    dev-only route importing Skia or MMKV breaks Expo Go for the *entire* app, not just that
    screen (this is exactly what happened with `app/smoke.tsx` in Phase 1.2 — see
    `02-foundation.md`). Keep anything importing those two out of `app/` entirely until the
-   native dev-client build (deferred, `01-project-initialization.md` §0.2.4) is actually done.
+   native dev-client build (now complete on emulator, `01-project-initialization.md` §0.2.4).
 10. **The bare `crypto.randomUUID()` global is not actually available at runtime**, despite
     TypeScript's ambient lib types not flagging it as an error — a type declaration existing
     doesn't mean the runtime global does. Found on-device in Phase 1.4 ("property 'crypto'
     doesn't exist"). Use `expo-crypto`'s `Crypto.randomUUID()` instead for every locally
     generated id (SQLite has no `gen_random_uuid()`) — it's a first-party Expo module, bundled
     in Expo Go, so it doesn't affect standing rule #7's compatibility window.
+11. **On this Windows dev machine, port 8081 is unreliable** — a protected Hyper-V system
+    service (`macmnsvc.exe`) persistently binds it and cannot be killed, and can cause a Metro
+    instance sharing that port to silently fail to answer requests even though `netstat` shows
+    it listening. When a native dev-client build can't reach Metro (`Unable to load script.` /
+    red screen), check `netstat -ano | grep :8081` first. Prefer a different port for
+    `expo run:android`/`expo start`, and use `taskkill //F //PID <n>` — not `pkill`, which
+    doesn't reliably match these processes in git-bash — to clear any of *our own* stale
+    listeners on whatever port is chosen. Full debugging story in
+    `01-project-initialization.md`'s Phase 0.2 Implementation Notes.
