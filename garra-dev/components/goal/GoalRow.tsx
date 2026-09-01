@@ -1,8 +1,11 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { PaceRing } from '@/components/charts/PaceRing';
+import { PressableScale } from '@/components/ui/PressableScale';
 import { useAppTheme } from '@/theme/useAppTheme';
 import { system } from '@/theme/tokens';
+import { motion, staggerDelay } from '@/theme/motion';
 import { copy } from '@/lib/copy';
 import type { ArcRowData } from '@/hooks/useHomeData';
 
@@ -21,7 +24,16 @@ const STATUS_LABEL = {
   cooked: copy.status.cooked,
 } as const;
 
-export function GoalRow({ row, onPress }: { row: ArcRowData; onPress?: () => void }) {
+export function GoalRow({
+  row,
+  onPress,
+  index = 0,
+}: {
+  row: ArcRowData;
+  onPress?: () => void;
+  /** Position in the list, for the staggered entrance. */
+  index?: number;
+}) {
   const { tokens, colorScheme } = useAppTheme();
 
   const statusColor =
@@ -32,39 +44,45 @@ export function GoalRow({ row, onPress }: { row: ArcRowData; onPress?: () => voi
       : tokens.textSecondary;
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      className="flex-row items-center"
-      style={{ gap: 14, minHeight: 44 }}
+    <Animated.View
+      entering={FadeInDown.delay(staggerDelay(index))
+        .duration(240)
+        .withInitialValues({ transform: [{ translateY: motion.enterOffset }] })}
     >
-      <PaceRing
-        p={row.p}
-        t={row.t}
-        accent={row.accent}
-        size="row"
-        accessibilityLabel={row.accessibilityLabel}
-      />
-      <Text
-        className="flex-1 text-[17px] font-medium text-text-primary dark:text-text-primary-dark"
-        style={{ letterSpacing: -0.17 }}
-        numberOfLines={1}
+      <PressableScale
+        accessibilityRole="button"
+        onPress={onPress}
+        className="flex-row items-center"
+        style={{ gap: 14, minHeight: 44 }}
       >
-        {row.title}
-      </Text>
-      <View style={{ alignItems: 'flex-end', gap: 4 }}>
+        <PaceRing
+          p={row.p}
+          t={row.t}
+          accent={row.accent}
+          size="row"
+          accessibilityLabel={row.accessibilityLabel}
+        />
         <Text
-          className="text-[16px] font-semibold text-text-primary dark:text-text-primary-dark"
-          style={{ letterSpacing: -0.16, fontVariant: ['tabular-nums'] }}
+          className="flex-1 text-[17px] font-medium text-text-primary dark:text-text-primary-dark"
+          style={{ letterSpacing: -0.17 }}
+          numberOfLines={1}
         >
-          {row.valueLabel}
+          {row.title}
         </Text>
-        <Text
-          style={{ fontSize: 13, fontWeight: '500', letterSpacing: -0.065, color: statusColor }}
-        >
-          {STATUS_LABEL[row.status]}
-        </Text>
-      </View>
-    </Pressable>
+        <View style={{ alignItems: 'flex-end', gap: 4 }}>
+          <Text
+            className="text-[16px] font-semibold text-text-primary dark:text-text-primary-dark"
+            style={{ letterSpacing: -0.16, fontVariant: ['tabular-nums'] }}
+          >
+            {row.valueLabel}
+          </Text>
+          <Text
+            style={{ fontSize: 13, fontWeight: '500', letterSpacing: -0.065, color: statusColor }}
+          >
+            {STATUS_LABEL[row.status]}
+          </Text>
+        </View>
+      </PressableScale>
+    </Animated.View>
   );
 }

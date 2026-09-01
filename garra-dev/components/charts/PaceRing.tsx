@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { AccessibilityInfo, View } from 'react-native';
+import { View } from 'react-native';
 import { Canvas, Circle, DashPathEffect, Line } from '@shopify/react-native-skia';
-import { useDerivedValue, useSharedValue, withTiming } from 'react-native-reanimated';
+import { useDerivedValue, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 import { useAppTheme } from '@/theme/useAppTheme';
 import { system } from '@/theme/tokens';
+import { spring, timing } from '@/theme/motion';
 import { paceRingGeometry } from './geometry';
 
 export type PaceRingProps = {
@@ -36,21 +37,35 @@ export function PaceRing({ p, t, accent, size = 'default', accessibilityLabel }:
   const cy = box / 2;
   const geo = paceRingGeometry(p, t, r, sw, cx, cy);
 
-  // Fills animate once on mount, not on every re-render (rules/01 §6).
+  // Two separate animations, which is the refinement Phase 5.5 made to rules/01 §6:
+  //
+  // 1. `progress` is the one-time draw-on when the ring first mounts.
+  // 2. `fill`/`gap` track p and t, and **spring to a new value when the underlying number
+  //    changes** — a log should visibly move the ring. The original rule ("animate once on
+  //    mount, never on re-render") was guarding against re-animating on *unrelated* renders;
+  //    these are driven by the values themselves, so an unrelated render animates nothing.
+  //
+  // Reduce-motion is handled inside the presets via ReduceMotion.System, on the UI thread —
+  // no async AccessibilityInfo lookup racing the first frame.
   const progress = useSharedValue(0);
   useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      progress.value = reduced ? 1 : withTiming(1, { duration: 600 });
-    });
+    progress.value = withTiming(1, timing.chart);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const fillLength = useSharedValue(geo.fillIntervals[0]);
+  const gapLength = useSharedValue(geo.gapIntervals[0]);
+  useEffect(() => {
+    fillLength.value = withSpring(geo.fillIntervals[0], spring.gentle);
+    gapLength.value = withSpring(geo.gapIntervals[0], spring.gentle);
+  }, [geo.fillIntervals, geo.gapIntervals, fillLength, gapLength]);
+
   const fillIntervals = useDerivedValue(() => [
-    geo.fillIntervals[0] * progress.value,
+    fillLength.value * progress.value,
     geo.fillIntervals[1],
   ]);
   const gapIntervals = useDerivedValue(() => [
-    geo.gapIntervals[0] * progress.value,
+    gapLength.value * progress.value,
     geo.gapIntervals[1],
   ]);
 

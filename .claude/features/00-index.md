@@ -101,6 +101,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 3 | The pace engine | `04-pace-engine.md` | ✅ Complete |
 | 4 | Onboarding & arc creation | `05-onboarding-arc-creation.md` | ✅ Built, statically verified — on-device pass pending |
 | 5 | Home & logging ⭐ | `06-home-and-logging.md` | ✅ Built, statically verified (145 tests) — on-device pass + the 10-second measurement deferred to end of Phase 7 |
+| 5.5 | Motion & feel | `07-motion-and-feel.md` | ✅ Built, statically verified — on-device pass deferred to end of Phase 7 |
 | 6 | Goal detail | — | ⬜ |
 | 7 | The Arc tab | — | ⬜ |
 | 8 | Auth & sync | — | ⬜ |
@@ -109,7 +110,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 11 | Monetization | — | ⬜ |
 | 12 | Polish & ship | — | ⬜ |
 
-Next available feature-doc number: **06**
+Next available feature-doc number: **08**
 
 ---
 
@@ -241,6 +242,22 @@ Indexes: none beyond PK.
 ## 5. Shared Infrastructure
 
 Check here before building — most of a feature is usually already available.
+
+### Motion — `theme/motion.ts`
+Built Phase 5.5. **The single source for every duration, stiffness, and delay** — same rule as
+`tokens.ts` is for color, and `01-design-system.md` §6 is the full spec. Four springs (`press`
+140ms · `snappy` 260ms · `gentle` 380ms · `bouncy` 420ms, the one flourish), three timings for
+opacity, transform amounts (`pressScale`, `pulseScale`, `enterOffset`), and `staggerDelay(index)`
+which clamps so a long list's last row isn't seconds late.
+
+Library is **`react-native-reanimated`** (already a dependency): UI-thread animations, layout
+presets, and `ReduceMotion.System` on every preset — so the OS accessibility setting is honored
+without any component calling `AccessibilityInfo`. **Never add a second animation library.**
+
+`components/ui/PressableScale.tsx` is the one implementation of press feedback; `Button`, `Chip`,
+`GoalTypeCard`, and `GoalRow` all route through it. `theme/motion.test.ts` asserts the design
+constraints themselves (nothing over 400ms except the flourish and the chart draw; press settles
+faster than any state change; every spring overshoots), so a too-slow animation fails a test.
 
 ### Theme — `theme/`
 `tokens.ts` — every color/typography/spacing/radius value from `01-design-system.md` §1–3.
@@ -418,7 +435,61 @@ a deep link). Still exercises `WindowTicks` with its Phase 4.3 `startDate` prop 
 
 ---
 
-## 6. Standing Rules Learned The Hard Way
+## 6. Pending verification — the post-Phase-7 test pass
+
+**Nothing in this list has been verified on a device.** Every phase below is statically verified
+only (`tsc --noEmit`, `eslint .`, `jest`), and by explicit user decision the whole on-device pass
+runs **once, after Phase 7 is complete** — the emulator causes severe I/O contention on this
+machine (standing rule #17), so batching is cheaper than paying that cost per phase.
+
+Treat this as the test plan for that session. Anything checked here should be checked in its own
+feature doc at the same time.
+
+### Phase 0 — native dependencies
+- [ ] Physical-device spot check (`01-project-initialization.md` §0.2.4). Emulator passed; a real
+      device never ran.
+
+### Phase 4 — onboarding & arc creation (`05-onboarding-arc-creation.md` §4.5.9)
+- [ ] Fresh install (empty SQLite) lands on Welcome with no flash of another screen first
+- [ ] Kill the app mid-builder (after Window, before goals) → relaunch resumes at goal-type
+- [ ] Kill it after 3 goals exist → relaunch resumes at load check
+- [ ] The full flow completed once in **airplane mode**, ending with `status: 'active'` and 3+ goals
+- [ ] Both themes render correctly across all nine screens
+
+### Phase 5 — Home & logging (`06-home-and-logging.md`)
+- [ ] **A five-goal day logs in under 10 seconds, timed with a stopwatch, in airplane mode.**
+      This is `IMPLEMENTATION.md`'s own done-condition for Phase 5 and the single most important
+      item in this list — the phase is not actually done until this number exists. Record the
+      measured value in that doc's Implementation Notes.
+- [ ] Airplane mode: log, relaunch, everything survives
+- [ ] Exactly three tabs, matching §7's heights/weights/colors, in both themes
+- [ ] Cold start with an active arc lands on Home with no visible flash
+- [ ] Android hardware back dismisses the log sheet and does **not** exit the app
+      (`useSheetBackHandler` is wired, but this has shipped broken in a sibling project before —
+      standing rule #1)
+- [ ] Logging the same goal twice in one day leaves exactly one row (the upsert)
+- [ ] The undo toast actually reverses the write, and expires on its own after 5s
+- [ ] Swipe-left skip doesn't fight the tab navigator's edge gestures or the checkbox tap
+- [ ] The Yesterday row appears only before 10:00 and only when yesterday has unlogged goals
+- [ ] The 122-cell mosaic still scrolls at 60fps (re-check after Phase 7 renders it for real)
+
+### Phase 5.0 — foundation repairs (`06-home-and-logging.md` §5.0)
+- [ ] Migration `0003` applies cleanly on a device that already has Phase 4 data — it recreates
+      five tables, and its two hand-fixed defects (see standing rule #21) have only been read,
+      not run
+- [ ] `local_profile` round-trips through a real cold start
+- [ ] Foreign-key enforcement is actually on after boot (`PRAGMA foreign_keys`), and deleting an
+      arc cascades to its goals and entries
+
+### Phase 5.5 — motion & feel (`07-motion-and-feel.md`)
+- [ ] Every animation runs on the UI thread — no frame drops while logging
+- [ ] Reduce Motion (OS setting) genuinely disables entrances, press scales, and pulses while
+      leaving every state change intact
+- [ ] Both themes, and a low-end Android device if one is available
+
+---
+
+## 7. Standing Rules Learned The Hard Way
 
 Append whenever something breaks in a way a rule would have prevented, then promote it into
 `.claude/rules/` if it generalises.

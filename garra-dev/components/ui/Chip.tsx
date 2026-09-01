@@ -1,9 +1,10 @@
-import { Pressable, Text, View, type PressableProps } from 'react-native';
+import { Text, View, type PressableProps } from 'react-native';
+import { PressableScale } from './PressableScale';
 import type { LucideIcon } from 'lucide-react-native';
 
 import { useAppTheme } from '@/theme/useAppTheme';
 
-export type ChipProps = PressableProps & {
+export type ChipProps = Omit<PressableProps, 'style'> & {
   label: string;
   selected?: boolean;
   /** Filter chip (h38) by default, or the larger intent-picker variant (h42). */
@@ -25,7 +26,7 @@ export function Chip({
   const labelColor = selected ? tokens.bg : tokens.textSecondary;
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ selected }}
       className={`${height} ${radius} flex-row items-center justify-center gap-2 border px-4 ${
@@ -49,6 +50,6 @@ export function Chip({
       >
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }

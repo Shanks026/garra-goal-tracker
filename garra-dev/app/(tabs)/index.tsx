@@ -145,13 +145,14 @@ export default function Home() {
         </Text>
 
         <View style={{ marginTop: 14, gap: 2 }}>
-          {mains.map((item) => (
+          {mains.map((item, i) => (
             <TodayRow
               key={item.goalId}
               item={item}
               onToggle={onToggle}
               onOpenValue={openLog}
               onSkip={onSkip}
+              index={i}
             />
           ))}
           {/* The divider is unlabeled — position carries the meaning (rules/01 §7). Only drawn
@@ -162,13 +163,14 @@ export default function Home() {
               style={{ height: 1, marginVertical: 7 }}
             />
           ) : null}
-          {sides.map((item) => (
+          {sides.map((item, i) => (
             <TodayRow
               key={item.goalId}
               item={item}
               onToggle={onToggle}
               onOpenValue={openLog}
               onSkip={onSkip}
+              index={i}
             />
           ))}
           {mains.length === 0 && sides.length === 0 ? (
@@ -200,10 +202,10 @@ export default function Home() {
               {copy.home.arcLabel}
             </Text>
             <View style={{ marginTop: 12, gap: 8 }}>
-              {arcRows.map((row) => (
+              {arcRows.map((row, i) => (
                 // Goal detail is Phase 6; the row is pressable but has nowhere to go yet, so it
                 // deliberately has no handler rather than a silently swallowed one.
-                <GoalRow key={row.goalId} row={row} />
+                <GoalRow key={row.goalId} row={row} index={i} />
               ))}
             </View>
           </>

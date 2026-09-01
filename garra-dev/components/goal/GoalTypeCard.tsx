@@ -1,4 +1,6 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+
+import { PressableScale } from '@/components/ui/PressableScale';
 
 export type GoalTypeCardProps = {
   glyph: string; // ◉ ▲ ✦ ⬢ — text, not icons (01-design-system.md §6)
@@ -13,7 +15,7 @@ const SYMBOL_FONT_STACK =
 
 export function GoalTypeCard({ glyph, name, description, selected, onPress }: GoalTypeCardProps) {
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
@@ -38,6 +40,6 @@ export function GoalTypeCard({ glyph, name, description, selected, onPress }: Go
           {description}
         </Text>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }

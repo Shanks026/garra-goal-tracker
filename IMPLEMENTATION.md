@@ -190,6 +190,36 @@ mode.** Not "feels fast" — measured.
 
 ---
 
+## Phase 5.5 — Motion & feel
+
+**Ship**: the same app, but it feels like something. No new screens, no new data, no new
+dependency.
+
+Numbered as a half-phase because it's cross-cutting: it retrofits motion onto every surface from
+Phases 1–5 and establishes the system every later phase then inherits. Doing it here rather than
+at polish time means Phase 6 onward gets the feel for free instead of being edited twice.
+
+- `theme/motion.ts` — four springs, three timings, transform amounts. The single source, exactly
+  as `theme/tokens.ts` is for color.
+- `components/ui/PressableScale.tsx` — press feedback on every tappable surface. The highest-value
+  animation in the product: the only one the user triggers dozens of times a day.
+- Staggered list entrances (clamped), and one pulse when a goal completes.
+- Charts spring to new values when the underlying number changes — a log must visibly move the
+  ring.
+- Screen transitions: sequences slide, tabs cross-fade.
+- `rules/01-design-system.md` §6 rewritten from six lines into the real spec, including **what
+  does not animate**.
+
+Library is **`react-native-reanimated`**, already a dependency — UI-thread animations, layout
+presets, and `ReduceMotion.System` for accessibility. Never add a second animation library.
+
+**Reference is Duolingo's *feel*, not its volume.** Every tap feels received; nothing moves just
+because it exists. Everything is under 420ms.
+
+**Done when**: nothing on the log path got slower. The 10-second rule outranks every animation.
+
+---
+
 ## Phase 6 — Goal detail
 
 **Ship**: tap any goal, understand where you stand, change the plan.

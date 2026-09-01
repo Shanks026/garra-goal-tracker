@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { Check } from 'lucide-react-native';
 
 import { useAppTheme } from '@/theme/useAppTheme';
+import { spring } from '@/theme/motion';
 
 export type CheckboxProps = {
   checked: boolean;
@@ -18,9 +19,9 @@ export function Checkbox({ checked, onToggle, accent }: CheckboxProps) {
   const scale = useSharedValue(checked ? 1 : 0);
 
   useEffect(() => {
-    // ~250ms with slight overshoot (rules/01 §6) — dampingRatio < 1 is what produces the
-    // overshoot; a plain duration-only config critically damps (no bounce) by default.
-    scale.value = withSpring(checked ? 1 : 0, { duration: 250, dampingRatio: 0.65 });
+    // The shared `snappy` preset (theme/motion.ts) rather than a local config — this was the
+    // spring every other state change ended up copying, so it became a token.
+    scale.value = withSpring(checked ? 1 : 0, spring.snappy);
   }, [checked, scale]);
 
   const checkStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));

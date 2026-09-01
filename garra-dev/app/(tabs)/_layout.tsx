@@ -59,6 +59,9 @@ export default function TabsLayout() {
           },
           tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
           sceneStyle: { backgroundColor: tokens.bg },
+          // Tabs are siblings, not a sequence, so they cross-fade rather than slide — sliding
+          // would imply an order that doesn't exist between Today, Arc, and Settings.
+          animation: 'fade',
         }}
       >
         <Tabs.Screen

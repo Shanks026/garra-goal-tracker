@@ -1,11 +1,19 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import ReanimatedSwipeable, {
   type SwipeableMethods,
 } from 'react-native-gesture-handler/ReanimatedSwipeable';
+import Animated, {
+  FadeIn,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withSpring,
+} from 'react-native-reanimated';
 
 import { Checkbox } from '@/components/ui/Checkbox';
 import { controls } from '@/theme/tokens';
+import { motion, spring, staggerDelay } from '@/theme/motion';
 import { copy } from '@/lib/copy';
 import type { TodayItem } from '@/hooks/useHomeData';
 
@@ -20,11 +28,30 @@ export type TodayRowProps = {
   onToggle: (item: TodayItem) => void;
   onOpenValue: (item: TodayItem) => void;
   onSkip?: (item: TodayItem) => void;
+  /** Position in the list, for the staggered entrance. */
+  index?: number;
 };
 
-export function TodayRow({ item, onToggle, onOpenValue, onSkip }: TodayRowProps) {
+export function TodayRow({ item, onToggle, onOpenValue, onSkip, index = 0 }: TodayRowProps) {
   const done = item.isDone;
   const swipeRef = useRef<SwipeableMethods>(null);
+
+  // A single acknowledging pulse the moment a goal completes. This is the one place the app
+  // deliberately rewards the user for the action they came to perform — and it fires off the
+  // *data* changing, not off a render, so it can't pulse spuriously.
+  const pulse = useSharedValue(1);
+  const wasDone = useRef(done);
+  useEffect(() => {
+    if (done && !wasDone.current) {
+      pulse.value = withSequence(
+        withSpring(motion.pulseScale, spring.bouncy),
+        withSpring(1, spring.snappy),
+      );
+    }
+    wasDone.current = done;
+  }, [done, pulse]);
+
+  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: pulse.value }] }));
 
   const row = (
     <Pressable
@@ -66,9 +93,17 @@ export function TodayRow({ item, onToggle, onOpenValue, onSkip }: TodayRowProps)
     </Pressable>
   );
 
+  // Entrance is staggered by position, and the pulse wraps the row so a completion animates the
+  // whole thing rather than just the checkbox.
+  const animatedRow = (
+    <Animated.View entering={FadeIn.delay(staggerDelay(index)).duration(220)} style={pulseStyle}>
+      {row}
+    </Animated.View>
+  );
+
   // A day that's already logged or skipped has nothing to skip, so it isn't swipeable — a
   // gesture that does nothing is worse than no gesture.
-  if (!onSkip || done || item.isSkipped) return row;
+  if (!onSkip || done || item.isSkipped) return animatedRow;
 
   return (
     <ReanimatedSwipeable
@@ -88,7 +123,7 @@ export function TodayRow({ item, onToggle, onOpenValue, onSkip }: TodayRowProps)
         swipeRef.current?.close();
       }}
     >
-      {row}
+      {animatedRow}
     </ReanimatedSwipeable>
   );
 }

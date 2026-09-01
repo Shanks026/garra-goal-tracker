@@ -1,8 +1,11 @@
-import { Pressable, Text, type PressableProps } from 'react-native';
+import { Text, type PressableProps, type ViewStyle } from 'react-native';
 
-export type ButtonProps = PressableProps & {
+import { PressableScale } from './PressableScale';
+
+export type ButtonProps = Omit<PressableProps, 'style'> & {
   title: string;
   variant?: 'primary' | 'secondary' | 'outline';
+  style?: ViewStyle;
 };
 
 // rules/01-design-system.md §7. Primary is NEVER accent-colored — the governing law.
@@ -24,7 +27,7 @@ const VARIANT_CLASSES = {
 export function Button({ title, variant = 'primary', style, ...props }: ButtonProps) {
   const classes = VARIANT_CLASSES[variant];
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       className={`h-button-primary-h items-center justify-center rounded-button-lg px-6 ${classes.container}`}
       style={style}
@@ -36,6 +39,6 @@ export function Button({ title, variant = 'primary', style, ...props }: ButtonPr
       >
         {title}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }

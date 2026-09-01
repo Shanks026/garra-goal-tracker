@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { AccessibilityInfo, View } from 'react-native';
+import { View } from 'react-native';
 import { Canvas, Circle, DashPathEffect, Path, Skia } from '@shopify/react-native-skia';
 import { useDerivedValue, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { useAppTheme } from '@/theme/useAppTheme';
 import { system } from '@/theme/tokens';
+import { timing } from '@/theme/motion';
 import { arcSweepGeometry } from './geometry';
 
 export type ArcSweepProps = {
@@ -28,11 +29,12 @@ export function ArcSweep({ p, size = 'home', accessibilityLabel }: ArcSweepProps
   const geo = arcSweepGeometry(p, cx, cy, r);
   const skPath = Skia.Path.MakeFromSVGString(geo.path);
 
+  // Draws on once per mount. The arc's own fraction only changes at the 04:00 rollover, so
+  // unlike PaceRing there's nothing here worth springing between. Reduce-motion is handled by
+  // the preset (ReduceMotion.System) rather than an async AccessibilityInfo check.
   const progress = useSharedValue(0);
   useEffect(() => {
-    AccessibilityInfo.isReduceMotionEnabled().then((reduced) => {
-      progress.value = reduced ? 1 : withTiming(1, { duration: 600 });
-    });
+    progress.value = withTiming(1, timing.chart);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

@@ -1,7 +1,9 @@
 import { Pressable, Text, View } from 'react-native';
+import Animated, { FadeOut, SlideInDown } from 'react-native-reanimated';
 
 import { useAppTheme } from '@/theme/useAppTheme';
 import { layout } from '@/theme/tokens';
+import { spring } from '@/theme/motion';
 import { useToastStore } from '@/lib/stores/toast';
 
 // Undo is a 5-second toast, never a confirm dialog (02-ui-components.md §4). Not designed in the
@@ -27,8 +29,14 @@ export function Toast() {
       }}
     >
       {toasts.map((toast) => (
-        <View
+        // Springs up from below and fades out. An undo toast that appears instantly reads as an
+        // error dialog; one that slides reads as a receipt.
+        <Animated.View
           key={toast.id}
+          entering={SlideInDown.springify()
+            .damping(spring.gentle.dampingRatio * 20)
+            .withInitialValues({ originY: 40 })}
+          exiting={FadeOut.duration(160)}
           accessibilityLiveRegion="polite"
           className="flex-row items-center justify-between rounded-card border border-border bg-surface px-4 dark:border-border-dark dark:bg-surface-dark"
           style={{ minHeight: 48, gap: 12 }}
@@ -64,7 +72,7 @@ export function Toast() {
               <Text className="text-[15px] text-text-tertiary dark:text-text-tertiary-dark">✕</Text>
             </Pressable>
           )}
-        </View>
+        </Animated.View>
       ))}
     </View>
   );

@@ -411,15 +411,86 @@ Checkmark glyphs are `bg`-colored on dark, `#FFFFFF` on light.
 
 ## 6. Motion
 
-- **Spring physics, never linear easing.** Reanimated `withSpring` by default.
-- Checkbox: ~250ms with slight overshoot. Haptic fires on tap, not on animation end.
-- Ring and arc fills animate **once per session on mount**, not on every re-render.
-- Checkpoint pulse: 2.4s ease-out infinite (spec in §4.8).
-- Respect `prefers-reduced-motion` / `AccessibilityInfo.isReduceMotionEnabled` — drop the
-  pulse and the entry animations, keep the state changes.
+**Every value lives in `theme/motion.ts`.** Same rule as the color tokens: a component that
+invents its own duration, stiffness, or delay is a bug. Library is
+**`react-native-reanimated`** — already a dependency, runs on the UI thread, and ships both the
+spring configs and the layout-animation presets this system needs. Never add a second animation
+library.
 
-**Haptics on every log.** `expo-haptics`, `NotificationFeedbackType.Success`. Two lines of
-code and roughly a third of why the app feels expensive.
+### 6.0 The governing law, applied to movement
+
+> **Motion serves the data.**
+
+The same test as color: if something moves because the *data changed* or because the *user
+touched it*, that's motion doing its job. If it moves because it exists, that's decoration —
+cut it.
+
+**The reference is Duolingo's feel, not its volume.** What's worth borrowing is that every tap
+feels *received*: snappy spring feedback, immediate acknowledgement, a brief flourish on
+completion. What isn't: constant ambient animation, mascots, celebration that interrupts. Garra
+is a tool someone opens for ten seconds a day — motion has to make those ten seconds feel good
+without ever adding to them.
+
+**Nothing on the log path may take longer than the log.** The 10-second rule
+(`02-ui-components.md` §4) outranks every animation in this file.
+
+### 6.1 The four springs
+
+| Preset | Use | Feel |
+|---|---|---|
+| `spring.press` | Press feedback, every tappable surface | 140ms, barely overshoots — must settle before the finger lifts |
+| `spring.snappy` | State changes the user caused: checkbox filling, value settling | 260ms, slight overshoot |
+| `spring.gentle` | Larger travel: sheets, layout reflow, a ring seeking a new value | 380ms, well damped |
+| `spring.bouncy` | The one flourish: a goal completing, a checkpoint landing | 420ms, loose. **If this is on screen twice at once, something is wrong.** |
+
+`timing.*` exists for opacity only — a fade has no physicality to model with a spring.
+
+### 6.2 What animates
+
+- **Press**: every tappable surface scales to `motion.pressScale` (0.97) via
+  `components/ui/PressableScale.tsx`. This is the single highest-value animation in the app — the
+  only one the user triggers dozens of times a day.
+- **Entrances**: list rows fade and rise `motion.enterOffset`, staggered by `staggerDelay(index)`
+  and **clamped** at `motion.staggerMaxItems` — past ~5 items a stagger stops reading as
+  choreography and starts reading as lag.
+- **Completion**: one `pulseScale` pulse when a goal is logged, fired off the *data* changing, not
+  off a render.
+- **Charts**: draw on once per mount, **and spring to a new value when the underlying number
+  changes.** A log must visibly move the ring — that's the payoff for the tap. What the old rule
+  ("once per session, never on re-render") was actually guarding against is re-animating on
+  *unrelated* renders; driving the animation from the value itself achieves that properly.
+- **Screens**: sequences (onboarding, the arc builder) slide from the right; tabs cross-fade,
+  because Today/Arc/Settings are siblings with no order between them.
+- **Checkpoint pulse**: 2.4s ease-out infinite (spec in §4.8) — the one deliberately ambient
+  animation in the app, and it marks *where you are*, which is data.
+
+### 6.3 What does not animate
+
+- Chrome appearing: headers, labels, dividers, the tab bar.
+- Anything on a timer nobody asked for.
+- Numbers ticking up digit by digit. A pulse says "this changed" in 260ms; a ticker makes the
+  user wait to read their own data.
+- Layout of the Today list while logging — a row that reflows under the finger causes mis-taps.
+
+### 6.4 Reduced motion
+
+Every preset in `theme/motion.ts` sets `reduceMotion: ReduceMotion.System`, so the OS setting is
+honored **on the UI thread** with no component checking anything. Do not hand-roll an
+`AccessibilityInfo.isReduceMotionEnabled()` check — it's async, it races the first frame, and it
+puts the decision in the wrong place.
+
+Reduced motion removes entrances, press scales, and pulses. **It never removes a state change**:
+a checkbox still fills, a ring still shows the new value, it just arrives instead of travelling.
+
+### 6.5 Haptics
+
+**Haptics on every log.** `expo-haptics`, `NotificationFeedbackType.Success`, fired in the
+mutation's `onMutate` — the same frame as the tap, not on animation end or on success. Two lines
+of code and roughly a third of why the app feels expensive.
+
+Currently one owner per path (`Checkbox` on the binary path, the mutations elsewhere) so a single
+tap never double-buzzes. **Broader haptics are deliberately on hold** — held by user decision
+until the motion layer has been felt on a real device.
 
 ---
 
