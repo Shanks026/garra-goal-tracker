@@ -98,7 +98,7 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 0 | Project initialization & dependency checks | `01-project-initialization.md` | ✅ Complete (0.1 ✅, 0.2 ✅ on emulator — physical-device spot check still pending, 0.3 ✅ mostly — see notes) |
 | 1 | Foundation — tokens, schema, theme | `02-foundation.md` | ✅ Complete |
 | 2 | The chart set | `03-chart-set.md` | ✅ Complete |
-| 3 | The pace engine | `04-pace-engine.md` | 📋 Planned |
+| 3 | The pace engine | `04-pace-engine.md` | ✅ Complete |
 | 4 | Onboarding & arc creation | — | ⬜ |
 | 5 | Home & logging ⭐ | — | ⬜ |
 | 6 | Goal detail | — | ⬜ |
@@ -259,7 +259,27 @@ states, `accent`) — none read `entries` or a goal object directly (rules/02-ui
 approach deliberately — see standing rule #12.
 
 ### Derivations — `lib/derive/`
-*None yet.* Phase 3 builds `pace`, `schedule`, `streaks`, `mosaic`, `load`.
+All five built, Phase 3 — pure functions, no React/hooks/I/O, `now` always passed in:
+- `pace.ts` — `pace()`: expected/deficit/requiredRate/fractionDone(p)/fractionExpected(t)/status.
+  Signature ported verbatim from `03-state-and-data.md` §4; feeds `PaceRing`'s `p`/`t` directly.
+  `custom_weekly` basis is a documented fallback to `even` (no schema field exists for a real
+  per-weekday distribution — user decision). On-track tolerance band is `±1/daysTotal`.
+- `schedule.ts` — `isDueOn()`/`weeklyTarget()`/`occurrencesInRange()`: the single source of truth
+  for cadence math (`daily`/`n_per_week`/`specific_days`/`every_n_days`). `isDueOn` throws for
+  `n_per_week` (no per-day answer is well-defined for it) — callers must use the other two.
+- `streaks.ts` — `arcStreak()` (forgiving, app-level, any-goal-logged) and `goalStreak()`
+  (schedule-aware, freeze-consuming; `n_per_week` evaluates whole weeks, not days).
+- `mosaic.ts` — `mosaicCells()`: day → `MosaicCellState`. Documents a real design gap — the
+  4-state Mosaic model has no "rest day" state, so non-due days under `specific_days`/`daily`/
+  `every_n_days` still render `'miss'`; `n_per_week` gets a best-effort treatment (miss lands on
+  the last day of a completed short week) rather than guessing per-day. Flag for a possible 5th
+  cell state once the Mosaic is live on a real screen.
+- `load.ts` — `loadCheck()`: weekly/daily minute totals per goal and overall. Uses an 84-day
+  (12-week) reference window, not a single 7-day window, to average `every_n_days` occurrences
+  correctly regardless of interval/7 alignment (see standing rule #16).
+
+51 tests across the five modules, all passing (73 total suite-wide). Full rationale and the two
+test-design bugs found/fixed while writing them: `04-pace-engine.md`'s Implementation Notes.
 
 ### Hooks — `hooks/`
 `useSheetBackHandler` (Phase 2.5) — wires `BackHandler` to a `BottomSheetModal` ref so Android
@@ -368,3 +388,19 @@ Append whenever something breaks in a way a rule would have prevented, then prom
     failed after enough prior images). If this happens, pivot to asking the user to look at the
     device/emulator directly and report back, combined with `adb logcat` checks — don't keep
     retrying reads.
+16. **Averaging a cadence's weekly occurrence count from a single arbitrary 7-day window gives
+    phase-dependent (sometimes wrong) results for `every_n_days` intervals that don't divide
+    evenly into 7** — e.g. `intervalDays: 3` can land 2 or 3 occurrences depending on which 7
+    days are sampled. Found while building `load.ts` (Phase 3.5), before it became a test
+    failure. Fixed by using an 84-day (12-week) reference window instead — a common multiple of
+    7 and every practical interval value — which converges on the correct long-run average
+    regardless of alignment. Applies to any future derivation that needs a "per week" figure
+    from a day-deterministic cadence.
+17. **The Android emulator running causes severe system-wide I/O contention on this Windows
+    machine** — `Bash`/PowerShell calls (even trivial ones like `cat`) repeatedly time out and
+    auto-background under load, but the `Read` tool bypasses this contention entirely and
+    returns instantly, since it doesn't spawn a shell subprocess. During any phase with the
+    emulator running (or any other heavy local process), prefer `Read` over `Bash`/`cat` for
+    inspecting files if shell calls start stalling. Discovered during Phase 2; closing the
+    emulator for Phase 3 (pure Jest-testable logic, no on-device verification needed) avoided
+    the problem entirely rather than working around it.

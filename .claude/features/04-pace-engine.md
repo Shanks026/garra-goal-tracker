@@ -2,8 +2,8 @@
 **Product**: Garra — Finite Goal Tracker
 **File**: `.claude/features/04-pace-engine.md`
 **Roadmap phase**: Phase 3 (`IMPLEMENTATION.md`)
-**Status**: Planned
-**Last Updated**: September 2026
+**Status**: ✅ Complete
+**Last Updated**: 2026-09-01
 
 ---
 
@@ -196,13 +196,13 @@ None.
 - A "this required rate looks unrealistic" warning — not this function's job.
 
 ### 3.1.9 Checklist
-- [ ] `pace()`'s signature matches `03-state-and-data.md` §4 exactly (field names, types)
-- [ ] Every required test case above passes
-- [ ] `requiredRate` never returns `NaN` or `Infinity` — explicit test for `daysRemaining <= 0`
-- [ ] No `new Date()` inside `pace.ts` — `now` is always the passed-in parameter
-- [ ] `tsc --noEmit` clean
+- [x] `pace()`'s signature matches `03-state-and-data.md` §4 exactly (field names, types)
+- [x] Every required test case above passes
+- [x] `requiredRate` never returns `NaN` or `Infinity` — explicit test for `daysRemaining <= 0`
+- [x] No `new Date()` inside `pace.ts` — `now` is always the passed-in parameter
+- [x] `tsc --noEmit` clean
 
-**→ Stop here. Show the result and wait for approval.**
+**✅ Phase 3.1 complete — 2026-09-01.**
 
 ---
 
@@ -298,13 +298,13 @@ None — additive, and the first consumer (`streaks.ts`) is the very next sub-ph
 - Any UI for configuring cadence (goal forms) — Phase 4.
 
 ### 3.2.9 Checklist
-- [ ] All required test cases pass
-- [ ] `isDueOn` throws (not silently guesses) for `n_per_week`
-- [ ] `occurrencesInRange`'s two code paths (day-counting vs. proration) agree with `isDueOn`
+- [x] All required test cases pass
+- [x] `isDueOn` throws (not silently guesses) for `n_per_week`
+- [x] `occurrencesInRange`'s two code paths (day-counting vs. proration) agree with `isDueOn`
   where both apply
-- [ ] `tsc --noEmit` clean
+- [x] `tsc --noEmit` clean
 
-**→ Stop here. Show the result and wait for approval.**
+**✅ Phase 3.2 complete — 2026-09-01.**
 
 ---
 
@@ -404,13 +404,13 @@ None.
 - Any UI showing streak numbers.
 
 ### 3.3.9 Checklist
-- [ ] All required test cases pass
-- [ ] `arcStreak` never breaks on "today, not yet logged" — only on a genuinely skipped past day
-- [ ] Freeze consumption math is exact: never consumes more freezes than `freezesAvailable`,
+- [x] All required test cases pass
+- [x] `arcStreak` never breaks on "today, not yet logged" — only on a genuinely skipped past day
+- [x] Freeze consumption math is exact: never consumes more freezes than `freezesAvailable`,
   never consumes a freeze when the streak wasn't actually at risk
-- [ ] `tsc --noEmit` clean
+- [x] `tsc --noEmit` clean
 
-**→ Stop here. Show the result and wait for approval.**
+**✅ Phase 3.3 complete — 2026-09-01.**
 
 ---
 
@@ -515,13 +515,13 @@ None.
 - Reading real entries from SQLite — takes them as a plain array argument.
 
 ### 3.4.9 Checklist
-- [ ] Output type matches `MosaicCellState` from `components/charts/Mosaic.tsx` exactly
-- [ ] All required test cases pass, including the two that explicitly test the documented
+- [x] Output type matches `MosaicCellState` from `components/charts/Mosaic.tsx` exactly
+- [x] All required test cases pass, including the two that explicitly test the documented
   `n_per_week`/non-due-day gap (so it's provably intentional, not accidental)
-- [ ] `tsc --noEmit` clean
-- [ ] The `n_per_week` mosaic gap is flagged to the user in this phase's completion report
+- [x] `tsc --noEmit` clean
+- [x] The `n_per_week` mosaic gap is flagged to the user in this phase's completion report
 
-**→ Stop here. Show the result and wait for approval.**
+**✅ Phase 3.4 complete — 2026-09-01.**
 
 ---
 
@@ -566,8 +566,9 @@ export function loadCheck(input: {
 
 **Weekly minutes per goal** = `estMinutes * weeklyOccurrences(cadence)`, where
 `weeklyOccurrences` is `weeklyTarget(cadence)` directly for `n_per_week`, or
-`occurrencesInRange(cadence, <any 7-day window>, ...)` for the day-deterministic modes (both
-from `schedule.ts`, reused rather than reimplemented).
+`occurrencesInRange(cadence, <84-day reference window>, ...) / 84 * 7` for the
+day-deterministic modes (both from `schedule.ts`, reused rather than reimplemented) — see
+Implementation Notes for why 84 days (not an arbitrary 7-day window) was necessary.
 
 **Required test cases** (`load.test.ts`):
 - A single `daily` goal: `weeklyMinutes = estMinutes * 7`
@@ -597,13 +598,13 @@ None.
 - Reading goals from SQLite — takes them as a plain array argument.
 
 ### 3.5.9 Checklist
-- [ ] All required test cases pass
-- [ ] `loadCheck()` reuses `schedule.ts`'s functions rather than reimplementing cadence math
-- [ ] `tsc --noEmit` clean
-- [ ] `00-index.md` §5 Shared Infrastructure updated: all five `lib/derive/` modules listed as
+- [x] All required test cases pass
+- [x] `loadCheck()` reuses `schedule.ts`'s functions rather than reimplementing cadence math
+- [x] `tsc --noEmit` clean
+- [x] `00-index.md` §5 Shared Infrastructure updated: all five `lib/derive/` modules listed as
   built, in the same change
 
-**→ Stop here. Phase 3 complete. Report to the user, then wait for Phase 4 go-ahead.**
+**✅ Phase 3.5 complete — 2026-09-01. Phase 3 complete.**
 
 ---
 
@@ -642,3 +643,59 @@ stub) governs *screens*, not derivation functions.
   built here (would require changing the Phase 2 chart's state model).
 - Writing freeze earn/consume as actual database rows — Phase 9 (Sunday Reset).
 - The load-check screen's visual "honesty band" treatment — Phase 4 (Arc Builder).
+
+---
+
+## Implementation Notes
+
+All five sub-phases (3.1–3.5) were built in one continuous pass per the user's explicit
+instruction to replicate Phase 2's no-stop-between-subphases workflow. 51 new tests across
+five `lib/derive/` modules, all passing; combined with the 22 pre-existing tests (`lib/date.ts`,
+`components/charts/geometry.ts`), the full suite is 73 tests, 7 suites, all green. Verified with
+`tsc --noEmit` (clean), `eslint .` (clean), and `prettier --write .` (cosmetic reformatting only
+— confirmed via diff, no logic changes).
+
+**Two test-design bugs, both in `pace.test.ts`, both self-caught before reporting completion:**
+
+1. A test asserted `current === target === 800` exactly at the deadline should yield
+   `'locked_in'`. That's wrong: meeting the expected fraction exactly (`fractionDone ===
+   fractionExpected`, difference `0`) is the textbook `on_track` case, not `locked_in` —
+   `locked_in` requires being *ahead* by more than the tolerance band. Fixed by changing the
+   test's `current` to `850` (genuinely ahead) and renaming it to make the on-track boundary
+   explicit in the test name and an inline comment.
+2. A `weekdays_only` weekend test compared a Friday snapshot against a Monday snapshot,
+   expecting equal `fractionExpected` (both "after the same weekend"). Wrong: Friday itself only
+   counts as an elapsed weekday once you're *past* it, so Friday-snapshot has one fewer elapsed
+   weekday than Monday-snapshot — they were never supposed to be equal. Fixed by comparing a
+   Saturday snapshot (right after Friday fully elapses) against the Monday snapshot instead;
+   both correctly show 4 elapsed weekdays, proving the Sat/Sun weekend itself contributes zero.
+
+Neither bug was in `pace.ts` itself — the implementation was correct both times; the tests were
+asserting the wrong expected value. Manual weekday-counting arithmetic was used to verify the
+fix before re-running, rather than just flipping the assertion to match observed output.
+
+**One dead-code cleanup in `streaks.ts`**, caught while writing (not a test failure): an early
+draft left behind `const target = occurrencesInRange(...); void target;` and its now-unused
+import. Removed before running any tests.
+
+**One architectural discovery in `load.ts`**: computing a weekly occurrence average from a
+single arbitrary 7-day window gives *phase-dependent* (sometimes wrong) results for
+`every_n_days` cadences whose interval doesn't divide evenly into 7 — e.g. `intervalDays: 3`
+over a plain week could land 2 or 3 occurrences depending on which 7 days you happened to
+sample. Resolved by using an 84-day (12-week) reference window instead, a common multiple of 7
+and every practical interval value, verified by hand before writing the code: for
+`intervalDays: 3`, occurrences over 84 days = 28, giving `28 / 84 * 7 = 7/3 ≈ 2.33` — the
+correct long-run average, independent of which 84-day window is sampled.
+
+**Concrete implementation choice for the `n_per_week`/Mosaic 4-state gap** (flagged as a design
+question in the Context section above, not resolved there): `mosaicCells()` renders a
+non-scheduled day as `'future'` for `n_per_week` goals, and marks `'miss'` only on the **last
+day of a fully-completed week that fell short of its target** — one miss marker per short week,
+rather than guessing which of the 7 days deserves it. This is the least-misleading choice
+available within the existing 4-state model, but it is still a real gap: a 5th "rest day" cell
+state would be a more honest fix and is worth proposing once the Mosaic is live on a real screen
+(Phase 4+).
+
+No implementation-code bugs were found by the test suites for `schedule.ts`, `streaks.ts`,
+`mosaic.ts`, or `load.ts` — every test in those four files passed on the first run, reflecting
+the manual arithmetic verification done before each test file was written.
