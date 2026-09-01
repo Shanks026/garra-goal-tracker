@@ -162,7 +162,20 @@ that can't take a `className`. Built Phase 1.1–1.2.
 - `entitlements.ts` — `useFlag<T>(flag): T`, every flag resolves to a permissive Pro-tier
   placeholder until Phase 11 (RevenueCat, held by user decision) settles the real free/Pro
   numbers from `IMPLEMENTATION.md`'s Design Deltas §3.
-Built Phase 1.3. `lib/derive/*`, `lib/db/`, and `lib/sync/` don't exist yet.
+Built Phase 1.3.
+
+### `lib/db/` — local SQLite (Drizzle)
+`schema.ts` — all 6 tables (`arcs`, `goals`, `entries`, `checkpoints`, `rescopes`, `freezes`) +
+local-only `sync_queue`, no `user_id` column (RLS is Postgres-only; the sync engine attaches it
+on the way up in Phase 8). `client.ts` exports the single shared `db` instance every future
+query/mutation hook must import. `migrations/` is drizzle-kit-generated and committed; applied
+at boot via `useMigrations()` in `app/_layout.tsx`, gating the splash screen. Round-trip
+persistence verified on-device (kill + relaunch) in Phase 1.4. Two SQLite-only representation
+deviations from the remote schema, both necessary and documented in `02-foundation.md` Phase
+1.4: `goals.daysOfWeek`/`goals.quickAdd` are JSON-mode `text` locally vs. native Postgres
+arrays remotely (no SQLite array type exists), and locally generated ids use `expo-crypto`'s
+`Crypto.randomUUID()` (the bare `crypto` global isn't actually available at runtime — see
+standing rule #10). `lib/derive/*` and `lib/sync/` don't exist yet.
 
 ### Charts — `components/charts/`
 *None yet.* Phase 2 builds `PaceRing`, `ArcSweep`, `Mosaic`, `BurnUp`, `WeekBars`, `Momentum`,
@@ -229,3 +242,9 @@ Append whenever something breaks in a way a rule would have prevented, then prom
    screen (this is exactly what happened with `app/smoke.tsx` in Phase 1.2 — see
    `02-foundation.md`). Keep anything importing those two out of `app/` entirely until the
    native dev-client build (deferred, `01-project-initialization.md` §0.2.4) is actually done.
+10. **The bare `crypto.randomUUID()` global is not actually available at runtime**, despite
+    TypeScript's ambient lib types not flagging it as an error — a type declaration existing
+    doesn't mean the runtime global does. Found on-device in Phase 1.4 ("property 'crypto'
+    doesn't exist"). Use `expo-crypto`'s `Crypto.randomUUID()` instead for every locally
+    generated id (SQLite has no `gen_random_uuid()`) — it's a first-party Expo module, bundled
+    in Expo Go, so it doesn't affect standing rule #7's compatibility window.

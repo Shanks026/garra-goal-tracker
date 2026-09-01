@@ -580,7 +580,7 @@ None.
 |---|---|
 | `days_of_week` / `quick_add` arrays | SQLite has no array type. Stored as `text` in JSON mode locally; Postgres side (1.5) uses native `int[]`/`numeric[]`. This is a **documented, necessary** deviation from "structurally identical" (`05-database.md` §3) — there's no SQLite array type to match against. Flagging explicitly rather than discovering it as drift later. |
 | `user_id` absent locally | Local rows have no `user_id` — RLS is a Postgres-only concept. The sync engine (Phase 8) is responsible for attaching it on the way up, never the local schema. |
-| UUIDs generated client-side | SQLite has no `gen_random_uuid()`; `crypto.randomUUID()` (available in Hermes) is called at insert time in the future mutation hooks, not defaulted in the schema itself. |
+| UUIDs generated client-side | SQLite has no `gen_random_uuid()`. **Correction, found on-device**: the global `crypto.randomUUID()` this doc assumed was available in Hermes is **not** actually polyfilled at runtime (throws "property 'crypto' doesn't exist"), despite TypeScript's ambient lib types not flagging it — the type declaration existing doesn't mean the runtime global does. Use `expo-crypto`'s `Crypto.randomUUID()` instead (first-party Expo module, bundled in Expo Go, so this doesn't affect the Expo-Go-compatibility window). Every future mutation hook generating a local id must import from `expo-crypto`, not the bare `crypto` global. |
 
 ### 1.4.8 What This Phase Does NOT Include
 - The Supabase/Postgres schema — 1.5.
@@ -588,15 +588,46 @@ None.
 - The sync engine / outbox drain — Phase 8.
 
 ### 1.4.9 Checklist
-- [ ] All six tables + `sync_queue` exist in `lib/db/schema.ts`, matching `05-database.md` §1
+- [x] All six tables + `sync_queue` exist in `lib/db/schema.ts`, matching `05-database.md` §1
   column-for-column (besides the documented `user_id`/array deviations above)
-- [ ] `entries_goal_day` unique index exists and is scoped to `skipped = false`
-- [ ] `npx drizzle-kit generate` produces a migration; it's committed
-- [ ] A manual round-trip test proves: insert a row → close the app fully → relaunch → row is
-  still there (this is the actual point of local-first — verify it doesn't just typecheck)
-- [ ] `tsc --noEmit` clean
+- [x] `entries_goal_day` unique index exists and is scoped to `skipped = false`
+- [x] `npx drizzle-kit generate` produces a migration; it's committed
+- [x] A manual round-trip test proves: insert a row → close the app fully → relaunch → row is
+  still there — verified live via Expo Go: inserted a test arc, fully killed the app, relaunched,
+  the row was still there
+- [x] `tsc --noEmit` clean
+
+✅ **Phase 1.4 complete — 2026-09-01.**
 
 **→ Stop here. Show the result and wait for approval.**
+
+### Implementation Notes
+
+**Two real findings on-device, both corrected and promoted to `00-index.md`'s standing rules:**
+
+1. **The bare `crypto.randomUUID()` global doesn't actually exist at runtime** — despite
+   TypeScript's ambient lib types not flagging it as an error, `tsc --noEmit` stayed clean while
+   the app threw `property 'crypto' doesn't exist` the moment the round-trip test tried to
+   insert a row. A type declaration existing doesn't prove a runtime global does. Switched to
+   `expo-crypto`'s `Crypto.randomUUID()` — a first-party Expo module, bundled in Expo Go, so this
+   doesn't shrink the Expo-Go-compatibility window. This doc's own §1.4.7 Risks table originally
+   asserted the opposite; corrected there too.
+2. **Phase 0.1's `.sql`-as-`assetExts` Metro config was wrong for this use case.** Treating
+   `.sql` as an asset extension resolves an import to an opaque asset object (like an image),
+   not the file's text content — `useMigrations()` needs the actual SQL string. Fixed to the
+   standard Drizzle+Expo pattern instead: `.sql` added to `sourceExts`, with
+   `babel-plugin-inline-import` (`{ extensions: ['.sql'] }`) inlining the file content as a
+   string literal at build time. Verified via a full Metro export before handing off for the
+   on-device test — an earlier failure here would have been a build-time error, not a subtle bug.
+
+**Also added `expo-system-ui`-style permanent wiring beyond the doc's original "no UI, no
+navigation integration" scope**: `app/_layout.tsx` now runs `useMigrations()` and gates
+rendering on it (extending the existing splash gate from Phase 1.2), because the round-trip
+checklist item is meaningless without migrations actually running somewhere real — this isn't
+throwaway, every future DB access depends on it having already run. A temporary
+`app/db-check.tsx` screen (SQLite only, so Expo-Go-safe) was used to drive the manual insert/
+kill/relaunch test and deleted immediately after confirming persistence, matching the
+`smoke.tsx` pattern from Phase 1.2.
 
 ---
 

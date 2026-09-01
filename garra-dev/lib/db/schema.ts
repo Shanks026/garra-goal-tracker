@@ -1,0 +1,148 @@
+import { sql } from 'drizzle-orm';
+import { integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
+
+// Local SQLite schema — the source of truth (03-state-and-data.md §1). No `user_id` column
+// anywhere here: RLS has no meaning in a single-user local file, and the sync engine (Phase 8)
+// attaches it on the way up to Supabase, not before. See 05-database.md §1 for the full
+// column reference this mirrors.
+
+export const arcs = sqliteTable('arcs', {
+  id: text('id').primaryKey(),
+  title: text('title').notNull(),
+  startsAt: text('starts_at').notNull(), // date, 'YYYY-MM-DD'
+  endsAt: text('ends_at').notNull(),
+  status: text('status', { enum: ['draft', 'active', 'archived'] })
+    .notNull()
+    .default('draft'),
+  timezone: text('timezone').notNull(),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+  updatedAt: text('updated_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+export const goals = sqliteTable('goals', {
+  id: text('id').primaryKey(),
+  arcId: text('arc_id')
+    .notNull()
+    .references(() => arcs.id),
+  type: text('type', { enum: ['habit', 'accumulate', 'ship', 'milestone'] }).notNull(),
+  direction: text('direction', { enum: ['up', 'down'] })
+    .notNull()
+    .default('up'),
+  accent: text('accent').notNull(),
+  icon: text('icon').notNull(),
+  isMain: integer('is_main', { mode: 'boolean' }).notNull().default(false),
+  targetAmount: real('target_amount'),
+  unit: text('unit'),
+  startingValue: real('starting_value'),
+  cadenceMode: text('cadence_mode'),
+  timesPerWeek: integer('times_per_week'),
+  daysOfWeek: text('days_of_week', { mode: 'json' }).$type<number[]>(),
+  intervalDays: integer('interval_days'),
+  sessionTarget: real('session_target'),
+  estMinutes: integer('est_minutes'),
+  paceBasis: text('pace_basis'),
+  quickAdd: text('quick_add', { mode: 'json' }).$type<number[]>(),
+  itemNoun: text('item_noun'),
+  endsAt: text('ends_at'),
+  status: text('status', { enum: ['active', 'paused', 'archived'] })
+    .notNull()
+    .default('active'),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+  updatedAt: text('updated_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+export const entries = sqliteTable(
+  'entries',
+  {
+    id: text('id').primaryKey(),
+    goalId: text('goal_id')
+      .notNull()
+      .references(() => goals.id),
+    dayKey: text('day_key').notNull(),
+    loggedAt: text('logged_at').notNull(),
+    value: real('value'),
+    skipped: integer('skipped', { mode: 'boolean' }).notNull().default(false),
+    skipReason: text('skip_reason'),
+    backfilled: integer('backfilled', { mode: 'boolean' }).notNull().default(false),
+    title: text('title'),
+    link: text('link'),
+    createdAt: text('created_at')
+      .notNull()
+      .default(sql`(current_timestamp)`),
+    updatedAt: text('updated_at')
+      .notNull()
+      .default(sql`(current_timestamp)`),
+  },
+  (t) => [
+    uniqueIndex('entries_goal_day')
+      .on(t.goalId, t.dayKey)
+      .where(sql`${t.skipped} = 0`),
+  ],
+);
+
+export const checkpoints = sqliteTable('checkpoints', {
+  id: text('id').primaryKey(),
+  goalId: text('goal_id')
+    .notNull()
+    .references(() => goals.id),
+  title: text('title').notNull(),
+  position: integer('position').notNull(),
+  targetDate: text('target_date'),
+  hitAt: text('hit_at'),
+  notes: text('notes'),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+  updatedAt: text('updated_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+export const rescopes = sqliteTable('rescopes', {
+  id: text('id').primaryKey(),
+  goalId: text('goal_id')
+    .notNull()
+    .references(() => goals.id),
+  fromTarget: real('from_target'),
+  toTarget: real('to_target'),
+  reason: text('reason'),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+export const freezes = sqliteTable('freezes', {
+  id: text('id').primaryKey(),
+  arcId: text('arc_id')
+    .notNull()
+    .references(() => arcs.id),
+  earnedForWeek: text('earned_for_week').notNull(),
+  consumedForDayKey: text('consumed_for_day_key'),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+  updatedAt: text('updated_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
+export const syncQueue = sqliteTable('sync_queue', {
+  id: text('id').primaryKey(),
+  tableName: text('table_name').notNull(),
+  rowId: text('row_id').notNull(),
+  op: text('op', { enum: ['insert', 'update', 'delete'] }).notNull(),
+  payload: text('payload', { mode: 'json' }).notNull(),
+  attempts: integer('attempts').notNull().default(0),
+  lastError: text('last_error'),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
