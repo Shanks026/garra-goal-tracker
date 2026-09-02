@@ -7,8 +7,13 @@ import type { ExpoConfig } from 'expo/config';
 // tailwind.config.js uses (rules/02 §7) rather than a plain `import`.
 /* eslint-disable @typescript-eslint/no-require-imports -- Expo's config evaluator requires this
    file with plain CJS and no TS path resolution, so `import` cannot reach theme/tokens.ts. */
-require('tsx/cjs/api').register();
+// ⚠️ Unregister immediately after reading — see the long note in tailwind.config.js. `expo start`
+// evaluates this file in the same process that then runs Metro, so a hook left installed makes
+// every later `require()` probe four extra extensions per node_modules level and the dev server
+// never finishes starting.
+const unregisterTsx = require('tsx/cjs/api').register();
 const { dark } = require('./theme/tokens.ts') as typeof import('./theme/tokens');
+unregisterTsx();
 /* eslint-enable @typescript-eslint/no-require-imports */
 
 const config: ExpoConfig = {

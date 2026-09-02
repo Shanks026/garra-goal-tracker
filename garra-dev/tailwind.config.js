@@ -1,8 +1,16 @@
 // Theme is generated from theme/tokens.ts, not hand-duplicated here — see
 // .claude/rules/02-ui-components.md §7. tokens.ts is TypeScript (uses `as const`), which
 // plain Node can't parse, so tsx registers a loader before requiring it.
-require('tsx/cjs/api').register();
+//
+// ⚠️ The loader MUST be unregistered immediately afterwards. metro.config.js loads this file
+// (via withNativeWind), so a hook left installed here lives for the whole life of the Metro
+// process — and tsx makes every subsequent `require()` probe .ts/.tsx/.mts/.cts at every
+// node_modules level. Metro resolves thousands of modules, so the extra `stat()` calls compound
+// until the dev server never finishes starting: a CPU profile of the wedged process showed ~55%
+// of samples in `internalModuleStat` and ~17% in Node's cjs/loader. Register, read, unregister.
+const unregisterTsx = require('tsx/cjs/api').register();
 const { dark, light, ACCENTS, system, radii, layout, controls } = require('./theme/tokens.ts');
+unregisterTsx();
 
 function kebab(key) {
   return key.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
