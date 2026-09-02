@@ -9,6 +9,7 @@ import { isWithinBackfillWindow } from '@/lib/derive/backfill';
 import { qk } from '@/lib/queryKeys';
 import { copy } from '@/lib/copy';
 import { useToastStore } from '@/lib/stores/toast';
+import { enqueueDelete, enqueueUpsert } from '@/lib/sync/outbox';
 
 // The most important mutation in the product. Every rule in 04-hooks.md §3 and
 // 02-ui-components.md §4 applies here at once: optimistic, haptic in onMutate, prefix
@@ -172,11 +173,15 @@ export function useLogEntry() {
       });
     },
 
-    onSettled: (_id, _err, input) => {
+    onSettled: (id, err, input) => {
       // By prefix, never an enumerated list (03-state-and-data.md §3).
       qc.invalidateQueries({ queryKey: ['today'] });
       qc.invalidateQueries({ queryKey: ['entries'] });
       qc.invalidateQueries({ queryKey: qk.goals(input.arcId) });
+
+      // Outbox — fire and forget, never awaited (rules/04 §3). Guarded on `err` because a failed
+      // write (a backfill outside the window, say) has no row for the drain to read.
+      if (!err && id) enqueueUpsert('entries', id);
     },
   });
 }
@@ -203,10 +208,13 @@ export function useUndoEntry() {
     mutationFn: async (input: { entryId: string; arcId: string }) => {
       await db.delete(entries).where(eq(entries.id, input.entryId));
     },
-    onSettled: (_r, _e, input) => {
+    onSettled: (_r, err, input) => {
       qc.invalidateQueries({ queryKey: ['today'] });
       qc.invalidateQueries({ queryKey: ['entries'] });
       qc.invalidateQueries({ queryKey: qk.goals(input.arcId) });
+
+      // A delete is the one op the drain can't reconstruct by reading the row — it's gone.
+      if (!err) enqueueDelete('entries', input.entryId);
     },
   });
 }
@@ -257,10 +265,12 @@ export function useSkipDay() {
     onMutate: () => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
     },
-    onSettled: (_id, _err, input) => {
+    onSettled: (id, err, input) => {
       qc.invalidateQueries({ queryKey: ['today'] });
       qc.invalidateQueries({ queryKey: ['entries'] });
       qc.invalidateQueries({ queryKey: qk.goals(input.arcId) });
+
+      if (!err && id) enqueueUpsert('entries', id);
     },
   });
 }
@@ -272,9 +282,17 @@ export function useSkipDay() {
 export function useLogEverything() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { arcId: string; goalIds: string[]; dayKey: string }) => {
-      if (input.goalIds.length === 0) return;
+    // Returns the ids of every entry actually written, so onSettled can enqueue each one. It
+    // returned void before Phase 8; the outbox needs to know which rows moved, and a "log
+    // everything" on a 10-goal day is the single largest batch the app ever produces.
+    mutationFn: async (input: {
+      arcId: string;
+      goalIds: string[];
+      dayKey: string;
+    }): Promise<string[]> => {
+      if (input.goalIds.length === 0) return [];
       const now = new Date().toISOString();
+      const touched: string[] = [];
 
       const already = await db
         .select()
@@ -290,23 +308,29 @@ export function useLogEverything() {
             .update(entries)
             .set({ skipped: false, skipReason: null, loggedAt: now, updatedAt: now })
             .where(eq(entries.id, skippedRow.id));
+          touched.push(skippedRow.id);
           continue;
         }
+        const id = newId();
         await db.insert(entries).values({
-          id: newId(),
+          id,
           goalId,
           dayKey: input.dayKey,
           loggedAt: now,
         });
+        touched.push(id);
       }
+      return touched;
     },
     onMutate: () => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     },
-    onSettled: (_r, _e, input) => {
+    onSettled: (touched, err, input) => {
       qc.invalidateQueries({ queryKey: ['today'] });
       qc.invalidateQueries({ queryKey: ['entries'] });
       qc.invalidateQueries({ queryKey: qk.goals(input.arcId) });
+
+      if (!err && touched) for (const id of touched) enqueueUpsert('entries', id);
     },
   });
 }

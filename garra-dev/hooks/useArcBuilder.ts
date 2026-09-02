@@ -11,6 +11,7 @@ import { qk } from '@/lib/queryKeys';
 import { loadCheck } from '@/lib/derive/load';
 import { cadenceForGoal } from '@/lib/derive/cadence';
 import { nextUnusedAccent } from '@/lib/accents';
+import { enqueueUpsert } from '@/lib/sync/outbox';
 
 // All facets of the same in-progress-draft concern — one file because they're tightly coupled,
 // not a god hook: each export below is still single-purpose (04-hooks.md §1/§5).
@@ -120,7 +121,14 @@ export function useSetArcWindow() {
     onError: (_err, _input, context) => {
       if (context?.previous !== undefined) qc.setQueryData(qk.draftArc, context.previous);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: qk.draftArc }),
+    onSettled: (id, err) => {
+      qc.invalidateQueries({ queryKey: qk.draftArc });
+
+      // A draft arc is enqueued like any other row. Nothing leaves the device during onboarding
+      // anyway — there is no session yet, so the drain no-ops and the queue simply accumulates
+      // until first sign-in. That accumulation *is* the local-to-remote upsert (rules/05 §5).
+      if (!err && id) enqueueUpsert('arcs', id);
+    },
   });
 }
 
@@ -166,7 +174,9 @@ export function useAddGoalToDraft() {
         .from(goals)
         .where(and(eq(goals.arcId, input.arcId), eq(goals.title, input.title)))
         .limit(1);
-      if (duplicate[0]) return duplicate[0].id;
+      // No checkpoints reported: this path wrote nothing, so re-enqueueing the goal is harmless
+      // but its checkpoints already exist and were enqueued by the call that created them.
+      if (duplicate[0]) return { goalId: duplicate[0].id, checkpointIds: [] as string[] };
 
       const existing = await db.select().from(goals).where(eq(goals.arcId, input.arcId));
       const accent = input.accent ?? nextUnusedAccent(existing.map((g) => g.accent));
@@ -203,20 +213,35 @@ export function useAddGoalToDraft() {
         endsAt: input.endsAt ?? null,
       });
 
+      // Collected so onSettled can enqueue each one. A Milestone goal is nothing but its
+      // checkpoints (05-database.md §1) — syncing the goal without them would push an empty
+      // shell, which is worse than pushing nothing.
+      const checkpointIds: string[] = [];
       if (input.checkpoints?.length) {
         for (let position = 0; position < input.checkpoints.length; position++) {
+          const checkpointId = newId();
           await db.insert(checkpoints).values({
-            id: newId(),
+            id: checkpointId,
             goalId: id,
             title: input.checkpoints[position]!.title,
             position,
           });
+          checkpointIds.push(checkpointId);
         }
       }
 
-      return id;
+      return { goalId: id, checkpointIds };
     },
-    onSettled: (_id, _err, input) => qc.invalidateQueries({ queryKey: qk.goals(input.arcId) }),
+    onSettled: (result, err, input) => {
+      qc.invalidateQueries({ queryKey: qk.goals(input.arcId) });
+
+      if (!err && result) {
+        enqueueUpsert('goals', result.goalId);
+        for (const checkpointId of result.checkpointIds) {
+          enqueueUpsert('checkpoints', checkpointId);
+        }
+      }
+    },
   });
 }
 
@@ -251,17 +276,20 @@ export function useDraftLoadCheck(arcId: string | undefined) {
 export function useActivateArc() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async () => {
+    mutationFn: async (): Promise<string | undefined> => {
       const draft = await selectArcByStatus('draft');
-      if (!draft) return;
+      if (!draft) return undefined;
       await db
         .update(arcs)
         .set({ status: 'active', updatedAt: nowIso() })
         .where(eq(arcs.id, draft.id));
+      return draft.id;
     },
-    onSettled: () => {
+    onSettled: (arcId, err) => {
       qc.invalidateQueries({ queryKey: qk.draftArc });
       qc.invalidateQueries({ queryKey: qk.activeArc });
+
+      if (!err && arcId) enqueueUpsert('arcs', arcId);
     },
   });
 }

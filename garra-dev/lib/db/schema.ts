@@ -162,6 +162,30 @@ export const localProfile = sqliteTable('local_profile', {
     .default(sql`(current_timestamp)`),
 });
 
+// Local only. The sync watermark could live in MMKV, but `lastError` wants to survive a cache
+// clear — a sync that has been failing for three days is the one thing in this table a human
+// might need to read. One row, id fixed to 'singleton'.
+//
+// There is deliberately NO local `synced_at` mirroring the remote column: it is server-owned
+// (see 10-auth-and-sync.md, "The defect that has to be fixed first"), and a local copy would
+// invite someone to read it as truth. The watermark below is the only place it lands.
+export const syncState = sqliteTable('sync_state', {
+  id: text('id').primaryKey(),
+  // null = signed out. A mismatch against the current session means a *different* account is
+  // signing in on this device, which must not merge the two datasets — see §8.4.
+  userId: text('user_id'),
+  // ISO-8601. Max remote `synced_at` seen across all tables in the last fully clean cycle.
+  watermark: text('watermark'),
+  lastSyncedAt: text('last_synced_at'),
+  lastError: text('last_error'),
+  createdAt: text('created_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+  updatedAt: text('updated_at')
+    .notNull()
+    .default(sql`(current_timestamp)`),
+});
+
 export const syncQueue = sqliteTable('sync_queue', {
   id: text('id').primaryKey(),
   tableName: text('table_name').notNull(),

@@ -16,6 +16,7 @@ import { cumulativeSeries, weekBars, type WeekBarState } from '@/lib/derive/seri
 import { mosaicCells, type MosaicCellState } from '@/lib/derive/mosaic';
 import { shouldOfferRescope, suggestedTarget } from '@/lib/derive/rescope';
 import { pace, type PaceStatus } from '@/lib/derive/pace';
+import { enqueueUpsert } from '@/lib/sync/outbox';
 import { useActiveArc } from './useArcBuilder';
 import { useNow } from './useNow';
 
@@ -334,10 +335,12 @@ export function useSetGoalStatus() {
         .set({ status: input.status, updatedAt: nowIso() })
         .where(eq(goals.id, input.goalId));
     },
-    onSettled: (_r, _e, input) => {
+    onSettled: (_r, err, input) => {
       qc.invalidateQueries({ queryKey: ['goal', input.goalId] });
       qc.invalidateQueries({ queryKey: qk.goals(input.arcId) });
       qc.invalidateQueries({ queryKey: ['today'] });
+
+      if (!err) enqueueUpsert('goals', input.goalId);
     },
   });
 }
@@ -355,10 +358,12 @@ export function useHitCheckpoint() {
     onMutate: () => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     },
-    onSettled: (_r, _e, input) => {
+    onSettled: (_r, err, input) => {
       qc.invalidateQueries({ queryKey: qk.checkpoints(input.goalId) });
       qc.invalidateQueries({ queryKey: ['goal', input.goalId] });
       qc.invalidateQueries({ queryKey: ['today'] });
+
+      if (!err) enqueueUpsert('checkpoints', input.checkpointId);
     },
   });
 }
@@ -408,10 +413,12 @@ export function useUpdateGoal() {
         .set({ ...fields, updatedAt: nowIso() })
         .where(eq(goals.id, goalId));
     },
-    onSettled: (_r, _e, input) => {
+    onSettled: (_r, err, input) => {
       qc.invalidateQueries({ queryKey: ['goal', input.goalId] });
       qc.invalidateQueries({ queryKey: qk.goals(input.arcId) });
       qc.invalidateQueries({ queryKey: ['today'] });
+
+      if (!err) enqueueUpsert('goals', input.goalId);
     },
   });
 }
@@ -430,25 +437,37 @@ export function useRescopeGoal() {
       fromTarget: number;
       toTarget: number;
       reason?: string;
-    }) => {
+    }): Promise<string> => {
+      const rescopeId = newId();
       await db.transaction(async (tx) => {
         await tx
           .update(goals)
           .set({ targetAmount: input.toTarget, updatedAt: nowIso() })
           .where(eq(goals.id, input.goalId));
         await tx.insert(rescopes).values({
-          id: newId(),
+          id: rescopeId,
           goalId: input.goalId,
           fromTarget: input.fromTarget,
           toTarget: input.toTarget,
           reason: input.reason ?? null,
         });
       });
+      // Returned so the outbox can enqueue the audit row too. Generated outside the transaction
+      // rather than inside so it's still in scope after the commit.
+      return rescopeId;
     },
-    onSettled: (_r, _e, input) => {
+    onSettled: (rescopeId, err, input) => {
       qc.invalidateQueries({ queryKey: ['goal', input.goalId] });
       qc.invalidateQueries({ queryKey: qk.goals(input.arcId) });
       qc.invalidateQueries({ queryKey: ['today'] });
+
+      // Both rows, or the remote history would show a changed target with no rescope explaining
+      // it — exactly the lie this mutation's transaction exists to prevent, reintroduced at the
+      // sync layer.
+      if (!err && rescopeId) {
+        enqueueUpsert('goals', input.goalId);
+        enqueueUpsert('rescopes', rescopeId);
+      }
     },
   });
 }

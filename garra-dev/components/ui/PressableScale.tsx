@@ -25,6 +25,7 @@ export function PressableScale({
   children,
   onPressIn,
   onPressOut,
+  disabled,
   ...props
 }: PressableScaleProps) {
   const pressed = useSharedValue(0);
@@ -33,15 +34,22 @@ export function PressableScale({
     transform: [{ scale: 1 - pressed.value * (1 - motion.pressScale) }],
   }));
 
+  // A disabled surface must not spring. RN's Pressable already suppresses press events when
+  // disabled, so this is belt-and-braces — but the press scale is precisely the signal that says
+  // "received", and a control that flexes while doing nothing is a worse lie than one that
+  // doesn't move at all.
+  const animate = scaleOnPress && !disabled;
+
   return (
     <AnimatedPressable
       {...props}
+      disabled={disabled}
       onPressIn={(event) => {
-        if (scaleOnPress) pressed.value = withSpring(1, spring.press);
+        if (animate) pressed.value = withSpring(1, spring.press);
         onPressIn?.(event);
       }}
       onPressOut={(event) => {
-        if (scaleOnPress) pressed.value = withSpring(0, spring.press);
+        if (animate) pressed.value = withSpring(0, spring.press);
         onPressOut?.(event);
       }}
       style={[style, animatedStyle]}

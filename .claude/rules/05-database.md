@@ -35,13 +35,38 @@ genuinely confusing thing to debug from the client. **Verify the column list aga
 this doc alone.
 
 **`updated_at` IS required on every table here.** Sibling projects omit it; Garra needs it
-because last-write-wins sync is impossible without it. Wire a trigger, don't set it from the
-client:
+because last-write-wins sync is impossible without it.
+
+⚠️ **`updated_at` is client-authoritative. Never put a trigger on it.** This rule said the
+opposite until Phase 8, and the trigger it prescribed **inverted LWW**:
+
+```
+10:00  Device A edits a goal offline.          A.updated_at = 10:00
+10:02  Device B edits it, pushes.              remote.updated_at = 10:02
+10:30  A comes online and pushes its OLDER row → trigger stamps 10:30
+10:31  B pulls, sees 10:30 > 10:02, and discards its own newer edit.
+```
+
+The stale device wins and the fresher edit is destroyed — and for a phone that was in a gym
+with no signal, that's the *normal* path, not a rare race. Two columns, two owners:
+
+| Column | Owner | Purpose |
+|---|---|---|
+| `updated_at` | the **client**, sent explicitly on every write | LWW conflict resolution |
+| `synced_at` | the **server**, `DEFAULT now()` + trigger | the pull watermark |
 
 ```sql
-CREATE TRIGGER set_updated_at BEFORE UPDATE ON [table]
-  FOR EACH ROW EXECUTE FUNCTION moddatetime(updated_at);
+-- synced_at, NOT updated_at
+CREATE TRIGGER set_synced_at BEFORE UPDATE ON [table]
+  FOR EACH ROW EXECUTE FUNCTION moddatetime(synced_at);
 ```
+
+A server-owned watermark is also the only sound one: if the watermark read a client-supplied
+timestamp, a device with a slow clock could write rows stamped *older* than the watermark and
+they would never be pulled. `synced_at` is local-only-absent — it never enters SQLite, because
+a local copy would invite someone to read it as truth.
+
+Applied in `10-auth-and-sync.md` §8.0, which holds the full SQL.
 
 ### Key columns by table
 

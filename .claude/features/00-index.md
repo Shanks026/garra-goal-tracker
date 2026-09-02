@@ -104,13 +104,13 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 | 5.5 | Motion & feel | `07-motion-and-feel.md` | ✅ Built, statically verified — on-device pass deferred to end of Phase 7 |
 | 6 | Goal detail | `08-goal-detail.md` | ✅ Built, statically verified (181 tests) — on-device pass deferred to end of Phase 7 |
 | 7 | The Arc tab | `09-arc-tab.md` | ✅ Built, statically verified (209 tests) — on-device pass pending |
-| 8 | Auth & sync | — | ⬜ |
+| 8 | Auth & sync | `10-auth-and-sync.md` | ✅ 8.0–8.5 built, statically verified (251 tests) — on-device pass pending · 🔒 8.6 (Google/Apple OAuth) on hold by user decision |
 | 9 | Sunday Reset & notifications | — | ⬜ |
 | 10 | The Finale | — | ⬜ |
 | 11 | Monetization | — | ⬜ |
 | 12 | Polish & ship | — | ⬜ |
 
-Next available feature-doc number: **10**
+Next available feature-doc number: **11**
 
 ---
 
@@ -124,9 +124,20 @@ target table differ, so it's stated once instead of six times:
 > `CREATE POLICY "Users manage own [table]" ON [table] FOR ALL`
 > `USING ((select auth.uid()) = user_id) WITH CHECK ((select auth.uid()) = user_id);`
 >
-> Plus a `moddatetime` trigger on `updated_at`, and the standard columns
-> (`id uuid PK default gen_random_uuid()`, `user_id uuid default auth.uid()`,
-> `created_at`/`updated_at timestamptz default now()`) on every table.
+> Plus a `moddatetime` trigger on **`synced_at`** (⚠️ *not* `updated_at` — see below), and the
+> standard columns (`id uuid PK default gen_random_uuid()`, `user_id uuid default auth.uid()`,
+> `created_at`/`updated_at`/`synced_at timestamptz default now()`) on every table.
+
+**Two timestamps, two owners** (Phase 8.0, `10-auth-and-sync.md`). This is load-bearing:
+
+| Column | Owner | Purpose |
+|---|---|---|
+| `updated_at` | the **client**, sent explicitly on every write, **no trigger** | last-write-wins conflict resolution |
+| `synced_at` | the **server**, `DEFAULT now()` + `moddatetime` trigger, never sent by a client | the pull watermark |
+
+Until Phase 8.0 the trigger targeted `updated_at`, which **inverted LWW** — a device pushing a
+stale row had its timestamp rewritten to `now()`, so the stale edit looked newest and destroyed
+the fresher one on the other device. `synced_at` exists remotely only; it never enters SQLite.
 
 ### arcs
 | Column | Type | Notes |
@@ -198,33 +209,52 @@ Indexes: none beyond PK.
 Indexes: none beyond PK.
 
 ### Local-only tables (in SQLite, never mirrored remotely)
-- `sync_queue` — the Phase 8 outbox: `table_name`, `row_id`, `op`, `payload jsonb`, `attempts`,
-  `last_error`. Nothing writes to it yet.
+- `sync_queue` — the outbox: `table_name`, `row_id`, `op`, `payload jsonb`, `attempts`,
+  `last_error`. **Written by all nine mutations as of Phase 8.2** (it had zero writers from
+  Phase 1 until then, so every row created in Phases 4–7 was invisible to sync). Rows store
+  `(table, row_id, op)` only — the drain re-reads the row fresh, which is what makes replay
+  idempotent; `payload` holds `{}`.
+- `sync_state` — one row, `id` fixed to `'singleton'`: `user_id`, `watermark`, `last_synced_at`,
+  `last_error`. Added Phase 8.0. In SQLite rather than MMKV because `last_error` should survive
+  a cache clear.
 - `local_profile` — one row, `id` fixed to `'local'`, plus `name`. Holds the display name
-  captured in onboarding until Phase 8's real `profiles` table exists. Added Phase 4.1; it was
-  missing from this reference entirely until the Phase 5 audit caught it.
+  captured in onboarding; mirrored up to `profiles` on first sign-in (Phase 8.4). Added Phase
+  4.1; it was missing from this reference entirely until the Phase 5 audit caught it.
 
-### Not yet created
-- `profiles` (remote-only) — shape unknown until Phase 8 (auth) actually needs it.
+### `profiles` (remote-only) — created Phase 8.0
+`id uuid PK references auth.users(id) on delete cascade`, `name text not null`,
+`created_at`/`updated_at`/`synced_at`. **Keyed on `id`, not a separate `user_id`** — it is 1:1
+with `auth.users` — so its RLS policy is `(select auth.uid()) = id` in both clauses. Not one of
+the synced tables and has no outbox entry; `pushProfileName()` upserts it directly.
 
 ### Local ↔ remote divergences (all deliberate, all recorded)
 1. `goals.days_of_week` / `goals.quick_add` are JSON-mode `text` locally vs native Postgres
    arrays remotely — SQLite has no array type.
 2. Locally generated ids come from `expo-crypto`'s `Crypto.randomUUID()`; remote defaults to
    `gen_random_uuid()`.
-3. `created_at`/`updated_at` are TEXT locally (`(current_timestamp)`, UTC
-   `'YYYY-MM-DD HH:MM:SS'`) vs `timestamptz` remotely. **There is no local `moddatetime`
-   trigger**, so every local `db.update()` sets `updatedAt` by hand — Phase 5.0 fixed the
-   mutations that weren't (a frozen `updated_at` makes last-write-wins sync impossible).
+3. `created_at`/`updated_at` are TEXT locally vs `timestamptz` remotely, and **locally they
+   carry two different formats**: every `db.insert()` omits `updated_at` and takes SQLite's
+   `(current_timestamp)` → `'2026-09-02 14:33:01'` (UTC, zone-less, space-separated), while
+   every `db.update()` sets it via `toISOString()` → `'2026-09-02T14:33:01.123Z'`. Both break
+   naive comparison — `' '` (0x20) sorts before `'T'` (0x54), and `new Date('… 14:33:01')` is
+   parsed as *local* time by JS. **Everything goes through `parseTimestamp()` in
+   `lib/sync/mapping.ts`**; never compare these as strings and never hand one to `new Date()`
+   directly. There is no local `moddatetime` trigger, so every `db.update()` must set
+   `updatedAt` by hand (Phase 5.0 fixed the mutations that didn't).
+5. `synced_at` exists **remotely only** — server-owned, and a local copy would invite someone to
+   read it as truth. The pull watermark lives in `sync_state.watermark` instead.
 4. `ON DELETE CASCADE` now exists on every child FK on **both** sides (Phase 5.0 — local FKs
    were `no action`), and `lib/db/client.ts`'s `enableForeignKeys()` turns on SQLite's
    per-connection enforcement **after** migrations run, since Drizzle's table-recreate
    migrations must not execute with enforcement on.
 
 ### Known advisor notes (non-blocking, Phase 1.5)
-- A pre-existing `public.rls_auto_enable()` function (not created by any migration here) is
-  flagged as `SECURITY DEFINER`-callable by `anon`/`authenticated`. Not investigated — revisit
-  at Phase 12 (Settings/security pass) or sooner if it matters for Phase 8 auth.
+- ~~A pre-existing `public.rls_auto_enable()` function flagged `SECURITY DEFINER`-callable by
+  `anon`/`authenticated`.~~ **Investigated and closed at Phase 8.5: not exploitable.** It
+  `RETURNS event_trigger`, a pseudo-type PostgREST cannot serialize, and its body calls
+  `pg_event_trigger_ddl_commands()`, which errors outside an event-trigger context — calling it
+  over REST returns `cannot display a value of type event_trigger`. It is Supabase-managed
+  infrastructure (it's what auto-enabled RLS on these tables), so it is left untouched.
 - Unindexed `user_id` FKs on every table, and the two goal/checkpoint indexes flagged "unused" —
   both expected on an empty schema with no query traffic yet. Not adding speculative indexes;
   revisit once real usage shows an actual slow query.
@@ -236,6 +266,7 @@ Indexes: none beyond PK.
 | 2026-09-01 | Phase 1.5, `02-foundation.md` | `create_arcs`, `create_goals`, `create_entries`, `create_checkpoints`, `create_rescopes`, `create_freezes` — full initial schema, RLS on all six |
 | 2026-09-01 | Phase 4.1, `05-onboarding-arc-creation.md` | `add_goals_title` — `goals.title text not null`, a Phase 1.5 omission (no table ever held a goal's display name) found while wiring the first real goal-creation mutation |
 | 2026-09-02 | Phase 5.0, `06-home-and-logging.md` | `add_goals_starts_at` — `goals.starts_at date` nullable. Locally the same migration (`0003`) also adds `rescopes.updated_at` and `ON DELETE CASCADE` to every child FK, both of which the remote schema already had. |
+| 2026-09-02 | Phase 8.0, `10-auth-and-sync.md` | `add_synced_at_and_profiles` — `synced_at timestamptz` on all six synced tables; `moddatetime` **retargeted** from `updated_at` to `synced_at` (the old trigger inverted LWW); `(user_id, synced_at)` watermark index per table; the `entries (goal_id, day_key) WHERE skipped = false` partial unique index, which had existed only in SQLite; and the `profiles` table with RLS. Locally, migration `0004` adds `sync_state` only. |
 
 ---
 
@@ -362,6 +393,32 @@ Full rationale and the two test-design bugs found while writing the original fiv
 `04-pace-engine.md`'s Implementation Notes. Suite-wide test count lives in the Phase status
 table's own notes rather than here, so it can't go stale again.
 
+### Sync & auth — `lib/sync/`, `lib/supabase.ts` (Phase 8)
+
+**The only place SQLite and Supabase meet is `lib/sync/engine.ts`.** A hook or component that
+imports `lib/supabase` is a bug — it's how local-first quietly becomes online-first
+(`rules/03` §2).
+
+- `tables.ts` — `SyncTable`, `SyncOp`, and `SYNC_TABLES` (push/pull order: parents before
+  children, because remote FKs are real). Types only, so the pure modules can import it.
+- `mapping.ts` — **pure.** Per-table field specs plus `toRemote`/`fromRemote`: camelCase ⇄
+  snake_case, JSON-text arrays ⇄ real arrays, `user_id` omitted on push (relies on
+  `DEFAULT auth.uid()`), `synced_at` stripped on pull, Postgres `numeric`-as-string coerced back
+  to a number. **`parseTimestamp()` lives here and is the only correct way to compare a local
+  timestamp** — see divergence #3.
+- `resolve.ts` — **pure.** The sync reducer: `collapseQueue()` (replay idempotency — repeated
+  upserts collapse to one, a later delete beats earlier upserts, a later upsert beats an earlier
+  delete), `resolveConflict()` (LWW on client `updated_at`), `nextWatermark()`.
+- `outbox.ts` — `enqueueUpsert`/`enqueueDelete` (fire-and-forget, never awaited, never throws),
+  `pendingRows`, `pendingCount`, `dequeue`, `dropQueuedFor`, `recordAttempt`.
+- `state.ts` — the `sync_state` singleton.
+- `engine.ts` — `syncNow()` (`pull → resolve → push`, mutex'd, never throws), `scheduleSync()`
+  (2s debounce), `pushProfileName()`. Triggered on boot, app foreground, sign-in, and a settled
+  mutation via `MutationCache.onSuccess` — **never on an interval.**
+- `lib/secureSessionStore.ts` — chunked `SecureStore` adapter. Sessions run 2–4 KB against
+  SecureStore's ~2048-byte ceiling, and an oversized Android write *warns rather than throws*,
+  so the failure mode without this is a user silently signed out on every cold start.
+
 ### Hooks — `hooks/`
 `useSheetBackHandler` (Phase 2.5) — wires `BackHandler` to a `BottomSheetModal` ref so Android
 back dismisses the sheet instead of falling through to expo-router and exiting the app. Every
@@ -373,6 +430,14 @@ in-progress-draft-arc concern: `useDraftArc`/`useActiveArc`/`useGoalsForArc` (qu
 `useSetArcWindow`/`useAddGoalToDraft`/`useActivateArc` (mutation), `useDraftLoadCheck` (query,
 wires real goal rows to Phase 3's `loadCheck()`). Every mutation writes SQLite directly and
 invalidates by prefix — none touch Supabase (Phase 8 territory).
+
+`useAuth.ts` / `useSignIn.ts` / `useSyncStatus.ts` (Phase 8.4–8.5) — `useAuth` exposes the
+session (`undefined` while the keychain read is still in flight, so Settings doesn't flash "Sign
+in" at someone already signed in). `useSendCode`/`useVerifyCode` are the **email-OTP** path —
+six-digit code, not a magic link, so no redirect-URL allowlisting and no deep-link handler is
+needed. `useVerifyCode` also refuses a *different* account on a device that already holds data,
+mirrors `local_profile.name` to `profiles`, and triggers the first (push-only) sync.
+`useSignOut` clears the session and `sync_state` and **leaves every SQLite row alone.**
 
 `useNow.ts` (Phase 5.1) — the app's clock, per `04-hooks.md` §4: ticks on mount, on app
 foreground, and at the next 04:00 rollover in the *arc's* timezone. One re-armed timeout, never
@@ -508,6 +573,32 @@ feature doc at the same time.
 - [ ] The momentum headline matches the curve's last point
 - [ ] The pace summary matches Home's rows exactly for the same goals
 
+### Phase 8 — auth & sync (`10-auth-and-sync.md`)
+Needs **two devices and two email accounts** for the full pass — the heaviest test setup of any
+phase so far.
+
+- [ ] Migration `0004` applies at boot (`sync_state` created)
+- [ ] A real OTP email arrives and verifies — note Supabase's built-in sender is rate-limited to
+      ~2–3/hour on the free tier, so don't burn attempts
+- [ ] **First sign-in pushes a local-only arc up** and does not pull first — build an arc with
+      "Keep it on this phone", then sign in, then confirm the rows in Supabase
+- [ ] **A second account sees nothing** (`IMPLEMENTATION.md` requires this explicitly). The
+      unauthenticated half is already verified: every table returns `[]` to a REST request
+      carrying only the publishable key
+- [ ] Signing in as a *different* account on a device that already holds data is refused with an
+      explanation, not merged
+- [ ] **Log offline on device A → sign in → it appears on device B** — the phase's real
+      done-condition
+- [ ] Then **kill the network and confirm the app is still fully usable** — the other half of it
+- [ ] Airplane mode: log, kill the app, relaunch, data survives, and no sync error surfaces
+      anywhere in the UI
+- [ ] A session survives a cold start — this is what proves the chunked SecureStore adapter
+      works on a real keychain; the unit tests only prove the chunking logic
+- [ ] Sign out, then confirm **every local row is still there**
+- [ ] Google and Apple buttons are visibly disabled and do nothing when pressed (§8.6 is on hold)
+- [ ] The Settings sync row reads sensibly through the states: not signed in → pending → synced
+- [ ] Both themes
+
 
 ## 7. Standing Rules Learned The Hard Way
 
@@ -642,3 +733,24 @@ Append whenever something breaks in a way a rule would have prevented, then prom
     checkpoint. Always read a recreate migration end to end, and keep `PRAGMA foreign_keys` off
     for the whole of it (`lib/db/client.ts`'s `enableForeignKeys()` is called after migrations
     finish, deliberately not at module load).
+
+22. **A `moddatetime` trigger on `updated_at` breaks last-write-wins sync.** `rules/05` §2 told
+    us to add one; it silently inverted every conflict, because a device pushing a *stale* row
+    got its timestamp rewritten to `now()` and therefore looked newest. The general lesson:
+    **when a column is used to decide a conflict, exactly one side may own it.** Splitting it
+    into a client-owned `updated_at` and a server-owned `synced_at` is what fixed it (Phase 8.0).
+    Both rules that referenced it were rewritten in the same commit.
+
+23. **Never compare two SQLite timestamps as strings, and never pass one to `new Date()`.**
+    `(current_timestamp)` yields `'2026-09-02 14:33:01'` — UTC, but zone-less and
+    space-separated — while `toISOString()` yields `'2026-09-02T14:33:01.123Z'`. Both formats
+    are in circulation locally, because inserts take the default and updates set it by hand.
+    String comparison puts every space-form value before every ISO one (`' '` 0x20 < `'T'`
+    0x54), and JS parses the space form as *local* time. Everything goes through
+    `parseTimestamp()` in `lib/sync/mapping.ts`.
+
+24. **A jest.mock() factory may not close over anything except `mock`-prefixed variables.**
+    Babel hoists the factory above the imports, so a plain `const store = new Map()` referenced
+    inside it fails with "The module factory of `jest.mock()` is not allowed to reference any
+    out-of-scope variables". Name it `mockStore`. (And when fixing it, don't `sed` the bare
+    word — it rewrote `expo-secure-store` into `expo-secure-mockStore`.)

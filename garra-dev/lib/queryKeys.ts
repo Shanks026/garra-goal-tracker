@@ -11,4 +11,6 @@ export const qk = {
   today: (arcId: string, dayKey: string) => ['today', arcId, dayKey] as const,
   checkpoints: (goalId: string) => ['checkpoints', goalId] as const,
   localProfile: ['localProfile'] as const,
+  /** Sync's own state — the one Settings row (rules/03 §2 lists sync status as query state). */
+  syncStatus: ['syncStatus'] as const,
 };

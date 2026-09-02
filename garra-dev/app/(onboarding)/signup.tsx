@@ -1,3 +1,4 @@
+import { useRef, useState } from 'react';
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,17 +8,24 @@ import { useActivateArc, useDraftArc } from '@/hooks/useArcBuilder';
 import { Mosaic } from '@/components/charts/Mosaic';
 import { Button } from '@/components/ui/Button';
 import { StepDots } from '@/components/ui/StepDots';
+import { Sheet, type SheetRef } from '@/sheets/Sheet';
+import { SignInSheetContent } from '@/sheets/SignInSheetContent';
 import { stepIndex, stepLabel, ONBOARDING_STEP_COUNT } from '@/lib/onboardingSteps';
 import { system } from '@/theme/tokens';
 
-// Screen 05. Supabase Auth doesn't exist until Phase 8 (IMPLEMENTATION.md's ordering is
-// deliberate), so every button here — the three auth CTAs and "Keep it on this phone" — does
-// the same thing for now: activate the local-only draft arc (feature doc gap #3). Only the
-// *handler* is unified; Phase 8 gives the auth buttons their real behavior.
+// Screen 05. Phase 4 wired all three auth CTAs to the same local-activation handler because auth
+// didn't exist yet; Phase 8 ends that shortcut.
+//
+// "Continue with email" now opens the real OTP sheet. Google and Apple are **on hold by user
+// decision** (10-auth-and-sync.md §8.6) and render disabled: they keep their place so the layout
+// is final, but pressing one must do *nothing* — silently activating a local arc from a button
+// labelled "Google" would be worse than the button being visibly unavailable.
 export default function SignUp() {
   const router = useRouter();
   const draftArc = useDraftArc();
   const activateArc = useActivateArc();
+  const sheetRef = useRef<SheetRef>(null);
+  const [sheetMounted, setSheetMounted] = useState(false);
 
   const cells =
     draftArc.data &&
@@ -38,7 +46,23 @@ export default function SignUp() {
       timezone: 'UTC',
     });
 
-  const onProceed = async () => {
+  // "Keep it on this phone" — unchanged from Phase 4, and it must stay that way. The arc goes
+  // live with no account and no network (IMPLEMENTATION.md: signing up is skippable by design).
+  const onSkip = async () => {
+    await activateArc.mutateAsync();
+    router.replace('/');
+  };
+
+  const onEmail = () => {
+    setSheetMounted(true);
+    requestAnimationFrame(() => sheetRef.current?.present());
+  };
+
+  // Sign-in succeeded: activate the arc and go home. The outbox already holds every row created
+  // during onboarding, and useVerifyCode's syncNow() pushed them — so this account now owns the
+  // arc that was built before it existed.
+  const onSignedIn = async () => {
+    sheetRef.current?.dismiss();
     await activateArc.mutateAsync();
     router.replace('/');
   };
@@ -74,19 +98,25 @@ export default function SignUp() {
         <StepDots total={ONBOARDING_STEP_COUNT} current={stepIndex('signup')} />
         <Button
           title="Continue with email"
-          onPress={onProceed}
+          onPress={onEmail}
           style={{ width: '100%', flexDirection: 'row', gap: 9 }}
         />
         <View className="flex-row gap-2.5" style={{ width: '100%' }}>
-          <Button title="Google" variant="outline" onPress={onProceed} style={{ flex: 1 }} />
-          <Button title="Apple" variant="outline" onPress={onProceed} style={{ flex: 1 }} />
+          <Button title="Google" variant="outline" disabled style={{ flex: 1 }} />
+          <Button title="Apple" variant="outline" disabled style={{ flex: 1 }} />
         </View>
-        <Pressable onPress={onProceed} hitSlop={8}>
+        <Pressable onPress={onSkip} hitSlop={8}>
           <Text className="text-[15px] text-text-tertiary dark:text-text-tertiary-dark">
             Keep it on this phone
           </Text>
         </Pressable>
       </View>
+
+      {sheetMounted ? (
+        <Sheet ref={sheetRef} snapPoints={['62%']}>
+          <SignInSheetContent onDone={onSignedIn} />
+        </Sheet>
+      ) : null}
     </SafeAreaView>
   );
 }

@@ -5,13 +5,16 @@ import m0000 from './0000_mean_loners.sql';
 import m0001 from './0001_bouncy_starhawk.sql';
 import m0002 from './0002_wide_misty_knight.sql';
 import m0003 from './0003_great_captain_britain.sql';
+import m0004 from './0004_eminent_goblin_queen.sql';
 
-export default {
-  journal,
-  migrations: {
-    m0000,
-    m0001,
-    m0002,
-    m0003,
-  },
-};
+  export default {
+    journal,
+    migrations: {
+      m0000,
+m0001,
+m0002,
+m0003,
+m0004
+    }
+  }
+  

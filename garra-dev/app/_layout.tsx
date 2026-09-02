@@ -1,11 +1,11 @@
 import '../global.css';
 
 import { useEffect } from 'react';
-import { Text, View } from 'react-native';
+import { AppState, Text, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
-import { QueryClient } from '@tanstack/react-query';
+import { MutationCache, QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -15,12 +15,20 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { db, enableForeignKeys } from '../lib/db/client';
 import migrations from '../lib/db/migrations/migrations';
 import { mmkvPersister } from '../lib/queryPersister';
+import { startSessionAutoRefresh } from '../lib/supabase';
+import { scheduleSync, syncNow } from '../lib/sync/engine';
 import { LogSheetHost } from '../sheets/LogSheetHost';
 
 // SQLite is local, and the only thing that changes data is the user (03-state-and-data.md §3) —
 // a generous staleTime is correct here, not a bug. Refetch happens on invalidation, not polling.
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: Infinity } },
+  // One place instead of nine `onSettled` edits: every mutation in the app already enqueues to
+  // the outbox, so all this needs to do is ask for a drain. Debounced inside scheduleSync, and
+  // nothing awaits it — the mutation is already complete by the time this runs.
+  mutationCache: new MutationCache({
+    onSuccess: () => scheduleSync(),
+  }),
 });
 
 // Never let a missing/misconfigured DSN block boot — Sentry is diagnostics, not a dependency.
@@ -47,6 +55,35 @@ export default function RootLayout() {
       enableForeignKeys();
     }
   }, [success, error]);
+
+  useEffect(() => {
+    // Only after migrations: `sync_state` doesn't exist before 0004 has run, and a sync that
+    // can't read its own watermark would push against a null one.
+    if (!success) return;
+
+    const stopAutoRefresh = startSessionAutoRefresh();
+
+    // A pull that overwrote local rows has to reach the UI, or the screen shows data the
+    // database no longer holds until something else happens to invalidate it.
+    const syncAndRefresh = () =>
+      void syncNow().then((result) => {
+        if (result.changedLocally) queryClient.invalidateQueries();
+      });
+
+    // Sync triggers are: boot, app foreground, sign-in, and a settled mutation — never an
+    // interval (rules/03 §3). syncNow() is a no-op while signed out and holds a mutex, so a
+    // foreground landing on top of a boot sync can't double-drain.
+    syncAndRefresh();
+
+    const subscription = AppState.addEventListener('change', (status) => {
+      if (status === 'active') syncAndRefresh();
+    });
+
+    return () => {
+      stopAutoRefresh();
+      subscription.remove();
+    };
+  }, [success]);
 
   if (error) {
     // No design for this state yet (01-design-system.md §9 doesn't cover it either) — a

@@ -24,11 +24,22 @@ const VARIANT_CLASSES = {
   },
 } as const;
 
-export function Button({ title, variant = 'primary', style, ...props }: ButtonProps) {
-  const classes = VARIANT_CLASSES[variant];
+// A disabled button keeps its shape and loses its weight. `textQuaternary` is the token rules/01
+// §1 already annotates "captions, disabled", so this needs no new value — and deliberately no
+// new color: a held capability is not a warning state.
+const DISABLED_CLASSES = {
+  container: 'border border-border dark:border-border-dark',
+  label: 'text-text-quaternary dark:text-text-quaternary-dark',
+} as const;
+
+export function Button({ title, variant = 'primary', style, disabled, ...props }: ButtonProps) {
+  const classes = disabled ? DISABLED_CLASSES : VARIANT_CLASSES[variant];
   return (
     <PressableScale
       accessibilityRole="button"
+      // Without this, VoiceOver announces an ordinary button that silently does nothing.
+      accessibilityState={{ disabled: !!disabled }}
+      disabled={disabled}
       className={`h-button-primary-h items-center justify-center rounded-button-lg px-6 ${classes.container}`}
       style={style}
       {...props}
