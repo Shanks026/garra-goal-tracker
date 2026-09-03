@@ -29,11 +29,11 @@ export function YesterdayRow({
         <Text className="text-[13px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
           {copy.home.yesterday}
         </Text>
-        <Text className="text-[14px] text-text-tertiary dark:text-text-tertiary-dark">
+        <Text className="font-body text-[14px] text-text-tertiary dark:text-text-tertiary-dark">
           {unloggedCount} unlogged
         </Text>
       </View>
-      <Text className="text-[14px] text-text-secondary dark:text-text-secondary-dark">
+      <Text className="font-body text-[14px] text-text-secondary dark:text-text-secondary-dark">
         Backfill
       </Text>
     </Pressable>

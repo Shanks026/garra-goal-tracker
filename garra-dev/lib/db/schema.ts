@@ -9,6 +9,9 @@ import { integer, real, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlit
 export const arcs = sqliteTable('arcs', {
   id: text('id').primaryKey(),
   title: text('title').notNull(),
+  // Nullable: the arc-creation screen asks for it but never requires it. A mandatory
+  // description on the commitment screen is friction, and the product spec never asked for one.
+  description: text('description'),
   startsAt: text('starts_at').notNull(), // date, 'YYYY-MM-DD'
   endsAt: text('ends_at').notNull(),
   status: text('status', { enum: ['draft', 'active', 'archived'] })

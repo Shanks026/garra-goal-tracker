@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+// no local state needed — the auth screen is a route now, not a sheet
 import { useRouter } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,10 +8,9 @@ import { useActivateArc, useDraftArc } from '@/hooks/useArcBuilder';
 import { Mosaic } from '@/components/charts/Mosaic';
 import { Button } from '@/components/ui/Button';
 import { StepDots } from '@/components/ui/StepDots';
-import { Sheet, type SheetRef } from '@/sheets/Sheet';
-import { SignInSheetContent } from '@/sheets/SignInSheetContent';
-import { stepIndex, stepLabel, ONBOARDING_STEP_COUNT } from '@/lib/onboardingSteps';
+import { stepIndex, ONBOARDING_STEP_COUNT } from '@/lib/onboardingSteps';
 import { system } from '@/theme/tokens';
+import { fontFor } from '@/theme/fonts';
 
 // Screen 05. Phase 4 wired all three auth CTAs to the same local-activation handler because auth
 // didn't exist yet; Phase 8 ends that shortcut.
@@ -24,8 +23,6 @@ export default function SignUp() {
   const router = useRouter();
   const draftArc = useDraftArc();
   const activateArc = useActivateArc();
-  const sheetRef = useRef<SheetRef>(null);
-  const [sheetMounted, setSheetMounted] = useState(false);
 
   const cells =
     draftArc.data &&
@@ -46,41 +43,42 @@ export default function SignUp() {
       timezone: 'UTC',
     });
 
+  /**
+   * Goes to the Today tab **directly**, not via `/`.
+   *
+   * Routing through the cold-start router was the bug that made onboarding appear to dead-end:
+   * `index.tsx` re-derives the destination from `useDraftArc`/`useActiveArc`, and with
+   * `staleTime: Infinity` those served the pre-activation cache — so it still saw a draft arc
+   * and sent the user to `/arc-builder/load-check`, which then rendered `0h` because the draft
+   * was gone. You'd land back on the load check with no way forward.
+   *
+   * This screen already knows the arc was just activated, so it doesn't need anything re-derived.
+   */
+  const goHome = () => router.navigate('/(tabs)');
+
   // "Keep it on this phone" — unchanged from Phase 4, and it must stay that way. The arc goes
   // live with no account and no network (IMPLEMENTATION.md: signing up is skippable by design).
   const onSkip = async () => {
     await activateArc.mutateAsync();
-    router.replace('/');
+    goHome();
   };
 
-  const onEmail = () => {
-    setSheetMounted(true);
-    requestAnimationFrame(() => sheetRef.current?.present());
-  };
+  // Pushes the real auth screen. It used to open a bottom sheet; four fields and two modes
+  // is a screen, not a sheet (rules/02 §3).
+  const onEmail = () => router.push({ pathname: '/auth', params: { mode: 'signup' } });
 
-  // Sign-in succeeded: activate the arc and go home. The outbox already holds every row created
-  // during onboarding, and useVerifyCode's syncNow() pushed them — so this account now owns the
-  // arc that was built before it existed.
-  const onSignedIn = async () => {
-    sheetRef.current?.dismiss();
-    await activateArc.mutateAsync();
-    router.replace('/');
-  };
 
   return (
     <SafeAreaView className="flex-1 bg-bg px-7 dark:bg-bg-dark">
       <View className="flex-1 justify-center gap-10">
         <View className="gap-3">
-          <Text className="text-[11px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
-            {stepLabel('signup')}
-          </Text>
           <Text
             className="text-text-primary dark:text-text-primary-dark"
-            style={{ fontSize: 30, fontWeight: '600', letterSpacing: -0.9, lineHeight: 36 }}
+            style={{ fontSize: 38, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -1.33, lineHeight: 42 }}
           >
             Right now, this arc lives on one phone.
           </Text>
-          <Text className="text-[16px] leading-6 text-text-secondary dark:text-text-secondary-dark">
+          <Text className="font-body text-[16px] leading-6 text-text-secondary dark:text-text-secondary-dark">
             Lose it and this run&apos;s history goes with it. An account keeps the run — and the
             Finale at the end of it.
           </Text>
@@ -88,13 +86,13 @@ export default function SignUp() {
 
         <View className="gap-3">
           {cells ? <Mosaic cells={cells} accent={system.arc} columns={14} width={342} /> : null}
-          <Text className="text-[13px] text-text-quaternary dark:text-text-quaternary-dark">
+          <Text className="font-body text-[13px] text-text-quaternary dark:text-text-quaternary-dark">
             Saved on device only
           </Text>
         </View>
       </View>
 
-      <View className="items-center gap-3 pb-3">
+      <View className="items-center gap-3 pb-screen-bottom">
         <StepDots total={ONBOARDING_STEP_COUNT} current={stepIndex('signup')} />
         <Button
           title="Continue with email"
@@ -106,17 +104,12 @@ export default function SignUp() {
           <Button title="Apple" variant="outline" disabled style={{ flex: 1 }} />
         </View>
         <Pressable onPress={onSkip} hitSlop={8}>
-          <Text className="text-[15px] text-text-tertiary dark:text-text-tertiary-dark">
+          <Text className="font-body text-[15px] text-text-tertiary dark:text-text-tertiary-dark">
             Keep it on this phone
           </Text>
         </Pressable>
       </View>
 
-      {sheetMounted ? (
-        <Sheet ref={sheetRef} snapPoints={['62%']}>
-          <SignInSheetContent onDone={onSignedIn} />
-        </Sheet>
-      ) : null}
     </SafeAreaView>
   );
 }

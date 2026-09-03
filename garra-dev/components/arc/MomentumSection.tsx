@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 
 import { Momentum } from '@/components/charts/Momentum';
+import { fontFor } from '@/theme/fonts';
 
 // Screen 15's MOMENTUM section: the headline % beside its explanation, then the curve.
 export function MomentumSection({
@@ -22,7 +23,7 @@ export function MomentumSection({
           className="text-text-primary dark:text-text-primary-dark"
           style={{
             fontSize: 34,
-            fontWeight: '600',
+            fontFamily: fontFor(600, 'display'), fontWeight: '600',
             letterSpacing: -1.19,
             lineHeight: 37,
             fontVariant: ['tabular-nums'],
@@ -31,7 +32,7 @@ export function MomentumSection({
           {percent}%
         </Text>
         <Text
-          className="text-[14px] text-text-secondary dark:text-text-secondary-dark"
+          className="font-body text-[14px] text-text-secondary dark:text-text-secondary-dark"
           style={{ paddingBottom: 8 }}
         >
           7-day completion

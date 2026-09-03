@@ -6,6 +6,7 @@ import m0001 from './0001_bouncy_starhawk.sql';
 import m0002 from './0002_wide_misty_knight.sql';
 import m0003 from './0003_great_captain_britain.sql';
 import m0004 from './0004_eminent_goblin_queen.sql';
+import m0005 from './0005_concerned_flatman.sql';
 
   export default {
     journal,
@@ -14,7 +15,8 @@ import m0004 from './0004_eminent_goblin_queen.sql';
 m0001,
 m0002,
 m0003,
-m0004
+m0004,
+m0005
     }
   }
   

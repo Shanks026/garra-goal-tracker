@@ -112,6 +112,15 @@ Expo · React Native (new arch) · TypeScript strict · expo-router · NativeWin
 
 Next available feature-doc number: **11**
 
+> ⚠️ **Doc debt.** The onboarding-flow rework of 2026-09-02 was built iteratively from live
+> device feedback rather than from a feature doc, against `CLAUDE.md`'s "never write feature code
+> without a feature doc". What it changed: two new screens (`how-it-works`, `arc-new`), a real
+> auth screen replacing the sign-in sheet (email + password, since email confirmation was turned
+> off in Supabase), goal customisation reachable from the inventory screen, the intent catalog
+> widened from 7 to 25, `arcs.description`, and a batch of layout/copy fixes. **Feature doc 11
+> owes a write-up of this** — the migration above is recorded, but the rationale for the flow
+> order lives only in code comments and the commit message.
+
 ---
 
 ## 4. Schema Reference
@@ -142,7 +151,8 @@ the fresher one on the other device. `synced_at` exists remotely only; it never 
 ### arcs
 | Column | Type | Notes |
 |---|---|---|
-| title | text | not null |
+| title | text | not null. Chosen on `(onboarding)/arc-new`; `seasonalArcTitle()` is only the field's placeholder now, not a silent default |
+| description | text | **nullable** — asked for but never required. Added 2026-09-02 |
 | starts_at / ends_at | date | not null |
 | status | text | default `'draft'`, CHECK in (`draft`,`active`,`archived`) |
 | timezone | text | not null |
@@ -266,6 +276,7 @@ the synced tables and has no outbox entry; `pushProfileName()` upserts it direct
 | 2026-09-01 | Phase 1.5, `02-foundation.md` | `create_arcs`, `create_goals`, `create_entries`, `create_checkpoints`, `create_rescopes`, `create_freezes` — full initial schema, RLS on all six |
 | 2026-09-01 | Phase 4.1, `05-onboarding-arc-creation.md` | `add_goals_title` — `goals.title text not null`, a Phase 1.5 omission (no table ever held a goal's display name) found while wiring the first real goal-creation mutation |
 | 2026-09-02 | Phase 5.0, `06-home-and-logging.md` | `add_goals_starts_at` — `goals.starts_at date` nullable. Locally the same migration (`0003`) also adds `rescopes.updated_at` and `ON DELETE CASCADE` to every child FK, both of which the remote schema already had. |
+| 2026-09-02 | Onboarding rework (no feature doc — see the note below) | `add_arcs_description` — `alter table public.arcs add column description text;` (nullable). The fast path had no arc-creation screen: the arc was conjured by a `useEffect` on the recommended-goals screen with a default 90-day window and a `seasonalArcTitle()` name the user never saw. The new `(onboarding)/arc-new` screen collects a real name, an optional description and the window. Locally the same change is migration `0005_concerned_flatman.sql`; `description` was also added to `lib/sync/mapping.ts`'s `TABLE_FIELDS.arcs`, without which it would silently never sync. |
 | 2026-09-02 | Phase 8.0, `10-auth-and-sync.md` | `add_synced_at_and_profiles` — `synced_at timestamptz` on all six synced tables; `moddatetime` **retargeted** from `updated_at` to `synced_at` (the old trigger inverted LWW); `(user_id, synced_at)` watermark index per table; the `entries (goal_id, day_key) WHERE skipped = false` partial unique index, which had existed only in SQLite; and the `profiles` table with RLS. Locally, migration `0004` adds `sync_state` only. |
 
 ---

@@ -1,3 +1,4 @@
+import { copy } from './copy';
 // Pure display formatting. Kept out of lib/derive/ (these produce strings for humans, not
 // numbers for math) and out of lib/copy.ts (that file holds the voice, not the arithmetic), so
 // one value can't render two different ways on two different screens.
@@ -69,4 +70,69 @@ export function formatGoalValue(input: ArcRowValueInput): string {
     return label ? `${formatAmount(current)} ${label}` : formatAmount(current);
   }
   return formatSigned(delta, label);
+}
+
+// --- Dates -------------------------------------------------------------------------------
+//
+// Day keys are 'YYYY-MM-DD' everywhere internally — that's the DB format and what `dayKey()`
+// produces, and it must never change (rules/03 §5). These are display-only.
+//
+// Both parse the key as **UTC** and format in UTC. A day key is a calendar label, not an
+// instant: `new Date('2026-06-12')` in a negative-offset zone lands on the 11th, which would
+// render the day before the one the user picked.
+
+/** `'2026-06-12'` → `'June 12, 2026'`. The default for any user-facing date. */
+export function formatDayKeyLong(key: string): string {
+  const date = new Date(`${key}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return key;
+  return date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+/**
+ * `'2026-06-12'` → `'Jun 12'`. For places where two dates and a day count share one line and
+ * the long form would wrap — the arc window label, entry rows, checkpoint dates.
+ */
+export function formatDayKeyShort(key: string): string {
+  const date = new Date(`${key}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return key;
+  const month = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
+  return `${month} ${date.getUTCDate()}`;
+}
+
+// --- Domain enum labels ------------------------------------------------------------------
+//
+// The DB and the derivation layer keep neutral machine values (`n_per_week`, `accumulate`) per
+// rules/05 §4. These turn them into words. Added because the raw keys were reaching the screen:
+// the inventory cards and the load check rendered "n_per_week" and "accumulate" verbatim.
+
+/** `'n_per_week'` + 4 → `'4 times a week'`; `'daily'` → `'Every day'`; null → `'Any day'`. */
+export function describeCadence(
+  mode: string | null | undefined,
+  timesPerWeek?: number | null,
+  intervalDays?: number | null,
+): string {
+  if (!mode) return copy.cadence.none;
+  if (mode === 'daily') return copy.cadence.daily;
+  if (mode === 'n_per_week') {
+    const n = timesPerWeek ?? 0;
+    return n > 0 ? `${n} ${copy.cadence.n_per_week}` : copy.cadence.n_per_week;
+  }
+  if (mode === 'specific_days') return copy.cadence.specific_days;
+  if (mode === 'every_n_days') {
+    const n = intervalDays ?? 0;
+    return n > 1 ? `Every ${n} days` : copy.cadence.every_n_days;
+  }
+  // Unknown mode: show nothing rather than a raw key.
+  return '';
+}
+
+/** `'accumulate'` → `'Total'`. */
+export function describeGoalType(type: string | null | undefined): string {
+  if (!type) return '';
+  return (copy.goalType as Record<string, string>)[type] ?? '';
 }

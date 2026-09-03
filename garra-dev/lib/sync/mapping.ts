@@ -71,6 +71,7 @@ export const TABLE_FIELDS: Record<SyncTable, FieldSpec[]> = {
   arcs: [
     { local: 'id', remote: 'id', kind: 'text' },
     { local: 'title', remote: 'title', kind: 'text' },
+    { local: 'description', remote: 'description', kind: 'text' },
     { local: 'startsAt', remote: 'starts_at', kind: 'day' },
     { local: 'endsAt', remote: 'ends_at', kind: 'day' },
     { local: 'status', remote: 'status', kind: 'text' },

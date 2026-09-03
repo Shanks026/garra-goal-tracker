@@ -125,6 +125,12 @@ export type ArcRowData = {
   p: number;
   t: number;
   status: PaceStatus;
+  /**
+   * Nothing logged yet. A brand-new arc reported "On track" on day 0, which is technically
+   * true and reads as a lie — the pace ladder has no rung for "has not begun", so this is
+   * carried alongside it rather than by bending pace() (its four rungs are spec, rules/01 §8).
+   */
+  notStarted: boolean;
   valueLabel: string;
   /** Spoken form for the ring's accessibilityLabel (rules/02 §8). */
   accessibilityLabel: string;
@@ -136,6 +142,9 @@ export type ArcProgress = {
   daysLeft: number;
   p: number;
   title: string;
+  /** Day keys. Rendered under the title so the window is visible without opening the Arc tab. */
+  startsAt: string;
+  endsAt: string;
 };
 
 /**
@@ -199,6 +208,8 @@ export function useHomeData() {
       daysLeft: Math.max(0, totalDays - day),
       p: totalDays > 0 ? day / totalDays : 0,
       title: arc.title,
+      startsAt: arc.startsAt,
+      endsAt: arc.endsAt,
     };
 
     const todayItems: TodayItem[] = [];
@@ -273,7 +284,25 @@ export function useHomeData() {
       }
 
       // --- The Arc ---
-      const target = targetFor(goal, goalCheckpoints.length);
+      // A habit's denominator is how many days the schedule asks for across the whole arc.
+      // `targetFor` returns 0 for a habit (it has no `targetAmount`), and the `target > 0`
+      // guard below then dropped every habit goal out of The Arc section — while it still
+      // appeared in Today, so the two halves of one screen disagreed about which goals exist.
+      const target =
+        goal.type === 'habit'
+          ? Math.max(
+              1,
+              cadence
+                ? Math.round(
+                    occurrencesInRange(
+                      cadence,
+                      goal.startsAt ?? arc.startsAt,
+                      goal.endsAt ?? arc.endsAt,
+                    ),
+                  )
+                : daysBetweenKeysInclusive(goal.startsAt ?? arc.startsAt, goal.endsAt ?? arc.endsAt),
+            )
+          : targetFor(goal, goalCheckpoints.length);
       if (target > 0) {
         const result = pace({
           target,
@@ -284,10 +313,15 @@ export function useHomeData() {
           basis: (goal.paceBasis as 'even' | 'weekdays_only' | 'custom_weekly') ?? 'even',
         });
 
-        const dueSoFar =
+        // How many days the schedule has asked for *so far*. Before the arc starts that's zero,
+        // which rendered "0 / 0 days" — a denominator of nothing, reading as broken rather than
+        // as "not begun". Falling back to the arc's full target gives the row a real denominator
+        // on day 0 ("0 / 30 days"), and it narrows to the elapsed count once the arc is running.
+        const elapsedDue =
           goal.type === 'habit' && cadence
             ? Math.round(occurrencesInRange(cadence, goal.startsAt ?? arc.startsAt, todayKey))
-            : undefined;
+            : 0;
+        const dueSoFar = goal.type === 'habit' ? elapsedDue || target : undefined;
 
         const valueLabel = formatGoalValue({
           type: goal.type,
@@ -306,9 +340,14 @@ export function useHomeData() {
           p: result.fractionDone,
           t: result.fractionExpected,
           status: result.status,
+          notStarted: current <= 0,
           valueLabel,
+          // A habit's denominator counts **days**, not its session unit. Using `goal.unit` here
+          // made Reading announce "0 of 30 pages" when 30 was the number of days the schedule
+          // asks for — a number in the wrong dimension, spoken as fact to someone who can't see
+          // the screen to catch it.
           accessibilityLabel: `${goal.title}, ${formatAmount(current)} of ${formatAmount(target)}${
-            goal.unit ? ` ${goal.unit}` : ''
+            goal.type === 'habit' ? ' days' : goal.unit ? ` ${goal.unit}` : ''
           }, ${valueLabel}`,
         });
       }

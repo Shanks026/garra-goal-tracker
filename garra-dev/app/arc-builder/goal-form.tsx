@@ -13,6 +13,7 @@ import { useGoalRow, useRescopeGoal, useUpdateGoal } from '@/hooks/useGoalDetail
 import { nextUnusedAccent } from '@/lib/accents';
 import { quickAddFor } from '@/lib/intents';
 import { safeBack } from '@/lib/navigation';
+import { useAndroidBack } from '@/hooks/useAndroidBack';
 import { GOAL_ICON_KEYS, GoalIcon, type GoalIconKey } from '@/components/goal/GoalIcon';
 import { AccentPicker } from '@/components/goal/AccentPicker';
 import { Button } from '@/components/ui/Button';
@@ -20,6 +21,9 @@ import { Chip } from '@/components/ui/Chip';
 import { ListGroup } from '@/components/ui/ListGroup';
 import { ListRow } from '@/components/ui/ListRow';
 import { useAppTheme } from '@/theme/useAppTheme';
+import { formatDayKeyLong } from '@/lib/format';
+import { fontFor } from '@/theme/fonts';
+import { controls, layout, radii } from '@/theme/tokens';
 
 const GOAL_TYPES = ['habit', 'accumulate', 'ship', 'milestone'] as const;
 type GoalType = (typeof GOAL_TYPES)[number];
@@ -133,6 +137,17 @@ export default function GoalForm() {
     (type === 'milestone' ? checkpoints.some((c) => c.trim().length > 0) : true) &&
     (type === 'accumulate' || type === 'ship' ? targetAmount.trim().length > 0 : true);
 
+  // Android back exited the app when this form was opened from onboarding's inventory screen
+  // (a cross-group push, so nothing poppable in that group). Mirrors the submit fallback.
+  useAndroidBack(() =>
+    safeBack(
+      router,
+      draftArc.data && existingGoal && draftArc.data.id === existingGoal.arcId
+        ? '/recommended'
+        : '/arc-builder/goal-type',
+    ),
+  );
+
   const onSubmit = async () => {
     if (!canSubmit || !isGoalType(type) || accent === null) return;
 
@@ -140,6 +155,16 @@ export default function GoalForm() {
     if (isEditing && existingGoal) {
       const nextTarget =
         type === 'accumulate' || type === 'ship' ? Number(targetAmount) : undefined;
+      const targetChanged =
+        nextTarget != null &&
+        existingGoal.targetAmount != null &&
+        nextTarget !== existingGoal.targetAmount;
+
+      // A goal on a *draft* arc is still being assembled — there is no run to keep an audit
+      // trail for, so a target change is a plain edit. Only an active arc routes through the
+      // rescope mutation. Without this, tuning a proposal during onboarding wrote a `rescopes`
+      // row describing an event that never happened.
+      const isDraft = draftArc.data?.id === existingGoal.arcId;
 
       await updateGoal.mutateAsync({
         goalId: existingGoal.id,
@@ -155,17 +180,21 @@ export default function GoalForm() {
         daysOfWeek: cadenceMode === 'specific_days' ? daysOfWeek : null,
         intervalDays: cadenceMode === 'every_n_days' ? Number(intervalDays) : null,
         sessionTarget: sessionTarget ? Number(sessionTarget) : null,
+        // The bug this fixes: `targetAmount` was absent here entirely, so an edited target was
+        // only ever written by the rescope below — and that call wasn't awaited before
+        // navigating, so returning to the previous screen re-read the old value.
+        ...(isDraft && nextTarget != null ? { targetAmount: nextTarget } : {}),
+        // Quick-add chips are derived from the target, so they have to move with it or the log
+        // sheet keeps offering amounts sized to a number the goal no longer has.
+        ...(isDraft && nextTarget != null && type === 'accumulate'
+          ? { quickAdd: quickAddFor(nextTarget) }
+          : {}),
       });
 
-      // A target change goes through the rescope mutation, not the plain update — otherwise the
-      // target would move with no `rescopes` audit row, and the history is the feature
-      // (05-database.md §1).
-      if (
-        nextTarget != null &&
-        existingGoal.targetAmount != null &&
-        nextTarget !== existingGoal.targetAmount
-      ) {
-        rescope.mutate({
+      // Active arc only: the target moves *and* the `rescopes` audit row is written, in one
+      // transaction (05-database.md §1). Awaited, so the next screen reads the new value.
+      if (targetChanged && !isDraft && existingGoal.targetAmount != null) {
+        await rescope.mutateAsync({
           goalId: existingGoal.id,
           arcId: existingGoal.arcId,
           fromTarget: existingGoal.targetAmount,
@@ -174,7 +203,16 @@ export default function GoalForm() {
         });
       }
 
-      safeBack(router, `/goal/${existingGoal.id}`);
+      // Back to wherever this was opened from. The goal-detail fallback only makes sense on an
+      // active arc — during onboarding there is no active arc for that screen to read.
+      // `navigate`, not `safeBack`, for the draft case: this form is reached by a cross-group
+      // push from `(onboarding)/recommended`, and a nested-stack `replace`/`back` to a route
+      // outside that stack silently does nothing.
+      if (isDraft) {
+        router.navigate('/recommended');
+      } else {
+        safeBack(router, `/goal/${existingGoal.id}`);
+      }
       return;
     }
 
@@ -223,7 +261,7 @@ export default function GoalForm() {
   if (!isGoalType(type)) {
     return (
       <SafeAreaView className="flex-1 items-center justify-center bg-bg px-6 dark:bg-bg-dark">
-        <Text className="text-center text-[16px] text-text-secondary dark:text-text-secondary-dark">
+        <Text className="font-body text-center text-[16px] text-text-secondary dark:text-text-secondary-dark">
           That goal type isn&apos;t one Garra knows. Go back and pick a type.
         </Text>
         <View style={{ height: 16 }} />
@@ -238,10 +276,17 @@ export default function GoalForm() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg dark:bg-bg-dark">
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingTop: 14, gap: 30 }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 24,
+          paddingTop: layout.screenTop,
+          paddingBottom: layout.contentBottom,
+          gap: 30,
+        }}
+      >
         <View className="flex-row items-center justify-between">
           <Pressable onPress={() => safeBack(router, '/arc-builder/goal-type')} hitSlop={8}>
-            <Text className="text-[16px] text-text-secondary dark:text-text-secondary-dark">
+            <Text className="font-body text-[16px] text-text-secondary dark:text-text-secondary-dark">
               Cancel
             </Text>
           </Pressable>
@@ -264,7 +309,7 @@ export default function GoalForm() {
               placeholder="Goal name"
               placeholderTextColor={tokens.textTertiary}
               className="text-text-primary dark:text-text-primary-dark"
-              style={{ fontSize: 28, fontWeight: '600', letterSpacing: -0.84 }}
+              style={{ fontSize: 38, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -1.33, lineHeight: 42 }}
             />
           </View>
         </View>
@@ -319,16 +364,30 @@ export default function GoalForm() {
                 placeholder="0"
                 placeholderTextColor={tokens.textTertiary}
                 className="text-text-primary dark:text-text-primary-dark"
-                style={{ fontSize: 42, fontWeight: '600', letterSpacing: -1.68 }}
+                style={{ fontSize: 42, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -1.68 }}
               />
+              {/* The unit / item-noun field was already editable but looked like static text
+                  sitting next to the 42px number, so nobody knew they could change it. It now
+                  gets the unit-chip treatment the design system already defines (rules/01 §3:
+                  `unitChipH: 32`, `radii.unit: 16`) — a filled, rounded field that reads as an
+                  input. */}
               {type === 'accumulate' ? (
                 <TextInput
                   value={unit}
                   onChangeText={setUnit}
                   placeholder="km"
                   placeholderTextColor={tokens.textTertiary}
-                  className="text-text-primary dark:text-text-primary-dark"
-                  style={{ fontSize: 16, paddingBottom: 10 }}
+                  autoCapitalize="none"
+                  className="font-body text-text-primary dark:text-text-primary-dark"
+                  style={{
+                    fontSize: 16,
+                    height: controls.unitChipH,
+                    minWidth: 72,
+                    borderRadius: radii.unit,
+                    paddingHorizontal: 12,
+                    backgroundColor: tokens.fill,
+                    marginBottom: 6,
+                  }}
                 />
               ) : (
                 <TextInput
@@ -336,8 +395,17 @@ export default function GoalForm() {
                   onChangeText={setItemNoun}
                   placeholder="videos"
                   placeholderTextColor={tokens.textTertiary}
-                  className="text-text-primary dark:text-text-primary-dark"
-                  style={{ fontSize: 16, paddingBottom: 10 }}
+                  autoCapitalize="none"
+                  className="font-body text-text-primary dark:text-text-primary-dark"
+                  style={{
+                    fontSize: 16,
+                    height: controls.unitChipH,
+                    minWidth: 88,
+                    borderRadius: radii.unit,
+                    paddingHorizontal: 12,
+                    backgroundColor: tokens.fill,
+                    marginBottom: 6,
+                  }}
                 />
               )}
             </View>
@@ -366,7 +434,7 @@ export default function GoalForm() {
                 keyboardType="number-pad"
                 placeholder="4"
                 placeholderTextColor={tokens.textTertiary}
-                className="text-text-primary dark:text-text-primary-dark"
+                className="font-body text-text-primary dark:text-text-primary-dark"
                 style={{ fontSize: 16 }}
               />
             )}
@@ -417,7 +485,7 @@ export default function GoalForm() {
                 keyboardType="number-pad"
                 placeholder="2"
                 placeholderTextColor={tokens.textTertiary}
-                className="text-text-primary dark:text-text-primary-dark"
+                className="font-body text-text-primary dark:text-text-primary-dark"
                 style={{ fontSize: 16 }}
               />
             )}
@@ -429,7 +497,7 @@ export default function GoalForm() {
                   keyboardType="number-pad"
                   placeholder="Session target (optional)"
                   placeholderTextColor={tokens.textTertiary}
-                  className="flex-1 text-text-primary dark:text-text-primary-dark"
+                  className="font-body flex-1 text-text-primary dark:text-text-primary-dark"
                   style={{ fontSize: 16 }}
                 />
                 <TextInput
@@ -437,7 +505,7 @@ export default function GoalForm() {
                   onChangeText={setUnit}
                   placeholder="min / reps / pages"
                   placeholderTextColor={tokens.textTertiary}
-                  className="flex-1 text-text-primary dark:text-text-primary-dark"
+                  className="font-body flex-1 text-text-primary dark:text-text-primary-dark"
                   style={{ fontSize: 16 }}
                 />
               </View>
@@ -459,7 +527,7 @@ export default function GoalForm() {
                 }
                 placeholder={`Checkpoint ${i + 1}`}
                 placeholderTextColor={tokens.textTertiary}
-                className="text-text-primary dark:text-text-primary-dark"
+                className="font-body text-text-primary dark:text-text-primary-dark"
                 style={{ fontSize: 16 }}
               />
             ))}
@@ -473,7 +541,7 @@ export default function GoalForm() {
 
         <ListGroup>
           <View className="h-list-row-h flex-row items-center justify-between bg-surface px-4 dark:bg-surface-dark">
-            <Text className="text-[16px] text-text-primary dark:text-text-primary-dark">
+            <Text className="font-body text-[16px] text-text-primary dark:text-text-primary-dark">
               Est. minutes
             </Text>
             <TextInput
@@ -482,14 +550,17 @@ export default function GoalForm() {
               keyboardType="number-pad"
               textAlign="right"
               className="text-text-primary dark:text-text-primary-dark"
-              style={{ fontSize: 16, fontWeight: '600' }}
+              style={{ fontSize: 16, fontFamily: fontFor(600, 'text'), fontWeight: '600' }}
             />
           </View>
-          <ListRow label="Ends" value={draftArc.data?.endsAt ?? 'arc end'} />
+          <ListRow
+            label="Ends"
+            value={draftArc.data ? formatDayKeyLong(draftArc.data.endsAt) : 'arc end'}
+          />
         </ListGroup>
       </ScrollView>
 
-      <View className="px-6 pb-3" style={{ gap: 12 }}>
+      <View className="px-6 pb-screen-bottom" style={{ gap: 12 }}>
         <Button
           title="Add goal"
           onPress={onSubmit}

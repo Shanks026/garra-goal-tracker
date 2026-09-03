@@ -1,9 +1,12 @@
 import { Tabs } from 'expo-router';
 import { View } from 'react-native';
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import { useAppTheme } from '@/theme/useAppTheme';
 import { layout } from '@/theme/tokens';
 import { Toast } from '@/components/ui/Toast';
+import { fontFor } from '@/theme/fonts';
 
 // Three tabs: Today · Arc · Settings. Never a fourth (CLAUDE.md's hard constraints).
 // Icons are line-drawn glyphs built from Views rather than Lucide imports, matching the canvas's
@@ -43,6 +46,10 @@ function SettingsIcon({ color }: { color: string }) {
 
 export default function TabsLayout() {
   const { tokens } = useAppTheme();
+  // The tab bar sat directly on top of the system navigation bar: a fixed 64dp height with no
+  // bottom inset means the OS bar overlaps the labels. Adding the inset to both the height and
+  // the padding keeps the 64dp of *usable* bar the design specifies and pushes it clear.
+  const insets = useSafeAreaInsets();
 
   return (
     <>
@@ -52,12 +59,13 @@ export default function TabsLayout() {
           tabBarActiveTintColor: tokens.textPrimary,
           tabBarInactiveTintColor: tokens.tabInactive,
           tabBarStyle: {
-            height: layout.tabBarH,
+            height: layout.tabBarH + insets.bottom,
+            paddingBottom: insets.bottom,
             backgroundColor: tokens.bg,
             borderTopWidth: 1,
             borderTopColor: tokens.border,
           },
-          tabBarLabelStyle: { fontSize: 10, fontWeight: '600' },
+          tabBarLabelStyle: { fontSize: 10, fontFamily: fontFor(600, 'text'), fontWeight: '600' },
           sceneStyle: { backgroundColor: tokens.bg },
           // Tabs are siblings, not a sequence, so they cross-fade rather than slide — sliding
           // would imply an order that doesn't exist between Today, Arc, and Settings.

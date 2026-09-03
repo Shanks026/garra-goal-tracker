@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 
 import { copy } from '@/lib/copy';
+import { fontFor } from '@/theme/fonts';
 
 // Not designed — `garra-index.md` §7.8 asks the Arc tab for streak stats, and the canvas doesn't
 // draw them. This reuses screen 14's two-column stat pair (PRACTICE / NEXT NODE) rather than
@@ -16,7 +17,7 @@ export function StreakStats({ current, longest }: { current: number; longest: nu
         <Stat label="CURRENT STREAK" value={`${current} ${current === 1 ? 'day' : 'days'}`} />
         <Stat label="LONGEST" value={`${longest} ${longest === 1 ? 'day' : 'days'}`} />
       </View>
-      <Text className="mt-2 text-[13px] text-text-tertiary dark:text-text-tertiary-dark">
+      <Text className="font-body mt-2 text-[13px] text-text-tertiary dark:text-text-tertiary-dark">
         Any goal logged counts — {copy.freeze.toLowerCase()}s protect the per-goal ones.
       </Text>
     </View>
@@ -33,7 +34,7 @@ function Stat({ label, value }: { label: string; value: string }) {
         className="text-text-primary dark:text-text-primary-dark"
         style={{
           fontSize: 26,
-          fontWeight: '600',
+          fontFamily: fontFor(600, 'display'), fontWeight: '600',
           letterSpacing: -0.78,
           fontVariant: ['tabular-nums'],
         }}

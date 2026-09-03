@@ -36,7 +36,7 @@ export function GoalTypeCard({ glyph, name, description, selected, onPress }: Go
         <Text className="text-[18px] font-semibold text-text-primary dark:text-text-primary-dark">
           {name}
         </Text>
-        <Text className="text-[14px] text-text-secondary dark:text-text-secondary-dark">
+        <Text className="font-body text-[14px] text-text-secondary dark:text-text-secondary-dark">
           {description}
         </Text>
       </View>

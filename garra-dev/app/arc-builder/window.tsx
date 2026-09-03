@@ -12,11 +12,14 @@ import {
   endOfYearKey,
 } from '@/lib/date';
 import { safeBack } from '@/lib/navigation';
+import { useAndroidBack } from '@/hooks/useAndroidBack';
 import { WindowTicks } from '@/components/charts/WindowTicks';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { ListGroup } from '@/components/ui/ListGroup';
 import { ListRow } from '@/components/ui/ListRow';
+import { formatDayKeyLong } from '@/lib/format';
+import { fontFor } from '@/theme/fonts';
 
 // Screen 06 — Arc Builder step 1 of 3. Reached both as the manual path's entry point and as
 // onboarding's "tap to change" affordance from Recommended goals (feature doc gap #1).
@@ -57,6 +60,10 @@ export default function Window() {
 
   const totalDays = daysBetweenKeysInclusive(selected.startsAt, selected.endsAt);
 
+  // Android back exited the app: this screen is reached by a cross-group push from
+  // (onboarding)/recommended, so nothing was poppable in that group. See the hook.
+  useAndroidBack(() => safeBack(router, '/recommended'));
+
   const onPickPreset = (days: number | 'endOfYear') => {
     setSelected(computeWindow(days));
     setTouched(true);
@@ -69,13 +76,13 @@ export default function Window() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg dark:bg-bg-dark">
-      <View className="flex-1 px-6 pt-4" style={{ gap: 44 }}>
+      <View className="flex-1 px-6 pt-screen-top" style={{ gap: 44 }}>
         <Text className="text-[11px] font-semibold uppercase tracking-[.14em] text-label dark:text-label-dark">
           STEP 1 OF 3
         </Text>
         <Text
           className="text-text-primary dark:text-text-primary-dark"
-          style={{ fontSize: 28, fontWeight: '600', letterSpacing: -0.84 }}
+          style={{ fontSize: 38, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -1.33, lineHeight: 42 }}
         >
           Set the window
         </Text>
@@ -84,7 +91,7 @@ export default function Window() {
           <View className="flex-row items-end" style={{ gap: 12 }}>
             <Text
               className="text-text-primary dark:text-text-primary-dark"
-              style={{ fontSize: 60, fontWeight: '600', letterSpacing: -2.7, lineHeight: 54 }}
+              style={{ fontSize: 60, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -2.7, lineHeight: 54 }}
             >
               {totalDays}
             </Text>
@@ -93,7 +100,7 @@ export default function Window() {
                 DAYS
               </Text>
               <Text className="text-[16px] font-medium text-text-secondary dark:text-text-secondary-dark">
-                {selected.startsAt} → {selected.endsAt}
+                {formatDayKeyLong(selected.startsAt)} → {formatDayKeyLong(selected.endsAt)}
               </Text>
             </View>
           </View>
@@ -117,12 +124,12 @@ export default function Window() {
         </View>
 
         <ListGroup>
-          <ListRow label="Starts" value={selected.startsAt} />
-          <ListRow label="Ends" value={selected.endsAt} />
+          <ListRow label="Starts" value={formatDayKeyLong(selected.startsAt)} />
+          <ListRow label="Ends" value={formatDayKeyLong(selected.endsAt)} />
         </ListGroup>
       </View>
 
-      <View className="px-6 pb-3">
+      <View className="px-6 pb-screen-bottom">
         <Button title="Next" onPress={onNext} style={{ width: '100%' }} />
       </View>
     </SafeAreaView>

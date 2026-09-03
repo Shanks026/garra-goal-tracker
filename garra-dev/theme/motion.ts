@@ -88,3 +88,34 @@ export const motion = {
 export function staggerDelay(index: number): number {
   return Math.min(index, motion.staggerMaxItems) * motion.staggerStep;
 }
+
+
+/**
+ * The "How an Arc works" explainer — the one other screen where motion carries meaning rather
+ * than responding to it.
+ *
+ * The four beats land in sequence and the spine connecting them draws downward as they do, so
+ * the user *watches an arc complete* while reading what an arc is. That's the product's central
+ * metaphor performed rather than described, which is why it's exempt from §6.3's "nothing moves
+ * because it exists".
+ *
+ * `beatStagger` is deliberately far slower than `motion.staggerStep` (45ms). That value is
+ * tuned for list rows, where a stagger only has to avoid looking simultaneous; here each beat
+ * is a sentence the user is meant to actually read before the next arrives.
+ */
+export const explainer = {
+  /** Gap between beats landing, ms. */
+  beatStagger: 480,
+  /** Delay before the first beat, ms — lets the title settle first. */
+  leadIn: 380,
+  /** Each beat's own fade-in, ms. Slower than `timing.base` so it reads as arriving, not popping. */
+  beatFade: 460,
+  /** Vertical travel per beat, px. */
+  rise: 16,
+  /** Node scale to spring up from. */
+  nodeFrom: 0.5,
+  /** How long the connector between two beats takes to draw, ms. */
+  spineDraw: 520,
+  /** Gap between a node landing and its connector starting to draw, ms. */
+  spineDelay: 160,
+} as const;

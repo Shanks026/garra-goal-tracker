@@ -11,7 +11,7 @@ import { qk } from '@/lib/queryKeys';
 import { loadCheck } from '@/lib/derive/load';
 import { cadenceForGoal } from '@/lib/derive/cadence';
 import { nextUnusedAccent } from '@/lib/accents';
-import { enqueueUpsert } from '@/lib/sync/outbox';
+import { enqueueDelete, enqueueUpsert } from '@/lib/sync/outbox';
 
 // All facets of the same in-progress-draft concern — one file because they're tightly coupled,
 // not a god hook: each export below is still single-purpose (04-hooks.md §1/§5).
@@ -88,22 +88,45 @@ export function useSetLocalProfileName() {
   });
 }
 
+/**
+ * Creates or updates the draft arc.
+ *
+ * `title` and `description` are optional so the manual window-editing path can still change
+ * just the dates. When a title is omitted on *creation* it falls back to `seasonalArcTitle()` —
+ * that fallback used to be the only way an arc ever got named, which is what made the arc
+ * invisible to the user. The `arc-new` screen now passes a real name, and offers the seasonal
+ * one as placeholder text instead of applying it silently.
+ */
 export function useSetArcWindow() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { startsAt: string; endsAt: string }) => {
+    mutationFn: async (input: {
+      startsAt: string;
+      endsAt: string;
+      title?: string;
+      description?: string | null;
+    }) => {
       const draft = await selectArcByStatus('draft');
       if (draft) {
         await db
           .update(arcs)
-          .set({ startsAt: input.startsAt, endsAt: input.endsAt, updatedAt: nowIso() })
+          .set({
+            startsAt: input.startsAt,
+            endsAt: input.endsAt,
+            // Only overwrite when the caller actually supplied one, so editing the window
+            // later can't wipe a name the user chose.
+            ...(input.title ? { title: input.title } : {}),
+            ...(input.description !== undefined ? { description: input.description } : {}),
+            updatedAt: nowIso(),
+          })
           .where(eq(arcs.id, draft.id));
         return draft.id;
       }
       const id = newId();
       await db.insert(arcs).values({
         id,
-        title: seasonalArcTitle(new Date()),
+        title: input.title?.trim() || seasonalArcTitle(new Date()),
+        description: input.description ?? null,
         startsAt: input.startsAt,
         endsAt: input.endsAt,
         status: 'draft',
@@ -241,6 +264,32 @@ export function useAddGoalToDraft() {
           enqueueUpsert('checkpoints', checkpointId);
         }
       }
+    },
+  });
+}
+
+/**
+ * Removes a goal from the draft arc.
+ *
+ * Exists because the recommended-goals screen now creates a real row the moment a proposal is
+ * accepted, rather than holding the selection in memory until "Start the arc". That change is
+ * what makes the proposals *customisable* — `goal-form` edits by `goalId`, so a goal has to
+ * exist before it can be edited — and it also means the selection survives the app being killed
+ * mid-onboarding, like every other part of the draft. The cost is that declining has to delete.
+ *
+ * A hard delete, not an archive: this is a draft the user is still assembling, and an archived
+ * row would surface in the arc as a paused goal they never agreed to. Checkpoints go with it via
+ * `ON DELETE CASCADE` on both sides (rules/05 §1).
+ */
+export function useRemoveDraftGoal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { goalId: string; arcId: string }) => {
+      await db.delete(goals).where(eq(goals.id, input.goalId));
+    },
+    onSettled: (_r, err, input) => {
+      qc.invalidateQueries({ queryKey: qk.goals(input.arcId) });
+      if (!err) enqueueDelete('goals', input.goalId);
     },
   });
 }

@@ -44,7 +44,7 @@ export function LoadSection({
             <View key={row.id} className="flex-row items-center" style={{ gap: 10 }}>
               <View style={{ width: 8, height: 8, borderRadius: 5, backgroundColor: row.accent }} />
               <Text
-                className="flex-1 text-[14px] text-text-secondary dark:text-text-secondary-dark"
+                className="font-body flex-1 text-[14px] text-text-secondary dark:text-text-secondary-dark"
                 numberOfLines={1}
               >
                 {row.title}
@@ -56,7 +56,7 @@ export function LoadSection({
                 {row.actualLabel}
               </Text>
               <Text
-                className="text-[14px] text-text-tertiary dark:text-text-tertiary-dark"
+                className="font-body text-[14px] text-text-tertiary dark:text-text-tertiary-dark"
                 style={{ fontVariant: ['tabular-nums'] }}
               >
                 / {row.plannedLabel}

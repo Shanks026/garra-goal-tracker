@@ -2,6 +2,7 @@ import { Canvas, RoundedRect } from '@shopify/react-native-skia';
 import { Text, View } from 'react-native';
 
 import { useAppTheme } from '@/theme/useAppTheme';
+import { fontFor } from '@/theme/fonts';
 
 export type WeekBarState = 'done' | 'missed' | 'none';
 
@@ -69,7 +70,7 @@ export function WeekBars({
               width: 48.86,
               textAlign: 'center',
               fontSize: 11,
-              fontWeight: '600',
+              fontFamily: fontFor(600, 'text'), fontWeight: '600',
               letterSpacing: 1.1,
             }}
           >

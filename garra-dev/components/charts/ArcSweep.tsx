@@ -43,7 +43,17 @@ export function ArcSweep({ p, size = 'home', accessibilityLabel }: ArcSweepProps
     geo.dashIntervals[1],
   ]);
 
-  const height = size === 'onboarding' ? cy + r + 20 : cy + 20;
+  // Bottom margin is exactly what the largest thing crossing the baseline needs: the head dot's
+  // outer radius (11) plus 2px. It used to be a flat 20, which left visible dead space under a
+  // 180° sweep and made the whole arc read as sitting high in its own box — the "crooked" look.
+  const DOT_R = 11;
+  const height = size === 'onboarding' ? cy + r + DOT_R + 2 : cy + DOT_R + 2;
+
+  // No head dot at zero progress. At p = 0 the dot lands exactly on the arc's own start cap, so
+  // the two overlap into a lopsided blob at the left end while the right end stays clean — which
+  // is what made a brand-new arc look tilted. There's also nothing to mark: a day-0 arc has no
+  // head. It appears as soon as there is progress to point at.
+  const showDot = p > 0;
 
   if (!skPath) return null;
 
@@ -60,8 +70,12 @@ export function ArcSweep({ p, size = 'home', accessibilityLabel }: ArcSweepProps
           <DashPathEffect intervals={dashIntervals} />
         </Path>
         {/* Dot: bg-colored circle punches a hole so the accent dot reads as riding on the stroke */}
-        <Circle cx={geo.dot.x} cy={geo.dot.y} r={11} color={tokens.bg} />
-        <Circle cx={geo.dot.x} cy={geo.dot.y} r={7} color={system.arc} />
+        {showDot ? (
+          <>
+            <Circle cx={geo.dot.x} cy={geo.dot.y} r={DOT_R} color={tokens.bg} />
+            <Circle cx={geo.dot.x} cy={geo.dot.y} r={7} color={system.arc} />
+          </>
+        ) : null}
       </Canvas>
     </View>
   );

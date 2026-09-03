@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 
 import { useAppTheme } from '@/theme/useAppTheme';
 import { loadDonutSegments } from './geometry';
+import { fontFor } from '@/theme/fonts';
 
 export type LoadDonutProps = {
   segments: { color: string; hours: number }[];
@@ -82,13 +83,13 @@ export function LoadDonut({
       >
         <Text
           className="text-text-primary dark:text-text-primary-dark"
-          style={{ fontSize: 22, fontWeight: '600' }}
+          style={{ fontSize: 22, fontFamily: fontFor(600, 'text'), fontWeight: '600' }}
         >
           {totalLabel}
         </Text>
         <Text
           className="text-label dark:text-label-dark"
-          style={{ fontSize: 10, fontWeight: '600', letterSpacing: 1.4, marginTop: 2 }}
+          style={{ fontSize: 10, fontFamily: fontFor(600, 'text'), fontWeight: '600', letterSpacing: 1.4, marginTop: 2 }}
         >
           {subLabel}
         </Text>

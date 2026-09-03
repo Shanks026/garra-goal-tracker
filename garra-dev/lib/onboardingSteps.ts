@@ -6,7 +6,27 @@
 // which is correct for the manual path; the load-check screen simply suppresses that label when
 // it's being walked as part of onboarding, so the two systems never contradict on one journey.
 
-export const ONBOARDING_STEPS = ['welcome', 'name', 'intent', 'recommended', 'signup'] as const;
+// Reworked for the arc-creation flow. Before this, there was no screen where the user built the
+// arc: `recommended.tsx` conjured one in a useEffect with a default 90-day window and a title
+// from `seasonalArcTitle()`. Two screens were inserted to close that — `how-it-works` explains
+// what an Arc *is* before asking for a commitment, and `arc-new` is where the commitment is
+// actually made (name, description, dates).
+//
+// `arc-new` sits before `intent`/`recommended` on purpose: the proposed goals size their targets
+// to the arc's length, and doing that against a placeholder window meant "800 km" was scaled to
+// a number the user had never agreed to.
+// `how-it-works` is deliberately NOT in this list. It asks the user for nothing — it's an
+// explainer between the hook and the first real question — so counting it as a step would
+// inflate the progress indicator with a screen that isn't progress. Same reasoning that already
+// excludes `welcome` from `stepLabel`, taken one step further: no dots at all on that screen.
+export const ONBOARDING_STEPS = [
+  'welcome',
+  'name',
+  'arcNew',
+  'intent',
+  'recommended',
+  'signup',
+] as const;
 
 export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
 
@@ -18,12 +38,9 @@ export function stepIndex(step: OnboardingStep): number {
   return ONBOARDING_STEPS.indexOf(step);
 }
 
-/**
- * The "STEP n OF m" label. Welcome has no label (it's the hook, not a form step), so the
- * numbering counts only the steps that ask for something — matching the canvas exactly.
- */
-export function stepLabel(step: OnboardingStep): string | null {
-  const index = stepIndex(step);
-  if (index <= 0) return null;
-  return `STEP ${index} OF ${ONBOARDING_STEP_COUNT - 1}`;
-}
+// `stepLabel()` is gone. It rendered "STEP n OF m" above each screen's title, which said exactly
+// what the dot row in the footer already says — two progress indicators on one screen, disagreeing
+// about the count the moment either changed. The dots are the single indicator now.
+//
+// The Arc Builder's own hardcoded "STEP n OF 3" labels are a separate system and stay: those
+// screens carry no dots, so the text is their only progress cue.

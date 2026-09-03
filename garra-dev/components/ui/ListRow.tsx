@@ -15,7 +15,7 @@ export function ListRow({ label, value, variant = 'default', ...props }: ListRow
       className={`${height} flex-row items-center justify-between bg-surface px-4 dark:bg-surface-dark`}
       {...props}
     >
-      <Text className="text-[16px] text-text-primary dark:text-text-primary-dark">{label}</Text>
+      <Text className="font-body text-[16px] text-text-primary dark:text-text-primary-dark">{label}</Text>
       {value !== undefined && (
         <View>
           <Text className="text-[16px] font-semibold text-text-secondary dark:text-text-secondary-dark">

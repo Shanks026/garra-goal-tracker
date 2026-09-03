@@ -12,11 +12,27 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as Sentry from '@sentry/react-native';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 
+import { useFonts } from 'expo-font';
+import {
+  InterTight_400Regular,
+  InterTight_500Medium,
+  InterTight_600SemiBold,
+  InterTight_700Bold,
+} from '@expo-google-fonts/inter-tight';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
+
 import { db, enableForeignKeys } from '../lib/db/client';
 import migrations from '../lib/db/migrations/migrations';
 import { mmkvPersister } from '../lib/queryPersister';
 import { startSessionAutoRefresh } from '../lib/supabase';
 import { scheduleSync, syncNow } from '../lib/sync/engine';
+import { timing } from '../theme/motion';
+import { useAppTheme } from '../theme/useAppTheme';
 import { LogSheetHost } from '../sheets/LogSheetHost';
 
 // SQLite is local, and the only thing that changes data is the user (03-state-and-data.md §3) —
@@ -42,11 +58,32 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const { success, error } = useMigrations(db, migrations);
+  // Read here rather than inside the Stack's options object so the hook call is unconditional,
+  // ahead of the early returns below.
+  const { tokens } = useAppTheme();
+  const stackBg = tokens.bg;
+
+  // Six faces: Inter Tight for display/title sizes, Inter for body — see theme/fonts.ts for why
+  // the split matters and why each weight is a separate family. `fontError` is deliberately
+  // tolerated rather than fatal: a missing typeface should fall back to the OS font, not stop
+  // the app booting.
+  const [fontsLoaded, fontError] = useFonts({
+    InterTight_400Regular,
+    InterTight_500Medium,
+    InterTight_600SemiBold,
+    InterTight_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+  });
+  const fontsSettled = fontsLoaded || !!fontError;
 
   useEffect(() => {
-    // No fonts are loaded yet (Phase 1.2 scope) — migrations are the only real gate right
-    // now, and they're normally fast enough that this fires close to immediately.
-    if (success || error) {
+    // Splash now waits on fonts as well as migrations. Hiding it earlier would show one frame in
+    // the OS font and then reflow the whole screen as Inter swaps in — a visible flash of
+    // unstyled text on the very first impression.
+    if ((success || error) && fontsSettled) {
       SplashScreen.hideAsync().catch(() => {});
     }
     // Foreign keys go on only *after* migrations finish — see lib/db/client.ts for why the
@@ -54,7 +91,7 @@ export default function RootLayout() {
     if (success) {
       enableForeignKeys();
     }
-  }, [success, error]);
+  }, [success, error, fontsSettled]);
 
   useEffect(() => {
     // Only after migrations: `sync_state` doesn't exist before 0004 has run, and a sync that
@@ -91,15 +128,18 @@ export default function RootLayout() {
     // message is correct here, not a styled empty state.
     return (
       <View className="flex-1 items-center justify-center bg-bg p-6 dark:bg-bg-dark">
-        <Text className="text-text-primary dark:text-text-primary-dark">
+        <Text className="font-body text-text-primary dark:text-text-primary-dark">
           Database failed to load: {error.message}
         </Text>
       </View>
     );
   }
 
-  if (!success) {
-    return null; // Splash stays up until migrations finish.
+  if (!success || !fontsSettled) {
+    // Splash stays up until migrations AND fonts are ready. Rendering before the faces are
+    // registered would paint the whole app in the OS font and then reflow every line as Inter
+    // swaps in.
+    return null;
   }
 
   return (
@@ -113,17 +153,22 @@ export default function RootLayout() {
               open a sheet without each one needing its own provider. */}
           <BottomSheetModalProvider>
             <LogSheetHost>
-              {/* Pushed screens (goal detail, the builder) slide; the tab group and the
-                  cold-start router are replaced into, so they don't animate (rules/01 §6.2). */}
+              {/* Everything cross-fades. The slide it replaced exposed a thin white seam —
+                  the window background showing through the gap the native transition opens —
+                  and `contentStyle` below is the actual fix for that. On a stack of near-black
+                  screens a horizontal slide reads as a seam crossing the display rather than as
+                  forward motion, so the fade is also the better transition. Reverses
+                  rules/01 §6.2, which has been updated to match. */}
               <Stack
                 screenOptions={{
                   headerShown: false,
-                  animation: 'slide_from_right',
-                  animationDuration: 260,
+                  animation: 'fade',
+                  animationDuration: timing.base.duration,
+                  contentStyle: { backgroundColor: stackBg },
                 }}
               >
+                {/* The cold-start router is replaced into, so it must not animate at all. */}
                 <Stack.Screen name="index" options={{ animation: 'none' }} />
-                <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
               </Stack>
             </LogSheetHost>
           </BottomSheetModalProvider>

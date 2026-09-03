@@ -8,7 +8,7 @@ import { newId } from '@/lib/db/ids';
 import { checkpoints as checkpointsTable, entries, goals, rescopes } from '@/lib/db/schema';
 import { dayKey, daysBetweenKeysInclusive } from '@/lib/date';
 import { qk } from '@/lib/queryKeys';
-import { formatAmount } from '@/lib/format';
+import { formatAmount, formatDayKeyShort } from '@/lib/format';
 import { cadenceForGoal } from '@/lib/derive/cadence';
 import { occurrencesInRange } from '@/lib/derive/schedule';
 import { currentValue, type ProgressEntry } from '@/lib/derive/progress';
@@ -212,7 +212,7 @@ export function useGoalDetail(goalId: string): GoalDetail | null {
       id: c.id,
       label: c.title,
       meta: c.hitAt
-        ? shortDate(c.hitAt.slice(0, 10))
+        ? formatDayKeyShort(c.hitAt.slice(0, 10))
         : i === firstUnhit
           ? 'in progress'
           : 'planned',
@@ -306,13 +306,7 @@ function relativeDayLabel(key: string, todayKey: string): string {
   const delta = daysBetweenKeysInclusive(key, todayKey) - 1;
   if (delta === 0) return 'Today';
   if (delta === 1) return 'Yesterday';
-  return shortDate(key);
-}
-
-function shortDate(key: string): string {
-  const date = new Date(`${key}T00:00:00.000Z`);
-  const month = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
-  return `${month} ${date.getUTCDate()}`;
+  return formatDayKeyShort(key);
 }
 
 // --- Mutations ---
@@ -384,10 +378,19 @@ export function useGoalRow(goalId: string | undefined) {
 export type UpdateGoalInput = {
   goalId: string;
   arcId: string;
+  /**
+   * Only pass this for a goal whose arc is still a **draft**.
+   *
+   * On an active arc a target change must go through `useRescopeGoal`, which writes the
+   * `rescopes` audit row in the same transaction — a target that moved with no audit row makes
+   * the history a lie, and the history is the feature (05-database.md §1). But a proposal being
+   * tuned during onboarding has no history to protect: the arc hasn't started, so recording a
+   * "rescope" for it would invent an event that never happened.
+   */
+  targetAmount?: number | null;
   title?: string;
   icon?: string;
   accent?: string;
-  targetAmount?: number | null;
   unit?: string | null;
   itemNoun?: string | null;
   cadenceMode?: string | null;

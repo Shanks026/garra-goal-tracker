@@ -2,6 +2,7 @@ import { Text, View } from 'react-native';
 
 import { useAppTheme } from '@/theme/useAppTheme';
 import { system } from '@/theme/tokens';
+import { fontFor } from '@/theme/fonts';
 
 export type StatusPillProps = {
   label: string;
@@ -42,7 +43,7 @@ export function StatusPill({ label, status }: StatusPillProps) {
       className="h-status-pill-h flex-row items-center justify-center rounded-pill px-3.5"
       style={{ backgroundColor }}
     >
-      <Text style={{ color: textColor, fontSize: 14, fontWeight: '600', letterSpacing: -0.14 }}>
+      <Text style={{ color: textColor, fontSize: 14, fontFamily: fontFor(600, 'text'), fontWeight: '600', letterSpacing: -0.14 }}>
         {label}
       </Text>
     </View>

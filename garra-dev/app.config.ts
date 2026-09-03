@@ -42,7 +42,15 @@ const config: ExpoConfig = {
   web: {
     favicon: './assets/favicon.png',
   },
-  plugins: ['expo-router', 'expo-sqlite', 'expo-secure-store', '@sentry/react-native'],
+  // expo-font added by hand: `expo install` can't write to a dynamic app.config.ts and printed
+  // the block to add. It's native, so adding it requires a new dev build.
+  plugins: [
+    'expo-router',
+    'expo-sqlite',
+    'expo-secure-store',
+    'expo-font',
+    '@sentry/react-native',
+  ],
 };
 
 export default config;

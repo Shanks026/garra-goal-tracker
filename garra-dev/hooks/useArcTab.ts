@@ -6,7 +6,7 @@ import { db } from '@/lib/db/client';
 import { entries, goals } from '@/lib/db/schema';
 import { addDaysToKey, dayKey, daysBetweenKeysInclusive } from '@/lib/date';
 import { qk } from '@/lib/queryKeys';
-import { formatAmount, formatGoalValue, formatMinutes } from '@/lib/format';
+import { formatAmount, formatDayKeyShort, formatGoalValue, formatMinutes } from '@/lib/format';
 import { cadenceForGoal } from '@/lib/derive/cadence';
 import { occurrencesInRange } from '@/lib/derive/schedule';
 import { currentValue, type ProgressEntry } from '@/lib/derive/progress';
@@ -199,6 +199,7 @@ export function useArcTab(): ArcTabData | null {
         p: result.fractionDone,
         t: result.fractionExpected,
         status: result.status,
+        notStarted: current <= 0,
         valueLabel,
         accessibilityLabel: `${goal.title}, ${formatAmount(current)} of ${formatAmount(target)}${
           goal.unit ? ` ${goal.unit}` : ''
@@ -212,7 +213,7 @@ export function useArcTab(): ArcTabData | null {
 
     return {
       title: arc.title,
-      windowLabel: `${shortDate(arc.startsAt)} → ${shortDate(arc.endsAt)} · day ${elapsed}`,
+      windowLabel: `${formatDayKeyShort(arc.startsAt)} → ${formatDayKeyShort(arc.endsAt)} · day ${elapsed}`,
       mosaic,
       momentum: { headline, points: momentumPoints(series) },
       load: {
@@ -225,10 +226,4 @@ export function useArcTab(): ArcTabData | null {
       streak,
     };
   }, [arc, goalsQuery.data, entryRows, goalRows, now]);
-}
-
-function shortDate(key: string): string {
-  const date = new Date(`${key}T00:00:00.000Z`);
-  const month = date.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' });
-  return `${month} ${date.getUTCDate()}`;
 }

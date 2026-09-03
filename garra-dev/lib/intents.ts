@@ -7,7 +7,33 @@
 // model is worse than a shorter list.
 
 export type IntentKey =
-  'cycling' | 'guitar' | 'writing' | 'language' | 'strength' | 'reading' | 'sideProject';
+  // The canvas's seven.
+  | 'cycling'
+  | 'guitar'
+  | 'writing'
+  | 'language'
+  | 'strength'
+  | 'reading'
+  | 'sideProject'
+  // Broadened past the canvas so the picker covers what people actually set out to do.
+  | 'running'
+  | 'walking'
+  | 'swimming'
+  | 'meditation'
+  | 'yoga'
+  | 'coding'
+  | 'drawing'
+  | 'photography'
+  | 'piano'
+  | 'drums'
+  | 'singing'
+  | 'cooking'
+  | 'studying'
+  | 'publicSpeaking'
+  | 'content'
+  | 'chess'
+  | 'gardening'
+  | 'stretching';
 
 export type GoalProposal = {
   type: 'habit' | 'accumulate' | 'ship' | 'milestone';
@@ -48,8 +74,20 @@ export type IntentTemplate = {
 // fixed number, so a 30-day arc doesn't propose an identical target to a 122-day one.
 const REFERENCE_DAYS = 122;
 
+/**
+ * Scales a reference target to the arc's actual length, then rounds it to a number a human would
+ * have chosen.
+ *
+ * The raw arithmetic is exact and useless: 800km over 30 days is 196.7, and proposing "197 km"
+ * announces that a computer picked it. A target is an aspiration the user is being invited to
+ * accept, so it has to look chosen — 200. Granularity scales with magnitude, because rounding
+ * 14 pieces to the nearest 50 would destroy the proposal.
+ */
 function scaleToWindow(base: number, totalDays: number): number {
-  return Math.max(1, Math.round((base * totalDays) / REFERENCE_DAYS));
+  const exact = (base * totalDays) / REFERENCE_DAYS;
+
+  const step = exact >= 500 ? 50 : exact >= 100 ? 25 : exact >= 40 ? 10 : exact >= 10 ? 5 : 1;
+  return Math.max(1, Math.round(exact / step) * step);
 }
 
 export const INTENTS: IntentTemplate[] = [
@@ -159,6 +197,283 @@ export const INTENTS: IntentTemplate[] = [
       timesPerWeek: 2,
       estMinutes: 90,
       quickAdd: [1, 2, 3],
+    }),
+  },
+
+  // ── Broader catalog ────────────────────────────────────────────────────────────────────────
+  //
+  // The seven above are the canvas's own examples. These cover the pursuits people actually
+  // set out to learn or build, so the picker isn't a list of whatever came up in one
+  // conversation. Every one maps onto a type the app can genuinely model — habit, accumulate,
+  // ship or milestone. Nothing here needs the post-v1 Limit type (no "quit", no "less",
+  // no weight targets), because a chip that proposes a goal the engine can't score is worse
+  // than no chip at all (Design Delta #2).
+
+  {
+    key: 'running',
+    label: 'Running',
+    icon: 'footprints',
+    buildGoal: ({ totalDays }) => ({
+      type: 'accumulate',
+      title: 'Running',
+      unit: 'km',
+      targetAmount: scaleToWindow(250, totalDays),
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 4,
+      estMinutes: 45,
+      paceBasis: 'even',
+      quickAdd: quickAddFor(5),
+    }),
+  },
+  {
+    key: 'walking',
+    label: 'Walking',
+    icon: 'mountain',
+    buildGoal: ({ totalDays }) => ({
+      type: 'accumulate',
+      title: 'Walking',
+      unit: 'km',
+      targetAmount: scaleToWindow(500, totalDays),
+      cadenceMode: 'daily',
+      estMinutes: 40,
+      paceBasis: 'even',
+      quickAdd: quickAddFor(4),
+    }),
+  },
+  {
+    key: 'swimming',
+    label: 'Swimming',
+    icon: 'waves',
+    buildGoal: ({ totalDays }) => ({
+      type: 'accumulate',
+      title: 'Swimming',
+      unit: 'laps',
+      targetAmount: scaleToWindow(600, totalDays),
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 3,
+      estMinutes: 45,
+      paceBasis: 'even',
+      quickAdd: quickAddFor(20),
+    }),
+  },
+  {
+    key: 'meditation',
+    label: 'Meditation',
+    icon: 'brain',
+    buildGoal: () => ({
+      type: 'habit',
+      title: 'Meditation',
+      cadenceMode: 'daily',
+      sessionTarget: 10,
+      unit: 'min',
+      estMinutes: 10,
+      quickAdd: quickAddFor(10),
+    }),
+  },
+  {
+    key: 'yoga',
+    label: 'Yoga',
+    icon: 'person-standing',
+    buildGoal: () => ({
+      type: 'habit',
+      title: 'Yoga',
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 4,
+      estMinutes: 35,
+    }),
+  },
+  {
+    key: 'coding',
+    label: 'Coding',
+    icon: 'code',
+    buildGoal: () => ({
+      type: 'habit',
+      title: 'Coding',
+      cadenceMode: 'daily',
+      sessionTarget: 60,
+      unit: 'min',
+      estMinutes: 60,
+      quickAdd: quickAddFor(60),
+    }),
+  },
+  {
+    key: 'drawing',
+    label: 'Drawing',
+    icon: 'palette',
+    buildGoal: ({ totalDays }) => ({
+      type: 'ship',
+      title: 'Drawing',
+      itemNoun: 'drawings',
+      targetAmount: scaleToWindow(60, totalDays),
+      cadenceMode: 'daily',
+      estMinutes: 30,
+      quickAdd: [1, 2, 3],
+    }),
+  },
+  {
+    key: 'photography',
+    label: 'Photography',
+    icon: 'camera',
+    buildGoal: ({ totalDays }) => ({
+      type: 'ship',
+      title: 'Photography',
+      itemNoun: 'shoots',
+      targetAmount: scaleToWindow(20, totalDays),
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 2,
+      estMinutes: 60,
+      quickAdd: [1, 2, 3],
+    }),
+  },
+  {
+    key: 'piano',
+    label: 'Piano',
+    icon: 'piano',
+    buildGoal: () => ({
+      // Same reasoning as Guitar: a discrete plan, so the checkpoints don't scale with window
+      // length the way a continuous target does.
+      type: 'milestone',
+      title: 'Piano',
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 5,
+      estMinutes: 30,
+      checkpoints: [
+        { title: 'Both hands together' },
+        { title: 'Read sheet music' },
+        { title: 'First full piece' },
+        { title: 'Piece 3' },
+        { title: 'Play from memory' },
+      ],
+    }),
+  },
+  {
+    key: 'drums',
+    label: 'Drums',
+    icon: 'drum',
+    buildGoal: () => ({
+      type: 'habit',
+      title: 'Drums',
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 4,
+      sessionTarget: 30,
+      unit: 'min',
+      estMinutes: 30,
+      quickAdd: quickAddFor(30),
+    }),
+  },
+  {
+    key: 'singing',
+    label: 'Singing',
+    icon: 'mic',
+    buildGoal: () => ({
+      type: 'habit',
+      title: 'Singing',
+      cadenceMode: 'daily',
+      sessionTarget: 20,
+      unit: 'min',
+      estMinutes: 20,
+      quickAdd: quickAddFor(20),
+    }),
+  },
+  {
+    key: 'cooking',
+    label: 'Cooking',
+    icon: 'chef-hat',
+    buildGoal: ({ totalDays }) => ({
+      type: 'ship',
+      title: 'Cooking',
+      itemNoun: 'new recipes',
+      targetAmount: scaleToWindow(24, totalDays),
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 2,
+      estMinutes: 60,
+      quickAdd: [1, 2, 3],
+    }),
+  },
+  {
+    key: 'studying',
+    label: 'Studying',
+    icon: 'graduation-cap',
+    buildGoal: ({ totalDays }) => ({
+      type: 'accumulate',
+      title: 'Studying',
+      unit: 'hours',
+      targetAmount: scaleToWindow(150, totalDays),
+      cadenceMode: 'daily',
+      estMinutes: 90,
+      paceBasis: 'even',
+      quickAdd: quickAddFor(2),
+    }),
+  },
+  {
+    key: 'publicSpeaking',
+    label: 'Public speaking',
+    icon: 'briefcase',
+    buildGoal: ({ totalDays }) => ({
+      type: 'ship',
+      title: 'Public speaking',
+      itemNoun: 'talks',
+      targetAmount: scaleToWindow(8, totalDays),
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 1,
+      estMinutes: 60,
+      quickAdd: [1, 2, 3],
+    }),
+  },
+  {
+    key: 'content',
+    label: 'Video content',
+    icon: 'video',
+    buildGoal: ({ totalDays }) => ({
+      type: 'ship',
+      title: 'Video content',
+      itemNoun: 'videos',
+      targetAmount: scaleToWindow(16, totalDays),
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 1,
+      estMinutes: 120,
+      quickAdd: [1, 2, 3],
+    }),
+  },
+  {
+    key: 'chess',
+    label: 'Chess',
+    icon: 'puzzle',
+    buildGoal: ({ totalDays }) => ({
+      type: 'accumulate',
+      title: 'Chess',
+      unit: 'puzzles',
+      targetAmount: scaleToWindow(600, totalDays),
+      cadenceMode: 'daily',
+      estMinutes: 20,
+      paceBasis: 'even',
+      quickAdd: quickAddFor(5),
+    }),
+  },
+  {
+    key: 'gardening',
+    label: 'Gardening',
+    icon: 'sprout',
+    buildGoal: () => ({
+      type: 'habit',
+      title: 'Gardening',
+      cadenceMode: 'n_per_week',
+      timesPerWeek: 3,
+      estMinutes: 30,
+    }),
+  },
+  {
+    key: 'stretching',
+    label: 'Mobility',
+    icon: 'person-standing',
+    buildGoal: () => ({
+      type: 'habit',
+      title: 'Mobility',
+      cadenceMode: 'daily',
+      sessionTarget: 15,
+      unit: 'min',
+      estMinutes: 15,
+      quickAdd: quickAddFor(15),
     }),
   },
 ];

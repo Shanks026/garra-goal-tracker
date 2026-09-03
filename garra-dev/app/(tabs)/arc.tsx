@@ -10,6 +10,7 @@ import { MomentumSection } from '@/components/arc/MomentumSection';
 import { LoadSection } from '@/components/arc/LoadSection';
 import { StreakStats } from '@/components/arc/StreakStats';
 import { GoalRow } from '@/components/goal/GoalRow';
+import { fontFor } from '@/theme/fonts';
 
 // Screen 15 — the whole run at a glance. Read-only: this screen writes nothing at all, which is
 // what makes it the safest in the app and the one most likely to get screenshotted
@@ -31,11 +32,11 @@ export default function ArcTab() {
       >
         <Text
           className="text-text-primary dark:text-text-primary-dark"
-          style={{ fontSize: 28, fontWeight: '600', letterSpacing: -0.84 }}
+          style={{ fontSize: 28, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -0.84 }}
         >
           {copy.arcTab.title}
         </Text>
-        <Text className="mt-1.5 text-[15px] text-text-secondary dark:text-text-secondary-dark">
+        <Text className="font-body mt-1.5 text-[15px] text-text-secondary dark:text-text-secondary-dark">
           {data.windowLabel}
         </Text>
 

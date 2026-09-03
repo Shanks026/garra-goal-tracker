@@ -16,6 +16,7 @@ import { Sheet, type SheetRef } from '@/sheets/Sheet';
 import { SkipReasonSheetContent } from '@/sheets/SkipReasonSheet';
 import { useToastStore } from '@/lib/stores/toast';
 import { copy } from '@/lib/copy';
+import { formatDayKeyLong } from '@/lib/format';
 import { controls, layout } from '@/theme/tokens';
 import { ArcHero } from '@/components/home/ArcHero';
 import { YesterdayRow } from '@/components/home/YesterdayRow';
@@ -113,8 +114,11 @@ export default function Home() {
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: layout.screenX,
-          paddingTop: 8,
-          paddingBottom: 24,
+          // The arc's name sat right under the notification tray; the safe-area inset clears the
+          // bar's height but leaves nothing to breathe against (same reasoning as layout.screenTop
+          // on the onboarding screens).
+          paddingTop: layout.screenTop,
+          paddingBottom: layout.contentBottom,
         }}
       >
         <ArcHero progress={progress} />
@@ -142,9 +146,22 @@ export default function Home() {
           </View>
         ) : null}
 
-        <Text className="mt-[22px] text-[11px] font-semibold uppercase tracking-[.16em] text-label dark:text-label-dark">
-          {copy.home.todayLabel}
-        </Text>
+        {/* The date sits beside the label, not under it: "TODAY" alone doesn't say *which* day,
+            which matters in an app whose day boundary is 04:00 — a session logged at 00:30
+            belongs to yesterday, so the user needs to see which date they're logging against.
+            `todayKey` is the post-rollover day key, not the wall-clock date, so it agrees with
+            every entry written from this screen. */}
+        <View className="mt-[22px] flex-row items-baseline justify-between">
+          <Text className="text-[11px] font-semibold uppercase tracking-[.16em] text-label dark:text-label-dark">
+            {copy.home.todayLabel}
+          </Text>
+          <Text
+            className="font-body text-[13px] text-text-tertiary dark:text-text-tertiary-dark"
+            style={{ fontVariant: ['tabular-nums'] }}
+          >
+            {formatDayKeyLong(todayKey)}
+          </Text>
+        </View>
 
         <View style={{ marginTop: 14, gap: 2 }}>
           {mains.map((item, i) => (
@@ -176,7 +193,7 @@ export default function Home() {
             />
           ))}
           {mains.length === 0 && sides.length === 0 ? (
-            <Text className="text-[15px] text-text-secondary dark:text-text-secondary-dark">
+            <Text className="font-body text-[15px] text-text-secondary dark:text-text-secondary-dark">
               {copy.home.emptyToday}
             </Text>
           ) : null}

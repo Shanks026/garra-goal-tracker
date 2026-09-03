@@ -3,6 +3,7 @@ import { Text, View } from 'react-native';
 import { Chip } from '@/components/ui/Chip';
 import { copy } from '@/lib/copy';
 import type { SkipReasonKey } from '@/hooks/useLogEntry';
+import { fontFor } from '@/theme/fonts';
 
 // Not designed (rules/01 §9 lists no skip surface). Extends the log-sheet shell with the same
 // Chip primitive the intent picker uses, rather than inventing a new visual language. Two taps
@@ -24,7 +25,7 @@ export function SkipReasonSheetContent({
         </Text>
         <Text
           className="text-text-primary dark:text-text-primary-dark"
-          style={{ fontSize: 24, fontWeight: '600', letterSpacing: -0.6 }}
+          style={{ fontSize: 24, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -0.6 }}
         >
           {goalTitle}
         </Text>

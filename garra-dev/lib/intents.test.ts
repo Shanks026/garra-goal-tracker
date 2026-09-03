@@ -1,6 +1,12 @@
 import { INTENTS, type IntentKey } from './intents';
 
+// Deliberately hand-written rather than derived from INTENTS. Deriving it would make the first
+// test vacuous — its whole job is to catch a key added to the `IntentKey` union with no template
+// behind it (or a template whose key isn't in the union), which types alone can't check because
+// the union is erased at runtime. So this list has to be updated by hand when the catalog grows,
+// and that friction is the feature.
 const ALL_KEYS: IntentKey[] = [
+  // The canvas's seven.
   'cycling',
   'guitar',
   'writing',
@@ -8,6 +14,25 @@ const ALL_KEYS: IntentKey[] = [
   'strength',
   'reading',
   'sideProject',
+  // Added when the catalog was broadened past the canvas's examples.
+  'running',
+  'walking',
+  'swimming',
+  'meditation',
+  'yoga',
+  'coding',
+  'drawing',
+  'photography',
+  'piano',
+  'drums',
+  'singing',
+  'cooking',
+  'studying',
+  'publicSpeaking',
+  'content',
+  'chess',
+  'gardening',
+  'stretching',
 ];
 
 describe('INTENTS', () => {

@@ -1,16 +1,15 @@
-import { useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ListGroup } from '@/components/ui/ListGroup';
 import { ListRow } from '@/components/ui/ListRow';
 import { SectionLabel } from '@/components/ui/SectionLabel';
-import { Sheet, type SheetRef } from '@/sheets/Sheet';
-import { SignInSheetContent } from '@/sheets/SignInSheetContent';
 import { useAuth } from '@/hooks/useAuth';
 import { useSignOut } from '@/hooks/useSignIn';
 import { useLocalProfileName } from '@/hooks/useArcBuilder';
 import { useSyncStatus } from '@/hooks/useSyncStatus';
+import { fontFor } from '@/theme/fonts';
 
 // Settings is not designed (rules/01 §9) — a standard inset grouped list. Phase 12 builds the
 // rest of it; Phase 8 adds only the account group, because sync state has to live somewhere and
@@ -21,15 +20,10 @@ export default function SettingsTab() {
   const profileName = useLocalProfileName().data;
   const signedIn = !!session;
   const syncStatus = useSyncStatus(signedIn);
-  const sheetRef = useRef<SheetRef>(null);
-  const [sheetMounted, setSheetMounted] = useState(false);
+  const router = useRouter();
 
-  const openSignIn = () => {
-    setSheetMounted(true);
-    // The modal has to exist before it can be presented; mounting and presenting in the same
-    // frame leaves the ref null.
-    requestAnimationFrame(() => sheetRef.current?.present());
-  };
+  // Opens the auth screen straight into log-in — someone in Settings already has an account.
+  const openSignIn = () => router.push({ pathname: '/auth', params: { mode: 'login' } });
 
   const confirmSignOut = () => {
     // rules/02 §5: Alert with a destructive button, and only for genuinely destructive actions.
@@ -46,7 +40,7 @@ export default function SettingsTab() {
       <ScrollView contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 40 }}>
         <Text
           className="text-text-primary dark:text-text-primary-dark"
-          style={{ fontSize: 28, fontWeight: '600', letterSpacing: -0.84, marginTop: 8 }}
+          style={{ fontSize: 28, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -0.84, marginTop: 8 }}
         >
           Settings
         </Text>
@@ -76,7 +70,7 @@ export default function SettingsTab() {
             <ListRow label="Sync" value={syncStatus.data?.label ?? '—'} />
           </ListGroup>
           {profileName ? (
-            <Text className="px-4 text-[13px] text-text-quaternary dark:text-text-quaternary-dark">
+            <Text className="font-body px-4 text-[13px] text-text-quaternary dark:text-text-quaternary-dark">
               Signed up as {profileName}
             </Text>
           ) : null}
@@ -90,11 +84,6 @@ export default function SettingsTab() {
         </View>
       </ScrollView>
 
-      {sheetMounted ? (
-        <Sheet ref={sheetRef} snapPoints={['62%']}>
-          <SignInSheetContent onDone={() => sheetRef.current?.dismiss()} />
-        </Sheet>
-      ) : null}
     </SafeAreaView>
   );
 }

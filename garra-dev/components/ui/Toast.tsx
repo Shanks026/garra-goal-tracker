@@ -42,7 +42,7 @@ export function Toast() {
           style={{ minHeight: 48, gap: 12 }}
         >
           <Text
-            className="flex-1 text-[15px] text-text-primary dark:text-text-primary-dark"
+            className="font-body flex-1 text-[15px] text-text-primary dark:text-text-primary-dark"
             numberOfLines={2}
           >
             {toast.message}
@@ -69,7 +69,7 @@ export function Toast() {
               hitSlop={12}
               style={{ minHeight: 44, justifyContent: 'center' }}
             >
-              <Text className="text-[15px] text-text-tertiary dark:text-text-tertiary-dark">✕</Text>
+              <Text className="font-body text-[15px] text-text-tertiary dark:text-text-tertiary-dark">✕</Text>
             </Pressable>
           )}
         </Animated.View>

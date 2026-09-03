@@ -1,4 +1,5 @@
 import { Text } from 'react-native';
+import { fontFor } from '@/theme/fonts';
 
 export type SectionLabelProps = {
   label: string;
@@ -12,7 +13,7 @@ export function SectionLabel({ label, context = 'form' }: SectionLabelProps) {
       className="uppercase text-label dark:text-label-dark"
       style={{
         fontSize: 11,
-        fontWeight: '600',
+        fontFamily: fontFor(600, 'text'), fontWeight: '600',
         letterSpacing: (context === 'form' ? 0.14 : 0.16) * 11,
       }}
     >

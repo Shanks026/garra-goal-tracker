@@ -32,7 +32,7 @@ export function GoalRecentList({
       </Text>
       <View className="mt-1">
         {entries.length === 0 ? (
-          <Text className="mt-3 text-[15px] text-text-secondary dark:text-text-secondary-dark">
+          <Text className="font-body mt-3 text-[15px] text-text-secondary dark:text-text-secondary-dark">
             Nothing logged yet.
           </Text>
         ) : (
@@ -43,7 +43,7 @@ export function GoalRecentList({
               style={{ height: controls.entryRowH }}
             >
               <Text
-                className="flex-1 text-[16px] text-text-secondary dark:text-text-secondary-dark"
+                className="font-body flex-1 text-[16px] text-text-secondary dark:text-text-secondary-dark"
                 numberOfLines={1}
               >
                 {showTitles ? (entry.title ?? entry.label) : entry.label}

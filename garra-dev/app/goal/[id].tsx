@@ -25,6 +25,7 @@ import { RescopeSheetContent } from '@/sheets/RescopeSheet';
 import { GoalMosaicSection } from '@/components/goal/GoalMosaicSection';
 import { GoalWeekSection } from '@/components/goal/GoalWeekSection';
 import { GoalRecentList } from '@/components/goal/GoalRecentList';
+import { fontFor } from '@/theme/fonts';
 
 // Screens 13 (Accumulate) and 14 (Milestone) exactly; Habit and Ship extend 13's structure with
 // a swapped hero, per rules/01 §9's instruction for undesigned variants.
@@ -81,13 +82,13 @@ export default function GoalDetail() {
         {/* Header: ‹ back · arc name · ⋯ */}
         <View className="h-9 flex-row items-center justify-between">
           <PressableScale onPress={() => safeBack(router, '/(tabs)')} hitSlop={12}>
-            <Text className="text-[19px] text-text-secondary dark:text-text-secondary-dark">‹</Text>
+            <Text className="font-body text-[19px] text-text-secondary dark:text-text-secondary-dark">‹</Text>
           </PressableScale>
           <Text className="text-[15px] font-medium text-text-secondary dark:text-text-secondary-dark">
             {detail.arcTitle}
           </Text>
           <PressableScale onPress={() => actionsRef.current?.present()} hitSlop={12}>
-            <Text className="text-[19px] text-text-secondary dark:text-text-secondary-dark">⋯</Text>
+            <Text className="font-body text-[19px] text-text-secondary dark:text-text-secondary-dark">⋯</Text>
           </PressableScale>
         </View>
 
@@ -102,7 +103,7 @@ export default function GoalDetail() {
                 className="text-text-primary dark:text-text-primary-dark"
                 style={{
                   fontSize: 44,
-                  fontWeight: '600',
+                  fontFamily: fontFor(600, 'display'), fontWeight: '600',
                   letterSpacing: -1.76,
                   lineHeight: 44,
                   fontVariant: ['tabular-nums'],
@@ -163,7 +164,7 @@ export default function GoalDetail() {
             >
               {detail.requiredRateLabel}
             </Text>
-            <Text className="text-[15px] text-text-secondary dark:text-text-secondary-dark">
+            <Text className="font-body text-[15px] text-text-secondary dark:text-text-secondary-dark">
               required from here
             </Text>
           </View>
@@ -210,7 +211,7 @@ export default function GoalDetail() {
           paused={paused}
           onEdit={() => {
             actionsRef.current?.dismiss();
-            router.push({ pathname: '/arc-builder/goal-form', params: { goalId: goal.id } });
+            router.navigate({ pathname: '/arc-builder/goal-form', params: { goalId: goal.id } });
           }}
           onRescope={() => {
             actionsRef.current?.dismiss();

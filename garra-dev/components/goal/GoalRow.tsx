@@ -8,6 +8,7 @@ import { system } from '@/theme/tokens';
 import { motion, staggerDelay } from '@/theme/motion';
 import { copy } from '@/lib/copy';
 import type { ArcRowData } from '@/hooks/useHomeData';
+import { fontFor } from '@/theme/fonts';
 
 // rules/01 §7's Arc row: 32px pace ring, name 17/500, then a right column of value (16/600,
 // tabular) over status (13/500).
@@ -36,8 +37,10 @@ export function GoalRow({
 }) {
   const { tokens, colorScheme } = useAppTheme();
 
+  // "Not started" is neutral by definition: an arc on day 0 has not slipped, so it must never
+  // borrow amber. Only a genuine slip does (rules/01 §0).
   const statusColor =
-    row.status === 'slipping'
+    !row.notStarted && row.status === 'slipping'
       ? colorScheme === 'light'
         ? system.slippingLight
         : system.slipping
@@ -77,9 +80,9 @@ export function GoalRow({
             {row.valueLabel}
           </Text>
           <Text
-            style={{ fontSize: 13, fontWeight: '500', letterSpacing: -0.065, color: statusColor }}
+            style={{ fontSize: 13, fontFamily: fontFor(500, 'text'), fontWeight: '500', letterSpacing: -0.065, color: statusColor }}
           >
-            {STATUS_LABEL[row.status]}
+            {row.notStarted ? copy.status.notStarted : STATUS_LABEL[row.status]}
           </Text>
         </View>
       </PressableScale>

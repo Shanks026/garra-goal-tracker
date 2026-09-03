@@ -7,6 +7,7 @@ import { formatAmount } from '@/lib/format';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import type { PaceStatus } from '@/lib/derive/pace';
+import { fontFor } from '@/theme/fonts';
 
 // Not designed — built on the log-sheet shell, which is what rules/01 §9 prescribes for this
 // flow. The tone comes straight from garra-index.md §7.6: state the arithmetic plainly, don't
@@ -47,7 +48,7 @@ export function RescopeSheetContent({
       <View style={{ gap: 10 }}>
         <Text
           className="text-text-primary dark:text-text-primary-dark"
-          style={{ fontSize: 24, fontWeight: '600', letterSpacing: -0.6, lineHeight: 30 }}
+          style={{ fontSize: 24, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -0.6, lineHeight: 30 }}
         >
           {formatAmount(target)}
           {unitLabel} isn&apos;t happening.
@@ -90,12 +91,12 @@ export function RescopeSheetContent({
             placeholderTextColor={tokens.textTertiary}
             autoFocus
             className="text-text-primary dark:text-text-primary-dark"
-            style={{ fontSize: 38, fontWeight: '600', letterSpacing: -1.33, minWidth: 120 }}
+            style={{ fontSize: 38, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -1.33, minWidth: 120 }}
           />
           {unit ? (
             <Text
               className="text-text-secondary dark:text-text-secondary-dark"
-              style={{ fontSize: 18, fontWeight: '500', paddingBottom: 8 }}
+              style={{ fontSize: 18, fontFamily: fontFor(500, 'text'), fontWeight: '500', paddingBottom: 8 }}
             >
               {unit}
             </Text>

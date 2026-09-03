@@ -126,6 +126,19 @@ export const system = {
 // fontVariant: ['tabular-nums'] at the call site, not baked in here.
 export const typography = {
   displayXL: { size: 60, weight: '600', tracking: -0.045, lineHeight: 1.05 },
+  /**
+   * Question titles on onboarding and arc-builder screens ("What do you keep putting off?",
+   * "What kind of goal?").
+   *
+   * A step up from the canvas, which uses `titleL` (30) for onboarding titles and `titleM` (28)
+   * in the builder — those read as undersized on a real 420dp device, where the question is the
+   * only thing on screen worth reading. Added at the user's request, 2026-09-02.
+   *
+   * Weight stays 600: rules/01 §2 caps it there and says never use 700 for a heading. The extra
+   * presence comes from size and from Inter Tight, which carries far more weight at 600 than
+   * the OS font the app was accidentally rendering in until now.
+   */
+  titleHero: { size: 38, weight: '600', tracking: -0.035, lineHeight: 1.1 },
   displayL: { size: 52, weight: '600', tracking: -0.04, lineHeight: 1.05 },
   displayM: { size: 46, weight: '600', tracking: -0.045, lineHeight: 1.05 },
   displayS: { size: 44, weight: '600', tracking: -0.04, lineHeight: 1.05 },
@@ -157,6 +170,33 @@ export const layout = {
   statusBarH: 56,
   tabBarH: 64,
   homeIndicatorH: 26,
+  /**
+   * Gap between the last element in a screen footer and the system navigation bar, on top of
+   * the safe-area inset. Not in the canvas — the canvas draws an iPhone home indicator, while
+   * an Android device with a three-button nav bar leaves a footer sitting visually on top of it.
+   * The 12px this replaced read as cramped on a real device (vivo I2220, Android 16).
+   */
+  screenBottom: 28,
+  /**
+   * Gap between the top of a screen's content and the status bar, on top of the safe-area
+   * inset. Same reasoning as `screenBottom` at the other end: the inset alone clears the notch
+   * but leaves a title sitting directly under the notification tray with nothing to breathe
+   * against. Replaces the assorted `pt-4` / `paddingTop: 34` values these screens used.
+   *
+   * Raised from 28 to 44 after a second look on device: the safe-area inset clears the status
+   * bar's own height but leaves only ~20dp between the bar's glyphs and the first line of
+   * content, which still reads as crowding the notification tray.
+   */
+  screenTop: 44,
+  /**
+   * Gap between the end of a screen's scrollable content and a footer pinned below it.
+   *
+   * Distinct from `screenBottom`, which is the gap between that footer and the system nav bar.
+   * Without this the last block in a ScrollView butts directly against the primary button —
+   * on the goal form the "Est. minutes" group sat flush against "Add goal", which read as one
+   * merged element.
+   */
+  contentBottom: 28,
 } as const;
 
 export const radii = {

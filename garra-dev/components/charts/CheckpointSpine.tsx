@@ -11,6 +11,7 @@ import {
 } from 'react-native-reanimated';
 
 import { useAppTheme } from '@/theme/useAppTheme';
+import { fontFor } from '@/theme/fonts';
 
 export type CheckpointStatus = 'done' | 'current' | 'future';
 
@@ -100,12 +101,12 @@ export function CheckpointSpine({ checkpoints, accent }: CheckpointSpineProps) {
                     ? 'text-text-tertiary dark:text-text-tertiary-dark'
                     : 'text-text-primary dark:text-text-primary-dark'
                 }
-                style={{ fontSize: 19, fontWeight: '600', letterSpacing: -0.02 * 19 }}
+                style={{ fontSize: 19, fontFamily: fontFor(600, 'text'), fontWeight: '600', letterSpacing: -0.02 * 19 }}
               >
                 {cp.label}
               </Text>
               <Text
-                className="text-text-tertiary dark:text-text-tertiary-dark"
+                className="font-body text-text-tertiary dark:text-text-tertiary-dark"
                 style={{ fontSize: 13 }}
               >
                 {cp.meta}

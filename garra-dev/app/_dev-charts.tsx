@@ -32,6 +32,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { NumPad } from '@/components/ui/NumPad';
 import { Sheet, type SheetRef } from '@/sheets/Sheet';
+import { fontFor } from '@/theme/fonts';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -57,7 +58,7 @@ export default function DevCharts() {
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 24 }}>
           <Text
             className="text-text-primary dark:text-text-primary-dark"
-            style={{ fontSize: 28, fontWeight: '600', letterSpacing: -0.03 * 28 }}
+            style={{ fontSize: 28, fontFamily: fontFor(600, 'display'), fontWeight: '600', letterSpacing: -0.03 * 28 }}
           >
             Chart & UI kitchen sink
           </Text>
@@ -204,7 +205,7 @@ export default function DevCharts() {
         </Section>
 
         <Section title="NumPad">
-          <Text className="text-text-secondary dark:text-text-secondary-dark">
+          <Text className="font-body text-text-secondary dark:text-text-secondary-dark">
             {numPadValue || '0'}
           </Text>
           <NumPad
@@ -221,7 +222,7 @@ export default function DevCharts() {
       </ScrollView>
 
       <Sheet ref={sheetRef}>
-        <Text className="text-text-primary dark:text-text-primary-dark">
+        <Text className="font-body text-text-primary dark:text-text-primary-dark">
           Press the Android back button — this should close the sheet, not exit the app.
         </Text>
       </Sheet>

@@ -1,3 +1,60 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Font families bolted onto Tailwind's weight utilities.
+ *
+ * React Native has no font-weight matching for custom fonts, and Inter ships static instances
+ * rather than a variable font — so `font-semibold` on its own would set weight 600 against a
+ * Regular family and get a synthesised fake bold. Redefining the utilities here means every
+ * existing `font-normal` / `font-medium` / `font-semibold` in the app resolves to the correct
+ * real cut with **no per-component change** (57 call sites at the time of writing).
+ *
+ * `!important` because these must beat Tailwind's own same-named utilities rather than depend on
+ * source order.
+ *
+ * These map to the **text** face (Inter). Display and title sizes want Inter Tight instead —
+ * those set `fontFamily` explicitly from `theme/fonts.ts`, since a size-based rule can't be
+ * expressed here. See that file for why the two faces are split.
+ */
+@layer utilities {
+  /* ORDER MATTERS. `.font-body` is declared FIRST on purpose: it's the app-wide default face,
+     applied blanket-wide to every Text (Tailwind emits nothing for "default weight", so a Text
+     with no weight class would otherwise keep falling back to the OS font). Because every rule
+     here is `!important`, the last matching declaration wins — so the weight utilities below
+     must come after, or `font-body` would clobber `font-semibold` on any element carrying both.
+     That ordering is what makes "add font-body everywhere" safe. */
+  .font-body {
+    font-family: Inter_400Regular !important;
+  }
+
+  .font-normal {
+    font-family: Inter_400Regular !important;
+    font-weight: 400 !important;
+  }
+
+  .font-medium {
+    font-family: Inter_500Medium !important;
+    font-weight: 500 !important;
+  }
+
+  .font-semibold {
+    font-family: Inter_600SemiBold !important;
+    font-weight: 600 !important;
+  }
+
+  /* Display face — Inter Tight — for title and display sizes. Declared last so it wins over
+     the text-face rules on an element that carries both a weight class and this one. */
+  .font-display {
+    font-family: InterTight_600SemiBold !important;
+  }
+
+  .font-display-medium {
+    font-family: InterTight_500Medium !important;
+  }
+
+  .font-display-regular {
+    font-family: InterTight_400Regular !important;
+  }
+}

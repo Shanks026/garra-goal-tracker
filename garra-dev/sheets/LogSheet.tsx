@@ -6,6 +6,7 @@ import { formatAmount } from '@/lib/format';
 import { NumPad } from '@/components/ui/NumPad';
 import { Button } from '@/components/ui/Button';
 import type { TodayItem } from '@/hooks/useHomeData';
+import { fontFor } from '@/theme/fonts';
 
 // Screen 12's content. Value entry uses the custom 12-key numpad, never the OS keyboard — it
 // costs a tap and breaks the 10-second rule (rules/01 §7, rules/02 §4).
@@ -54,7 +55,7 @@ export function LogSheetContent({
           {item.title}
         </Text>
         <View style={{ flex: 1 }} />
-        <Text className="text-[14px] text-text-tertiary dark:text-text-tertiary-dark">
+        <Text className="font-body text-[14px] text-text-tertiary dark:text-text-tertiary-dark">
           {queuePosition
             ? `${queuePosition.index + 1} of ${queuePosition.total}`
             : (progressLabel ?? '')}
@@ -66,7 +67,7 @@ export function LogSheetContent({
           className="text-text-primary dark:text-text-primary-dark"
           style={{
             fontSize: 52,
-            fontWeight: '600',
+            fontFamily: fontFor(600, 'display'), fontWeight: '600',
             letterSpacing: -2.08,
             lineHeight: 52,
             fontVariant: ['tabular-nums'],
@@ -77,7 +78,7 @@ export function LogSheetContent({
         {unitLabel ? (
           <Text
             className="text-text-secondary dark:text-text-secondary-dark"
-            style={{ fontSize: 20, fontWeight: '500', paddingBottom: 12 }}
+            style={{ fontSize: 20, fontFamily: fontFor(500, 'text'), fontWeight: '500', paddingBottom: 12 }}
           >
             {unitLabel}
           </Text>

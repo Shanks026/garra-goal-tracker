@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Delete } from 'lucide-react-native';
 
 import { useAppTheme } from '@/theme/useAppTheme';
+import { fontFor } from '@/theme/fonts';
 
 export type NumPadProps = {
   onKeyPress: (key: string) => void;
@@ -30,7 +31,7 @@ export function NumPad({ onKeyPress }: NumPadProps) {
           ) : (
             <Text
               className="text-text-primary dark:text-text-primary-dark"
-              style={{ fontSize: 24, fontWeight: '500' }}
+              style={{ fontSize: 24, fontFamily: fontFor(500, 'display'), fontWeight: '500' }}
             >
               {key}
             </Text>
